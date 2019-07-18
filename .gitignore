@@ -1,0 +1,8 @@
+*.o
+*.lo
+*.a
+*.so
+*.so.*
+*.dll
+zlib-*/minigzip*
+zlib-*/example*
