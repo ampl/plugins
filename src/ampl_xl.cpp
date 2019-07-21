@@ -526,6 +526,7 @@ ExcelManager::parse_excel_range(){
 	return 0;
 };
 
+
 int
 ExcelManager::check_columns(
 	const pugi::xml_node &node,
@@ -552,42 +553,69 @@ ExcelManager::check_columns(
 	std::string iter_col;
 	bool found = false;
 
+
+	std::map<std::string, std::string> excel_col_map;
+
+	int nempty = 0; // number of empty columns parsed
+	const int max_empty = 100; // maximum number of empty columns allowed
+
+
+	iter_col = first_col;
+	while(1){
+
+		cell_adress = iter_col + row_id_str;
+		excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
+		excel_col_name = excel_cell.first_child().child_value();
+
+		if (excel_cell.attribute("t").value() == std::string("s")){
+			excel_col_name = shared_strings[std::atoi(excel_col_name.c_str())];
+		}
+
+		if (!excel_col_name.empty()){
+			excel_col_map[excel_col_name] = iter_col;
+			nempty = 0;
+
+			//~ std::cout << excel_col_name << " -> " << iter_col << std::endl;
+
+
+		}
+		else{
+			nempty += 1;
+		}
+
+
+		if (nempty == max_empty){
+			//~ std::cout << "nempty, breaking" << std::endl;
+			break;
+		}
+
+
+		if (iter_col == range_last_col){
+			break;
+		}
+
+		ecm.next(iter_col);
+	}
+
 	for (int i = 0; i < ampl_ncols; i++){
 
 		ampl_col_name = TI->colnames[i];
-		iter_col = first_col;
-		found = false;
 
-		while(1){
+		//~ std::cout << "checking: " << ampl_col_name << std::endl;
 
-			cell_adress = iter_col + row_id_str;
-			excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
-			excel_col_name = excel_cell.first_child().child_value();
+		std::map<std::string,std::string>::iterator it = excel_col_map.find(ampl_col_name);
 
-			if (excel_cell.attribute("t").value() == std::string("s")){
-				excel_col_name = shared_strings[std::atoi(excel_col_name.c_str())];
-			}
-
-			if (ampl_col_name == excel_col_name){
-
-				ampl_to_excel_cols[i] = iter_col;
-				found = true;
-				break;
-			}
-
-			if (iter_col == range_last_col){
-				break;
-			}
-
-			ecm.next(iter_col);
+		if (it != excel_col_map.end()){
+			ampl_to_excel_cols[i] = it->second;
 		}
-
-		if (!found){
+		else{
 			return i;
 		}
 	}
 	return -1;
 };
+
+
 
 
 
