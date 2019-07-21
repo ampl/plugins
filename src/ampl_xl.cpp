@@ -875,14 +875,8 @@ ExcelWriteManager::manage_data(){
 		first_row = range_first_row;
 		first_col = range_first_col; 
 		last_col = range_last_col;
-
-		if (range_first_row == range_last_row){
-			last_row = first_row + TI->nrows;
-		}
 	}
-	else{
-		last_row = first_row + TI->nrows;
-	}
+	last_row = first_row + TI->nrows;
 
 
 	//~ std::cout << "has_range: " << has_range << std::endl;
