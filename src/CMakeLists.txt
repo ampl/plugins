@@ -361,7 +361,7 @@ add_c_compiler_flags(fullbit -Wno-parentheses)
 
 # ampltabl
 add_ampl_library(ampltabl tables/tableproxy.c tables/tableproxyver.h)
-set(AMPLTABL_LINK_LIBRARIES asl)
+target_link_libraries(ampltabl asl)
 
 # SQLite3
 find_package(SQLite3)
@@ -383,7 +383,7 @@ if (ODBC_FOUND)
   target_compile_definitions(amplodbc PRIVATE funcadd_ASL=funcaddodbc_ASL)
   add_c_compiler_flags(amplodbc -Wno-deprecated-declarations)
   target_link_libraries(amplodbc asl ${ODBC_LIBRARIES})
-  set(AMPLTABL_LINK_LIBRARIES ${AMPLTABL_LINK_LIBRARIES} amplodbc)
+  target_link_libraries(ampltabl amplodbc)
   target_compile_definitions(ampltabl PRIVATE OTHER_FUNCADD=funcaddodbc_ASL)
 endif ()
 
@@ -410,17 +410,14 @@ if (WIN32)
   target_link_libraries(ampltabl wsock32)
   target_link_libraries(tableproxy wsock32)
   target_compile_definitions(tableproxy PRIVATE NO_sockaddr_in6)
-  set(AMPLTABL_LINK_LIBRARIES ${AMPLTABL_LINK_LIBRARIES} wsock32)
 elseif (CMAKE_SYSTEM_NAME MATCHES "SunOS")
   target_link_libraries(tableproxy socket nsl)
 endif ()
 
-target_link_libraries(ampltabl PUBLIC ${AMPLTABL_LINK_LIBRARIES})
-
 # Suppress warnings in ASL and tableproxy.
 if (MSVC)
   foreach (target asl-core asl-core-dynrt gjh ampltabl amplodbc
-                  fullbit simpbit tableproxy sqlite3)
+                  fullbit simpbit tableproxy)
     if (TARGET ${target})
       target_compile_options(${target}
         PRIVATE /wd4013 /wd4018 /wd4101 /wd4244 /wd4273 /wd4267 /wd4996)
