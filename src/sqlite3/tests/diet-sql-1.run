@@ -25,3 +25,6 @@ display amt;
 write gdiet_sql;
 solve;
 display Buy;
+
+table foods_out OUT (db_driver) (db_fname) "SQL=update foods set buy=? where food=?" : FOOD->[food], Buy ~ buy OUT;
+write table foods_out;

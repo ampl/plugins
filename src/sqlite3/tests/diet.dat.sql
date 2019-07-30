@@ -16,7 +16,8 @@ create table foods(
 	food varchar primary key not null,
 	cost real not null,
 	f_min integer not null,
-	f_max integer not null
+	f_max integer not null,
+	buy real
 ) without rowid;
 insert into foods(food, cost, f_min, f_max) values 
 		('BEEF', 3.19, 2, 10),

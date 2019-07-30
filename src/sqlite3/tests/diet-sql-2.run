@@ -7,7 +7,7 @@ param db_fname symbolic := "diet.dat.db";
 table nutrients IN (db_driver) (db_fname) : NUTR<-[nutr], n_min, n_max;
 read table nutrients;
 
-table foods IN (db_driver) (db_fname) : FOOD<-[food], cost, f_min, f_max;
+table foods IN (db_driver) (db_fname) : FOOD<-[food], cost, f_min, f_max, Buy ~ buy OUT;
 read table foods;
 
 table food_nutr_amt IN (db_driver) (db_fname) : [nutr, food], amt;
@@ -25,3 +25,6 @@ display amt;
 write gdiet_sql;
 solve;
 display Buy;
+
+table foods_out OUT (db_driver) (db_fname) "SQL=update foods set buy=? where food=?" : FOOD->[food], Buy ~ buy OUT;
+write table foods_out;
