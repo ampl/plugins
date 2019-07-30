@@ -98,13 +98,13 @@ macro(add_ampl_library name)
   cmake_parse_arguments(add_ampl_library PRIVATE "" "" ${ARGN})
   add_library(${name} SHARED ${add_ampl_library_UNPARSED_ARGUMENTS})
   set_target_properties(${name} PROPERTIES PREFIX "")
-  set_target_properties(${name} PROPERTIES SUFFIX ".dll")  
+  set_target_properties(${name} PROPERTIES SUFFIX ".dll")
   if (NOT add_ampl_library_PRIVATE)
     # Specify RUNTIME DESTINATION and LIBRARY DESTINATION, but not
     # DESTINATION or ARCHIVE_DESTINATION because we don't want import
     # libraries installed.
-    install(TARGETS ${name} 
-        RUNTIME DESTINATION ${AMPL_LIBRARY_DIR} 
+    install(TARGETS ${name}
+        RUNTIME DESTINATION ${AMPL_LIBRARY_DIR}
         LIBRARY DESTINATION ${AMPL_LIBRARY_DIR}
         ARCHIVE DESTINATION ${AMPL_LIBRARY_DIR}
     )
@@ -384,6 +384,17 @@ add_c_compiler_flags(fullbit -Wno-parentheses)
 # ampltabl
 add_ampl_library(ampltabl tables/tableproxy.c tables/tableproxyver.h)
 target_link_libraries(ampltabl PUBLIC asl)
+
+# SQLite3
+find_package(SQLite3)
+if (SQLite3_FOUND)
+  add_ampl_library(sqlite3 sqlite3/handler.c)
+  target_include_directories(sqlite3 PRIVATE ${SQLite3_INCLUDE_DIRS})
+  target_link_libraries(sqlite3 PUBLIC asl ${SQLite3_LIBRARIES})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/sqlite3)
+  add_test(NAME sqlite3-test-1 COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-1.sh WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  add_test(NAME sqlite3-test-2 COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-2.sh WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+endif (SQLite3_FOUND)
 
 find_package(ODBC)
 if (ODBC_FOUND)
