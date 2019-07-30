@@ -1,0 +1,15 @@
+model diet.mod;
+data diet.dat;
+
+display FOOD;
+display cost;
+display f_min;
+display f_max;
+display NUTR;
+display n_min;
+display n_max;
+display amt;
+
+write gdiet;
+solve;
+display Buy;

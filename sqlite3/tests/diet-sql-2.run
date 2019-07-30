@@ -1,0 +1,27 @@
+model diet.mod;
+#data diet.dat;
+
+param db_driver symbolic := "sqlite3";
+param db_fname symbolic := "diet.dat.db";
+
+table nutrients IN (db_driver) (db_fname) : NUTR<-[nutr], n_min, n_max;
+read table nutrients;
+
+table foods IN (db_driver) (db_fname) : FOOD<-[food], cost, f_min, f_max;
+read table foods;
+
+table food_nutr_amt IN (db_driver) (db_fname) : [nutr, food], amt;
+read table food_nutr_amt;
+
+display FOOD;
+display cost;
+display f_min;
+display f_max;
+display NUTR;
+display n_min;
+display n_max;
+display amt;
+
+write gdiet_sql;
+solve;
+display Buy;
