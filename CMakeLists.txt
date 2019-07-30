@@ -383,7 +383,6 @@ add_c_compiler_flags(fullbit -Wno-parentheses)
 
 # ampltabl
 add_ampl_library(ampltabl tables/tableproxy.c tables/tableproxyver.h)
-target_link_libraries(ampltabl PUBLIC asl)
 
 # SQLite3
 find_package(SQLite3)
@@ -403,7 +402,7 @@ if (ODBC_FOUND)
   target_compile_definitions(amplodbc PRIVATE funcadd_ASL=funcaddodbc_ASL)
   add_c_compiler_flags(amplodbc -Wno-deprecated-declarations)
   target_link_libraries(amplodbc asl ${ODBC_LIBRARIES})
-  target_link_libraries(ampltabl amplodbc)
+  target_link_libraries(ampltabl asl amplodbc)
   target_compile_definitions(ampltabl PRIVATE OTHER_FUNCADD=funcaddodbc_ASL)
 endif ()
 
