@@ -6,3 +6,4 @@
 *.dll
 zlib-*/minigzip*
 zlib-*/example*
+build/
