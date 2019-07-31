@@ -2,10 +2,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "funcadd.h"
-#include "arith.h"	/* for Arith_Kind_ASL and Long */
-#undef strtod
-
 
 #include <iostream>
 
@@ -20,6 +16,9 @@
 #include "pugixml.hpp"
 #include "myunz.hpp"
 #include "myzip.hpp"
+
+#include "funcadd.h"
+#include "arith.h"	/* for Arith_Kind_ASL and Long */
 
 #ifdef strtod
 #undef strtod
