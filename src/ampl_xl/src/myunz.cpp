@@ -241,7 +241,7 @@ int do_extract_currentfile(
 		return err;
 	}
 
-	size_buf = WRITEBUFFERSIZE;
+	size_buf = UNZ_WRITEBUFFERSIZE;
 	buf = (void*)malloc(size_buf);
 	if (buf==NULL)
 	{

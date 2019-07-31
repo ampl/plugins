@@ -52,7 +52,7 @@ based in miniunzip.c
 #include "unzip.h"
 
 #define CASESENSITIVITY (0)
-#define WRITEBUFFERSIZE (8192)
+#define UNZ_WRITEBUFFERSIZE (8192)
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
