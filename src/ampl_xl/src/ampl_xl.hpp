@@ -4,7 +4,7 @@
 #include <string.h>
 #include "funcadd.h"
 #include "arith.h"	/* for Arith_Kind_ASL and Long */
-
+#undef strtod
 
 
 #include <iostream>
