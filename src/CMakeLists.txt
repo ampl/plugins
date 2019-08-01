@@ -194,7 +194,6 @@ add_custom_target(arith-h DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/arith.h)
 
 set(ASL_CORE_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/details.c)
 add_prefix(ASL_CORE_SOURCES solvers2/
-    arithchk.c
     asldate.c
     asl.h
     asl_pfg.h
