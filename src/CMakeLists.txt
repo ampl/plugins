@@ -374,7 +374,9 @@ if (SQLite3_FOUND)
   add_test(NAME sqlite3-test-2 COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-2.sh WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 endif (SQLite3_FOUND)
 
-add_ampl_library(amplxl
+find_package(ZLIB)
+if (ZLIB_FOUND)
+  add_ampl_library(amplxl
     amplxl/src/ampl_xl.cpp
     amplxl/src/ioapi.c
     amplxl/src/myunz.cpp
@@ -382,13 +384,14 @@ add_ampl_library(amplxl
     amplxl/src/pugixml.cpp
     amplxl/src/unzip.c
     amplxl/src/zip.c
-)
-set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(amplxl PRIVATE asl)
-target_include_directories(amplxl PRIVATE
+  )
+  set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
+  target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
+  target_include_directories(amplxl PRIVATE
     amplxl/zlib-1.2.11
     amplxl/zlib-1.2.11/contrib/minizip
-)
+  )
+endif (ZLIB_FOUND)
 
 find_package(ODBC)
 if (ODBC_FOUND)
