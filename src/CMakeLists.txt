@@ -303,14 +303,17 @@ target_link_libraries(ampltabl asl)
 # SQLite3
 find_package(SQLite3)
 if (SQLite3_FOUND)
-  add_ampl_library(sqlite3 sqlite3/handler.c)
-  set_property(TARGET sqlite3 PROPERTY C_STANDARD 99)
-  target_include_directories(sqlite3 PRIVATE ${SQLite3_INCLUDE_DIRS})
-  target_link_libraries(sqlite3 PUBLIC asl ${SQLite3_LIBRARIES})
+  add_ampl_library(sqlite3th sqlite3/handler.c)
+  set_property(TARGET sqlite3th PROPERTY C_STANDARD 99)
+  target_include_directories(sqlite3th PRIVATE ${SQLite3_INCLUDE_DIRS})
+  target_link_libraries(sqlite3th PUBLIC asl ${SQLite3_LIBRARIES})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/sqlite3)
   find_program(BASH_PROGRAM bash)
-  add_test(NAME sqlite3-test-1 COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-1.sh WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  add_test(NAME sqlite3-test-2 COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-2.sh WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  find_program(AMPL_PROGRAM ampl)
+  add_test(NAME sqlite3-test-1 COMMAND ${BASH_PROGRAM}
+    ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-1.sh ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
+  add_test(NAME sqlite3-test-2 COMMAND ${BASH_PROGRAM}
+    ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-2.sh ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
 endif (SQLite3_FOUND)
 
 find_package(ZLIB)
