@@ -328,31 +328,41 @@ ExcelReadManager::run(){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_workbook: " << std::endl;
+#endif
 	result = manage_workbook();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_relations: " << std::endl;
+#endif
 	result = manage_relations();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_shared_strings: " << std::endl;
+#endif
 	result = manage_shared_strings();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_data: " << std::endl;
+#endif
 	result = manage_data();
 	if (result){
 		return DB_Error;
 	}
 
+#ifdef DEBUG
 	std::cout << "ampl_xl: all done!" << std::endl;
+#endif
 	return DB_Done;
 };
 
@@ -373,31 +383,41 @@ ExcelWriteManager::run(){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_workbook: " << std::endl;
+#endif
 	result = manage_workbook();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_relations: " << std::endl;
+#endif
 	result = manage_relations();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_shared_strings: " << std::endl;
+#endif
 	result = manage_shared_strings();
 	if (result){
 		return DB_Error;
 	}
 
+#if DEBUG
 	std::cout << "manage_data: " << std::endl;
+#endif
 	result = manage_data();
 	if (result){
 		return DB_Error;
 	}
 
+#ifdef DEBUG
 	std::cout << "ampl_xl: all done!" << std::endl;
+#endif
 	return DB_Done;
 };
 

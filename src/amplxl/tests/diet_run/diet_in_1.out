@@ -1,0 +1,18 @@
+set NUTR := A C B1 B2 NA CAL;
+
+set FOOD := BEEF CHK FISH HAM MCH MTL SPG TUR;
+
+amt [*,*] (tr)
+:      A    B1   B2   C    CAL    NA     :=
+BEEF   60   10   15   20   295    938
+CHK     8   20   20    0   770   2180
+FISH    8   15   10   10   440    945
+HAM    40   35   10   40   430    278
+MCH    15   15   15   35   315   1182
+MTL    70   15   15   30   400    896
+SPG    25   25   15   50   370   1329
+TUR    60   15   10   20   450   1397
+;
+
+MINOS 5.51: optimal solution found.
+13 iterations, objective 118.0594032

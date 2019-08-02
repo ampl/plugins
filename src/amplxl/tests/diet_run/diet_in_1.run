@@ -1,0 +1,21 @@
+
+model diet.mod;
+
+param fname symbolic := "diet_xlsx/diet_in_1.xlsx";
+
+table Amounts IN "amplxl" (fname): 
+    [NUTR,FOOD], amt;
+table Foods IN "amplxl" (fname):
+    FOOD <- [FOOD], cost, f_min, f_max;
+table Nutrients IN "amplxl" (fname):
+    NUTR <- [NUTR], n_min, n_max;
+
+read table Foods;
+read table Nutrients;
+read table Amounts;
+
+display NUTR;
+display FOOD;
+display amt;
+
+solve;

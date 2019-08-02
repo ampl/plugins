@@ -314,25 +314,33 @@ if (SQLite3_FOUND)
   target_include_directories(sqlite3th PRIVATE ${SQLite3_INCLUDE_DIRS})
   target_link_libraries(sqlite3th PUBLIC asl ${SQLite3_LIBRARIES})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/sqlite3)
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests)
   add_test(NAME sqlite3-test COMMAND ${PYTHON_PROGRAM}
     ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
 endif (SQLite3_FOUND)
 
-#find_package(ZLIB)
-#if (ZLIB_FOUND)
-#  add_ampl_library(amplxl
-#    amplxl/src/ampl_xl.cpp
-#    amplxl/src/ioapi.c
-#    amplxl/src/myunz.cpp
-#    amplxl/src/myzip.cpp
-#    amplxl/src/pugixml.cpp
-#    amplxl/src/unzip.c
-#    amplxl/src/zip.c
-#  )
-#  set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
-#  target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
-#  target_include_directories(amplxl PRIVATE ${ZLIB_INCLUDE_DIRS})
-#endif (ZLIB_FOUND)
+find_package(ZLIB)
+if (ZLIB_FOUND)
+  add_ampl_library(amplxl
+    amplxl/src/ampl_xl.cpp
+    amplxl/src/ioapi.c
+    amplxl/src/myunz.cpp
+    amplxl/src/myzip.cpp
+    amplxl/src/pugixml.cpp
+    amplxl/src/unzip.c
+    amplxl/src/zip.c
+  )
+  set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
+  target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
+  target_include_directories(amplxl PRIVATE
+    amplxl/zlib-1.2.11
+    amplxl/zlib-1.2.11/contrib/minizip
+  )
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/amplxl/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl)
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests)
+  add_test(NAME amplxl-test COMMAND ${PYTHON_PROGRAM}
+    ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplxl>)
+endif (ZLIB_FOUND)
 
 find_package(ODBC)
 if (ODBC_FOUND)

@@ -10,15 +10,12 @@ if __name__ == '__main__':
         sys.exit(1)
     ampl, dll = args[1], args[2]
 
-    try:
-        os.remove('diet.dat.db')
-    except:
-        pass
-    os.system('sqlite3 diet.dat.db < diet.dat.sql')
-
     ts = test_utils.TestSuit(ampl, dll)
-    ts.test_ampl_script('diet-sql-1.run', 'output-1.txt')
-    ts.test_ampl_script('diet-sql-2.run', 'output-2.txt')
+    RUN_DIR = 'diet_run'
+    for fname in os.listdir(RUN_DIR):
+        if fname.endswith('.run'):
+            fname = os.path.join(RUN_DIR, fname)
+            ts.test_ampl_script(fname, fname.replace('.run', '.out'))
     if ts.failed:
         sys.exit(1)
 

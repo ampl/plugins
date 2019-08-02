@@ -1,0 +1,27 @@
+
+model diet.mod;
+
+param fname_out symbolic := "diet_xlsx/diet_out_single_3.xlsx";
+
+table Amounts IN "amplxl" (fname_out): 
+    [NUTR,FOOD], amt;
+
+table Nutrients IN "amplxl" (fname_out):
+    NUTR <- [NUTR], n_min, n_max;
+
+table Foods "amplxl" (fname_out):
+    [FOOD] IN, cost IN, f_min IN, f_max IN,
+    Buy OUT, Buy.rc ~ BuyRC OUT,
+    {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac OUT;
+
+read table Foods;
+read table Nutrients;
+read table Amounts;
+
+display NUTR;
+display FOOD;
+display amt;
+
+solve;
+
+write table Foods;
