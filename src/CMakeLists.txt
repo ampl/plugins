@@ -316,24 +316,21 @@ if (SQLite3_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test-diet-2.sh ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
 endif (SQLite3_FOUND)
 
-find_package(ZLIB)
-if (ZLIB_FOUND)
-  add_ampl_library(amplxl
-    amplxl/src/ampl_xl.cpp
-    amplxl/src/ioapi.c
-    amplxl/src/myunz.cpp
-    amplxl/src/myzip.cpp
-    amplxl/src/pugixml.cpp
-    amplxl/src/unzip.c
-    amplxl/src/zip.c
-  )
-  set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
-  target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
-  target_include_directories(amplxl PRIVATE
-    amplxl/zlib-1.2.11
-    amplxl/zlib-1.2.11/contrib/minizip
-  )
-endif (ZLIB_FOUND)
+#find_package(ZLIB)
+#if (ZLIB_FOUND)
+#  add_ampl_library(amplxl
+#    amplxl/src/ampl_xl.cpp
+#    amplxl/src/ioapi.c
+#    amplxl/src/myunz.cpp
+#    amplxl/src/myzip.cpp
+#    amplxl/src/pugixml.cpp
+#    amplxl/src/unzip.c
+#    amplxl/src/zip.c
+#  )
+#  set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
+#  target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
+#  target_include_directories(amplxl PRIVATE ${ZLIB_INCLUDE_DIRS})
+#endif (ZLIB_FOUND)
 
 find_package(ODBC)
 if (ODBC_FOUND)
