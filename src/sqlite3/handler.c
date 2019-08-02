@@ -228,9 +228,14 @@ static int Write_ampl_sqlite3(AmplExports *ae, TableInfo *TI){
 	return result;
 };
 
+#if defined(_WIN32)
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT 
+#endif
 
 /* called from ampl to load new functions */
-void funcadd(AmplExports *ae) {
+DLL_EXPORT void funcadd(AmplExports *ae) {
 	static char tname[] = "sqlite3\n"
 	"AMPL SQLITE3 handler (20190730): expected 2 or 3 strings before \":[...]\":\n"
 	"  'sqlite3, database file name, [option [option...]]\n"
