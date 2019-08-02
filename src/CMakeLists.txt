@@ -1,5 +1,11 @@
 set(AMPL_LIBRARY_DIR .)
 
+# Find programs
+if (NOT AMPL_PROGRAM)
+  find_program(AMPL_PROGRAM ampl)
+endif ()
+find_program(PYTHON_PROGRAM python)
+
 # Adds a prefix to arguments.
 function (add_prefix var prefix)
   set(result ${${var}})
@@ -308,8 +314,6 @@ if (SQLite3_FOUND)
   target_include_directories(sqlite3th PRIVATE ${SQLite3_INCLUDE_DIRS})
   target_link_libraries(sqlite3th PUBLIC asl ${SQLite3_LIBRARIES})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/sqlite3)
-  find_program(AMPL_PROGRAM ampl)
-  find_program(PYTHON_PROGRAM python)
   add_test(NAME sqlite3-test COMMAND ${PYTHON_PROGRAM}
     ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
 endif (SQLite3_FOUND)

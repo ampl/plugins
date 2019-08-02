@@ -31,7 +31,7 @@ def check_stdout(stdout, expected_output):
         print('OK')
         return True
 
-class Tests:
+class TestSuit:
     def __init__(self):
         self.count = 0
         self.failed = False
@@ -55,15 +55,19 @@ if __name__ == '__main__':
         sys.exit(1)
     ampl, dll = args[1], args[2]
 
+    # Avoid "Cannot load library sqlite3th.dll"
+    # It fails if it cannot find sqlite3.dll in the system PATH
+    os.environ['PATH'] += os.pathsep + os.path.dirname(dll)
+
     try:
         os.remove('diet.dat.db')
     except:
         pass
     os.system('sqlite3 diet.dat.db < diet.dat.sql')
 
-    t = Tests()
-    t.test_ampl_script('diet-sql-1.run', 'output-1.txt')
-    t.test_ampl_script('diet-sql-2.run', 'output-2.txt')
-    if t.failed:
+    ts = TestSuit()
+    ts.test_ampl_script('diet-sql-1.run', 'output-1.txt')
+    ts.test_ampl_script('diet-sql-2.run', 'output-2.txt')
+    if ts.failed:
         sys.exit(1)
 
