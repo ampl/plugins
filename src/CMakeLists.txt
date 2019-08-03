@@ -333,7 +333,7 @@ if (ZLIB_FOUND)
   set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
   target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
   target_include_directories(amplxl PRIVATE
-    amplxl/zlib-1.2.11
+    ${ZLIB_INCLUDE_DIRS}
     amplxl/zlib-1.2.11/contrib/minizip
   )
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/amplxl/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl)

@@ -2,8 +2,8 @@
 
 #ifdef _WIN32
 uLong filetime(
-	char *f;                /* name of file to get info on */
-	tm_zip *tmzip;             /* return value: access, modific. and creation times */
+	char *f,                /* name of file to get info on */
+	tm_zip *tmzip,             /* return value: access, modific. and creation times */
 	uLong *dt             /* dostime */
 ){
 	int ret = 0;

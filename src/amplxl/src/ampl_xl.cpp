@@ -1369,7 +1369,7 @@ ExcelManager::create_temp_folder(){
 };
 
 int
-ExcelManager::clean_temp_folder(){};
+ExcelManager::clean_temp_folder(){ return 0; };
 
 
 
