@@ -10,7 +10,7 @@ if __name__ == '__main__':
         sys.exit(1)
     ampl, dll = args[1], args[2]
 
-    ts = test_utils.TestSuit(ampl, dll)
+    ts = test_utils.TestSuite(ampl, dll)
     RUN_DIR = 'diet_run'
     for fname in os.listdir(RUN_DIR):
         if fname.endswith('.run'):

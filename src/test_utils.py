@@ -31,7 +31,7 @@ def check_stdout(stdout, expected_output):
         print('OK')
         return True
 
-class TestSuit:
+class TestSuite:
     def __init__(self, ampl, dll):        
         self.count = 0
         self.failed = False
