@@ -360,6 +360,11 @@ ExcelReadManager::run(){
 		return DB_Error;
 	}
 
+	result = clean_temp_folder();
+	if (result){
+		return DB_Error;
+	}
+
 #ifdef DEBUG
 	std::cout << "ampl_xl: all done!" << std::endl;
 #endif
@@ -414,6 +419,12 @@ ExcelWriteManager::run(){
 	if (result){
 		return DB_Error;
 	}
+
+	result = clean_temp_folder();
+	if (result){
+		return DB_Error;
+	}
+
 
 #ifdef DEBUG
 	std::cout << "ampl_xl: all done!" << std::endl;
@@ -1352,11 +1363,40 @@ int
 ExcelManager::create_temp_folder(){
 
 #ifdef _WIN32
-	char *dir_name = "./ampltemp";
+
+	// get windows temporary folder, example from
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/creating-and-using-a-temporary-file
+
+	DWORD res = 0;
+	TCHAR temp_path[MAX_PATH];
+
+	res = GetTempPath(MAX_PATH, temp_path);
+
+	if (res > MAX_PATH || (res == 0)){
+		cannot_create_temp();
+		return 1;
+	}
+
+	// template for unique filename
+	std::string tplt = std::string("ampltemp-XXXXXXXXXXXX");
+	// fill the Xs after the 9th character
+	mymkstemp(tplt, 9);
+
+	std::string full_path = temp_path + std::string("\\") + tplt;
+
+	res = CreateDirectory(&full_path[0u], NULL);
+
+	if (res == 0){
+		cannot_create_temp();
+		return 1;
+	}
+
+	temp_folder = full_path;
+
 #else
 	char tp[] = "/tmp/ampltempXXXXXX";
 	char *dir_name = mkdtemp(tp);
-#endif
+
 
 	if (dir_name == NULL){
 		cannot_create_temp();
@@ -1364,12 +1404,55 @@ ExcelManager::create_temp_folder(){
 	}
 
 	temp_folder = std::string(dir_name);
+	
+#endif
+
+
+
 
 	return 0;
 };
 
 int
-ExcelManager::clean_temp_folder(){ return 0; };
+ExcelManager::clean_temp_folder(){
+
+#ifdef _WIN32
+
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+
+	std::string help_path = temp_folder;
+	help_path += "\\*";
+
+	hFind = FindFirstFile(&help_path[0], &ffd);
+
+	do {
+		std::string mystr = temp_folder;
+		mystr += "\\";
+		mystr += std::string(ffd.cFileName);
+		int res_del = DeleteFile(&mystr[0]);
+
+#if DEBUG
+		if (res_del == 0){
+			std::cout << "could not delete: " << GetLastError() << std::endl;
+		}
+#endif
+
+	} while (FindNextFile(hFind, &ffd));
+
+	int res_rem = RemoveDirectory(&temp_folder[0u]);
+
+#if DEBUG
+	if (res_rem == 0){
+		std::cout << "could not remove folder: " << GetLastError() << std::endl;
+	}
+#endif
+
+
+#endif
+
+	return 0;
+};
 
 
 
@@ -1561,6 +1644,34 @@ ExcelManager::unsuported_flag(){
 	sprintf(TI->Errmsg = (char*)TM(19),
 		"Cannot eval option.");
 };
+
+
+
+
+#ifdef _WIN32
+void mymkstemp(std::string& tmpl, int pos){
+
+	const char alphanum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	// get a semi decent seed
+	unsigned int seed = GetTickCount() + GetCurrentProcessId();
+	srand (seed);
+	Sleep(10); // otherwise it can be too fast and overlap
+
+	for (int i = pos; i < tmpl.size(); i++){
+		tmpl[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+	}
+};
+#endif
+
+
+
+
+
+
+
+
+
 
 
 

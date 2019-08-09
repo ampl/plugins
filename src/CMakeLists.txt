@@ -321,15 +321,27 @@ endif (SQLite3_FOUND)
 
 find_package(ZLIB)
 if (ZLIB_FOUND)
-  add_ampl_library(amplxl
-    amplxl/src/ampl_xl.cpp
-    amplxl/src/ioapi.c
-    amplxl/src/myunz.cpp
-    amplxl/src/myzip.cpp
-    amplxl/src/pugixml.cpp
-    amplxl/src/unzip.c
-    amplxl/src/zip.c
-  )
+  if (WIN32)
+    add_ampl_library(amplxl
+      amplxl/src/ampl_xl.cpp
+      amplxl/src/ioapi.c
+      amplxl/src/myunz.cpp
+      amplxl/src/myzip.cpp
+      amplxl/src/pugixml.cpp
+      amplxl/src/unzip.c
+      amplxl/src/zip.c
+      amplxl/src/mkstemps.c
+      amplxl/src/iowin32.c)
+  else ()
+    add_ampl_library(amplxl
+      amplxl/src/ampl_xl.cpp
+      amplxl/src/ioapi.c
+      amplxl/src/myunz.cpp
+      amplxl/src/myzip.cpp
+      amplxl/src/pugixml.cpp
+      amplxl/src/unzip.c
+      amplxl/src/zip.c)
+  endif ()
   set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
   target_link_libraries(amplxl PRIVATE asl ${ZLIB_LIBRARIES})
   target_include_directories(amplxl PRIVATE

@@ -12,6 +12,18 @@
 #include <cstdlib>
 #include <sstream>
 
+// headers to manipulate folders in windows
+#ifdef _WIN32
+#include <windows.h>
+#include <tchar.h>
+#include <time.h>
+
+void mymkstemp(std::string& tmpl, int pos);
+
+#endif
+
+
+
 // external libraries headers
 #include "pugixml.hpp"
 #include "myunz.hpp"
