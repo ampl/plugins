@@ -330,7 +330,6 @@ if (ZLIB_FOUND)
       amplxl/src/pugixml.cpp
       amplxl/src/unzip.c
       amplxl/src/zip.c
-      amplxl/src/mkstemps.c
       amplxl/src/iowin32.c)
   else ()
     add_ampl_library(amplxl
