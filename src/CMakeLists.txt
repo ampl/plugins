@@ -321,6 +321,7 @@ endif (SQLite3_FOUND)
 
 # Build zlib from the included sources, it generates the target
 # zlibstatic that we can link statically to
+set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 add_subdirectory(amplxl/zlib-1.2.11)
 set(ZLIB_INCLUDE_DIRS amplxl/zlib-1.2.11 ${CMAKE_CURRENT_BINARY_DIR}/amplxl/zlib-1.2.11)
 set(ZLIB_LIBRARIES zlibstatic)
