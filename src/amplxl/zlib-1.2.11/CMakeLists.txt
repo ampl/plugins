@@ -5,6 +5,8 @@ project(zlib C)
 
 set(VERSION "1.2.11")
 
+
+
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
 
@@ -63,8 +65,10 @@ if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 endif()
+
+# CV: Moved out of the if statement, as it wouldn't otherwise compile on linux
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     # If we're doing an out of source build and the user has a zconf.h
@@ -187,6 +191,8 @@ add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
+# CV: Position independent code to allow linking this in a dynamic library 
+set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
