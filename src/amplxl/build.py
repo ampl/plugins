@@ -25,7 +25,9 @@ with open(mkpath, "w") as f:
 subprocess.call("make")
 
 # solvers
-newpath = basepath + "/solvers2"
+# ~ newpath = basepath + "/solvers2"
+os.chdir(basepath)
+newpath = "../solvers2"
 os.chdir(newpath)
 
 subprocess.call("./configure")
@@ -38,7 +40,7 @@ os.chdir(newpath)
 
 params = [
 	"g++",
-	"-I../solvers2/sys.x86_64.Linux",
+	"-I../../solvers2/sys.x86_64.Linux",
 	"-I../zlib-1.2.11",
 	"-I../zlib-1.2.11/contrib/minizip",
 	"-std=c++03",
@@ -60,7 +62,7 @@ params = [
 	"g++",
 	"-shared",
 	"-o",
-	"ampl_xl.dll",
+	"amplxl.dll",
 	"ampl_xl.o",
 	"pugixml.o",
 	"myunz.o",
