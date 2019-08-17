@@ -554,6 +554,9 @@ ExcelManager::parse_excel_range(){
 		return 1;
 	}
 
+	unquote_string(range_sheet);
+
+
 	return 0;
 };
 
@@ -1666,7 +1669,22 @@ void mymkstemp(std::string& tmpl, int pos){
 
 
 
+void unquote_string(std::string &str){
 
+	size_t n;
+
+	n = str.size();
+
+	if (str[0] == '\'' && str[n-1] == '\''){
+		str = str.substr(1, n-2);
+	}
+
+	n = str.size();
+
+	if (str[0] == '"' && str[n-1] == '"'){
+		str = str.substr(1, n-2);
+	}
+};
 
 
 

@@ -283,7 +283,7 @@ get_excel_row(pugi::xml_node parent, int row);
 pugi::xml_node
 get_excel_cell(pugi::xml_node parent, int row, std::string &col);
 
-
+void unquote_string(std::string &str);
 
 // links to ooxml document information
 //https://docs.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.cell?view=openxml-2.8.1
