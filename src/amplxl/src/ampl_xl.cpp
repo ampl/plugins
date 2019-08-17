@@ -789,6 +789,14 @@ ExcelManager::parse_data(
 	std::string row_id_str;
 	char* row_id;
 
+	//~ row_id = &std::to_string(i)[0u];
+	strs.str(std::string()); // clear stringstream
+	strs << first_row;
+	row_id_str = strs.str();
+	row_id = &row_id_str[0u];
+
+	row_child = node.find_child_by_attribute(row_attr, row_id);
+
 	// iterate by rows of excel range
 	for (int i = first_row; i <= last_row; i++){
 
@@ -798,7 +806,10 @@ ExcelManager::parse_data(
 		row_id_str = strs.str();
 		row_id = &row_id_str[0u];
 
-		row_child = node.find_child_by_attribute(row_attr, row_id);
+		if (row_child.attribute(row_attr).value() != row_id_str){
+
+			row_child = node.find_child_by_attribute(row_attr, row_id);
+		}
 
 		if (break_mode && !row_child){
 			break;
@@ -877,6 +888,9 @@ ExcelManager::parse_data(
 		if ((*TI->AddRows)(TI, db, 1)){
 			return DB_Error;
 		}
+
+		row_child = row_child.next_sibling();
+
 	}
 
 	return 0;
@@ -1052,16 +1066,26 @@ ExcelWriteManager::write_data_out(
 	pugi::xml_node excel_val;
 	pugi::xml_node dnode;
 
+	const char* row_attr = "r";
 	std::stringstream strs;
-	std::string temp_str;
+	std::string row_id_str;
 
 	const int ampl_ncols = TI->arity + TI->ncols;
 	DbCol *db;
 
 	int trow = 0;
+	excel_row = get_excel_row(node, first_row);
+
 	for (int i = first_row; i <= last_row; i++){
 
-		excel_row = get_excel_row(node, i);
+		strs.str(std::string()); // clear stringstream
+		strs << i;
+		row_id_str = strs.str();
+
+		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+			excel_row = get_excel_row(node, i);
+		}
+
 		db = TI->cols;
 
 		// we have the row now we need to check if it has the column nodes
@@ -1075,6 +1099,7 @@ ExcelWriteManager::write_data_out(
 			db++;
 		}
 		trow += 1;
+		excel_row = excel_row.next_sibling();
 	}
 	return 0;
 };
@@ -1167,8 +1192,9 @@ ExcelWriteManager::write_data_inout(
 	pugi::xml_node excel_val;
 	pugi::xml_node dnode;
 
+	const char* row_attr = "r";
 	std::stringstream strs;
-	std::string temp_str;
+	std::string row_id_str;
 
 	const int ampl_ncols = TI->arity + TI->ncols;
 
@@ -1177,9 +1203,17 @@ ExcelWriteManager::write_data_inout(
 	excel_keys.resize(nkeys);
 	ampl_keys.resize(nkeys);
 
+	excel_row = get_excel_row(node, first_row);
+
 	for (int i = first_row; i <= last_row; i++){
 
-		excel_row = get_excel_row(node, i);
+		strs.str(std::string()); // clear stringstream
+		strs << i;
+		row_id_str = strs.str();
+
+		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+			excel_row = get_excel_row(node, i);
+		}
 
 		int res = get_excel_keys(excel_row, i);
 
@@ -1196,6 +1230,7 @@ ExcelWriteManager::write_data_inout(
 		}
 
 		copy_info(excel_row, i, ampl_row);
+		excel_row = excel_row.next_sibling();
 	}
 	return 0;
 };
