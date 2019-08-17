@@ -604,6 +604,9 @@ ExcelManager::check_columns(
 		if (excel_cell.attribute("t").value() == std::string("s")){
 			excel_col_name = shared_strings[std::atoi(excel_col_name.c_str())];
 		}
+		else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
+			excel_col_name = excel_cell.first_child().first_child().child_value();
+		}
 
 		if (!excel_col_name.empty()){
 			excel_col_map[excel_col_name] = iter_col;
@@ -829,6 +832,9 @@ ExcelManager::parse_data(
 
 				if (excel_cell.attribute("t").value() == std::string("s")){
 					value = shared_strings[std::atoi(value.c_str())];
+				}
+				else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
+					value = excel_cell.first_child().first_child().child_value();
 				}
 
 				if (value.length() > 0){
