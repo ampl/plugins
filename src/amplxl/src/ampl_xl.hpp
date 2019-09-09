@@ -45,7 +45,7 @@ void mymkstemp(std::string& tmpl, int pos);
 #define TM(len) (*ae->Tempmem)(TI->TMI,len)
 
 const int EXCEL_MAX_ROWS = 1048576;
-const std::string EXCEL_MAX_COLS = "ZZZZZ";
+const std::string EXCEL_MAX_COLS = "XFD";
 
 
 
