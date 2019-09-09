@@ -26,7 +26,7 @@ funcadd(AmplExports *ae){
 
 	/* description of handlers */
 
-	static char info[] = "ampl_xl\n"
+	static char info[] = "amplxl\n"
 	"Table handler for .xlsx and .xlsm files:\n"
 	"one or two strings (an optional 'ampl_xl' and the file name,\n"
 	"ending in \".xlsx\" or \".xlsm\") expected before \":[...]\".";
@@ -1010,20 +1010,88 @@ ExcelWriteManager::manage_data(){
 		return 1;
 	}
 
+	std::vector<std::string> changed_files;
+
+
 	// update sheet xml
+
+	excel_iner_file = "xl/" + data_sheet;
+	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	join_path(temp_folder, excel_file, final_path);
+
+	//~ if (verbose == 73){
+
+		//~ std::cout << "excel_path: " << excel_path << std::endl;
+		//~ std::cout << "excel_iner_file: " << excel_iner_file << std::endl;
+		//~ std::cout << "final_path: " << final_path << std::endl;
+	//~ }
+
 	doc.save_file(&final_path[0u]);
 
-	result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	changed_files.push_back(excel_iner_file);
+
+	//~ result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	//~ if (result){
+		//~ cannot_update_sheet();
+		//~ return 1;
+	//~ }
+
+
+	// update shared strings xml
+
+	if (shared_strings.size() > n_sstrings){
+
+		excel_iner_file = "xl/sharedStrings.xml";
+		changed_files.push_back(excel_iner_file);
+
+		result = update_shared_strings(n_sstrings);
+		if (result){
+			cannot_update_ss();
+			return 1;
+		}
+	}
+
+	std::string xl_copy_path = temp_folder;
+
+#if defined _WIN32 || defined _WIN64
+	xl_copy_path += "\\";
+#else
+	xl_copy_path += "/";
+#endif
+
+	xl_copy_path += "xlcopy.tmp";
+
+	result = copy_uchanged_files(excel_path, xl_copy_path, changed_files);
+
+	// add changed files to zip
+	excel_iner_file = "xl/" + data_sheet;
+	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	join_path(temp_folder, excel_file, final_path);
+
+	result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
 	if (result){
 		cannot_update_sheet();
 		return 1;
 	}
 
+	if (shared_strings.size() > n_sstrings){
 
-	// update shared strings xml
-	result = update_shared_strings(n_sstrings);
-	if (result){
-		cannot_update_ss();
+		excel_iner_file = "xl/sharedStrings.xml";
+		excel_file = "sharedStrings.xml";
+
+		join_path(temp_folder, excel_file, final_path);
+
+		result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
+		if (result){
+			cannot_update_sheet();
+			return 1;
+		}
+	}
+
+	remove(&excel_path[0u]);
+	if (rename(&xl_copy_path[0u], &excel_path[0u]) != 0)
+	{
+		// cannot swap files
 		return 1;
 	}
 
@@ -1356,18 +1424,14 @@ ExcelWriteManager::update_shared_strings(int init_size){
 
 	int res = 0;
 
-	if (shared_strings.size() == init_size){
-		return 0;
-	}
-
 	// reopen shared strings
-	excel_iner_file = "xl/sharedStrings.xml";
-	res = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	//~ excel_iner_file = "xl/sharedStrings.xml";
+	//~ res = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
 
-	if (res){
+	//~ if (res){
 		// error extracting shared strings
-		return 1;
-	}
+		//~ return 1;
+	//~ }
 
 	// load shared strings file
 	excel_file = "sharedStrings.xml";
@@ -1398,7 +1462,7 @@ ExcelWriteManager::update_shared_strings(int init_size){
 	doc.save_file(&final_path[0u]);
 
 	// replace inside zip
-	res = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	//~ res = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
 
 	return 0;
 };

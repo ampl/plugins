@@ -28,6 +28,7 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "pugixml.hpp"
 #include "myunz.hpp"
 #include "myzip.hpp"
+#include "copyzip.hpp"
 
 #include "funcadd.h"
 #include "arith.h"	/* for Arith_Kind_ASL and Long */

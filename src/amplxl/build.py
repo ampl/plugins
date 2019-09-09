@@ -53,7 +53,8 @@ params = [
 	"unzip.c",
 	"ioapi.c",
 	"myzip.cpp",
-	"zip.c"
+	"zip.c",
+	"copyzip.cpp"
 ]
 
 subprocess.call(params)
@@ -70,6 +71,7 @@ params = [
 	"ioapi.o",
 	"myzip.o",
 	"zip.o",
+	"copyzip.o",
 	"-Wl,--whole-archive",
 	"../zlib-1.2.11/libz.a",
 	"-Wl,--no-whole-archive"

@@ -146,7 +146,7 @@ int isLargeFile(const char* filename)
 		int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
 		pos = FTELLO_FUNC(pFile);
 
-		printf("File : %s is %lld bytes\n", filename, pos);
+		//~ printf("File : %s is %lld bytes\n", filename, pos);
 
 		if(pos >= 0xffffffff)
 			largeFile = 1;
@@ -182,7 +182,7 @@ int myzip(
 	buf = (void*)malloc(size_buf);
 	if (buf == NULL)
 	{
-		printf("Error allocating memory\n");
+		//~ printf("Error allocating memory\n");
 		return ZIP_INTERNALERROR;
 	}
 
@@ -216,11 +216,12 @@ int myzip(
 
 	if (zf == NULL)
 	{
-		printf("error opening %s\n",filename_try);
+		//~ printf("error opening %s\n",filename_try);
 		err= ZIP_ERRNO;
 	}
-	else
-		printf("creating %s\n",filename_try);
+	else{
+		//~ printf("creating %s\n",filename_try);
+	}
 
 	//------------------------------------------------------------------
 	FILE * fin;
@@ -283,15 +284,16 @@ int myzip(
 					 -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
 					 password,crcFile, zip64);
 
-	if (err != ZIP_OK)
-		printf("error in opening %s in zipfile\n",filenameinzip);
+	if (err != ZIP_OK){
+		//~ printf("error in opening %s in zipfile\n",filenameinzip);
+	}
 	else
 	{
 		fin = FOPEN_FUNC(filename_outside,"rb"); // </ here we read
 		if (fin==NULL)
 		{
 			err=ZIP_ERRNO;
-			printf("error in opening %s for reading\n",filenameinzip);
+			//~ printf("error in opening %s for reading\n",filenameinzip);
 		}
 	}
 
@@ -303,7 +305,7 @@ int myzip(
 			if (size_read < size_buf)
 				if (feof(fin)==0)
 			{
-				printf("error in reading %s\n",filenameinzip);
+				//~ printf("error in reading %s\n",filenameinzip);
 				err = ZIP_ERRNO;
 			}
 
@@ -312,7 +314,7 @@ int myzip(
 				err = zipWriteInFileInZip (zf,buf,size_read);
 				if (err<0)
 				{
-					printf("error in writing %s in the zipfile\n", filenameinzip);
+					//~ printf("error in writing %s in the zipfile\n", filenameinzip);
 				}
 
 			}
@@ -326,14 +328,14 @@ int myzip(
 	else
 	{
 		err = zipCloseFileInZip(zf);
-		if (err!=ZIP_OK)
-			printf("error in closing %s in the zipfile\n",
-						filenameinzip);
+		if (err!=ZIP_OK){
+			//~ printf("error in closing %s in the zipfile\n",filenameinzip);
+		}
 	}
 
 	errclose = zipClose(zf,NULL);
 	if (errclose != ZIP_OK){
-		printf("error in closing %s\n",filename_try);
+		//~ printf("error in closing %s\n",filename_try);
 	}
 
 	free(buf);
