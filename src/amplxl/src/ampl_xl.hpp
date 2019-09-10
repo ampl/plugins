@@ -127,6 +127,12 @@ class ExcelManager
 	// weather to break on first blank line or not
 	bool break_mode;
 
+	// display information during execution
+	int verbose;
+
+	// weather to delete or drop a table
+	std::string write;
+
 	// top level methods
 	int add_info(AmplExports *ae, TableInfo *TI);
 	int manage_workbook();
@@ -205,8 +211,8 @@ join_path(
 	std::string &path
 );
 
-void inspect_ti(TableInfo *TI);
-void inspect_values(TableInfo *TI);
+void inspect_ti(AmplExports *ae, TableInfo *TI);
+void inspect_values(AmplExports *ae, TableInfo *TI);
 
 class ExcelReadManager:
 public ExcelManager{
@@ -245,6 +251,16 @@ public ExcelManager{
 	);
 
 	int
+	write_all_data_out(
+		pugi::xml_node node,
+		int first_row,
+		int last_row,
+		std::string &first_col,
+		std::string &last_col
+	);
+
+
+	int
 	write_data_inout(
 		pugi::xml_node node,
 		int first_row,
@@ -273,7 +289,23 @@ public ExcelManager{
 	int get_ampl_keys(int row);
 	int get_ampl_row();
 	int copy_info(pugi::xml_node excel_row, int row, int ampl_row);
+	int delete_data(pugi::xml_node parent);
+	int delete_range(pugi::xml_node parent, int include_header);
+	int delete_header_range(pugi::xml_node parent, int include_header);
+	int delete_sheet(pugi::xml_node parent, int include_header);
 
+	int delete_table();
+	int drop_table();
+
+	int update_workbook(
+		//~ int first_row,
+		//~ std::string &first_col,
+		//~ int last_row,
+		//~ std::string &last_col
+	);
+
+	int write_header(pugi::xml_node parent, int first_row, std::string & first_col);
+	int get_new_range(std::string & new_range);
 };
 
 int check_rows(pugi::xml_node node, int first_row, int last_row);

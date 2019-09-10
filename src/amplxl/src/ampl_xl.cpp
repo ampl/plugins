@@ -86,6 +86,8 @@ ExcelManager::ExcelManager(){
 	range_last_row = -1;
 	has_range = false;
 	break_mode = false;
+	verbose = 0;
+	write = std::string("delete");
 };
 
 
@@ -96,13 +98,13 @@ ExcelManager::add_info(AmplExports *ae, TableInfo *TI){
 	this->TI = TI;
 
 	if (ae == NULL){
-		std::cout << "ampl_xl: could not add ampl exports." << table_name << std::endl;
+		printf("amplxl: could not add ampl exports\n");
 		return 1;
 	}
 
 
 	if (TI == NULL){
-		std::cout << "ampl_xl: could not add table info." << table_name << std::endl;
+		printf("amplxl: could not add table info\n");
 		return 1;
 	}
 	return 0;
@@ -122,9 +124,84 @@ ExcelManager::prepare(){
 
 	table_name = TI->tname;
 
-	if (TI->nstrings >= 3){
-		table_name = TI->strings[2];
-		//~ std::cout << "ampl_xl: using alias: " << table_name << std::endl;
+	std::string temp_string;
+	std::string option_string;
+	int has_alias = 0;
+	int n = 0;
+
+	// first string holds table handler name, second the file name
+	// we need to parse remaining ones
+
+	// first parse verbose only
+	for (int i = 2; i < TI->nstrings; i++){
+
+		temp_string = TI->strings[i];
+
+		if (temp_string.substr(0, 8) == std::string("verbose=")){
+
+			option_string = temp_string.substr(8, temp_string.size() - 8);
+			std::istringstream iss(option_string);
+			iss >> verbose;
+		}
+	}
+
+	if (verbose > 0){
+		printf("amplxl:\n");
+		printf("\thandler: %s\n", TI->strings[0]);
+		printf("\tfile: %s\n", TI->strings[1]);
+		printf("\tverbose: %d\n", verbose);
+	}
+
+	// parse remaining args
+	for (int i = 2; i < TI->nstrings; i++){
+
+		temp_string = TI->strings[i];
+
+		if (temp_string.substr(0, 8) == "verbose="){
+			continue;
+		}
+		else if (temp_string.substr(0, 6) == std::string("write=")){
+
+			option_string = temp_string.substr(6, temp_string.size() - 6);
+
+			if (option_string == std::string("delete")){
+				write = std::string("delete");
+			}
+			else if (option_string == std::string("drop")){
+				write = std::string("drop");
+			}
+			else if (verbose > 0){
+				printf("\tignoring write option: %s\n", TI->strings[i]);
+			}
+		}
+		else{
+
+			if (has_alias == 0){
+				table_name = TI->strings[i];
+				has_alias = 1;
+				if (verbose > 0){
+					printf("\tusing alias: %s\n", TI->strings[i]);
+				}
+			}
+			else{
+				if (verbose > 0){
+					printf("\tignoring option: %s\n", TI->strings[i]);
+				}
+			}
+		}
+	}
+
+	if (verbose > 0){
+		printf("\twrite option: %s\n", &write[0u]);
+		if (TI->flags == 1){
+			printf("\tstatus: IN\n");
+		}
+		else if (TI->flags == 2){
+			printf("\tstatus: OUT\n");
+		}
+		else if (TI->flags == 3){
+			printf("\tstatus: INOUT\n");
+		}
 	}
 
 	return 0;
@@ -132,6 +209,10 @@ ExcelManager::prepare(){
 
 int
 ExcelManager::manage_workbook(){
+
+	if (verbose > 1){
+		printf("amplxl: manage workbook...\n");
+	}
 
 	int result = 0;
 
@@ -236,11 +317,23 @@ ExcelManager::manage_shared_strings(){
 		return 1;
 	}
 
+	if (verbose == 73){
+		printf("Shared strings:\n");
+		for (int i=0; i< shared_strings.size(); i++){
+			printf("\t%d, %s\n", i, &shared_strings[i][0u]);
+		}
+		printf("Shared strings done.\n");
+	}
+
 	return 0;
 };
 
 int
 ExcelReadManager::manage_data(){
+
+	if (verbose > 1){
+		printf("amplxl: manage data...\n");
+	}
 
 	int result = 0;
 
@@ -316,7 +409,9 @@ ExcelReadManager::run(){
 
 	int result = 0;
 
-	//~ inspect_ti(TI);
+	if (verbose == 73){
+		inspect_ti(ae, TI);
+	}
 
 	result = prepare();
 	if (result){
@@ -328,33 +423,21 @@ ExcelReadManager::run(){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_workbook: " << std::endl;
-#endif
 	result = manage_workbook();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_relations: " << std::endl;
-#endif
 	result = manage_relations();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_shared_strings: " << std::endl;
-#endif
 	result = manage_shared_strings();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_data: " << std::endl;
-#endif
 	result = manage_data();
 	if (result){
 		return DB_Error;
@@ -365,9 +448,9 @@ ExcelReadManager::run(){
 		return DB_Error;
 	}
 
-#ifdef DEBUG
-	std::cout << "ampl_xl: all done!" << std::endl;
-#endif
+	if (verbose > 1){
+		printf("amplxl: all done!\n");
+	}
 	return DB_Done;
 };
 
@@ -376,7 +459,10 @@ ExcelWriteManager::run(){
 
 	int result = 0;
 
-	//~ inspect_ti(TI);
+	if (verbose == 73){
+		inspect_ti(ae, TI);
+		inspect_values(ae, TI);
+	}
 
 	result = prepare();
 	if (result){
@@ -388,33 +474,21 @@ ExcelWriteManager::run(){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_workbook: " << std::endl;
-#endif
 	result = manage_workbook();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_relations: " << std::endl;
-#endif
 	result = manage_relations();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_shared_strings: " << std::endl;
-#endif
 	result = manage_shared_strings();
 	if (result){
 		return DB_Error;
 	}
 
-#if DEBUG
-	std::cout << "manage_data: " << std::endl;
-#endif
 	result = manage_data();
 	if (result){
 		return DB_Error;
@@ -425,10 +499,9 @@ ExcelWriteManager::run(){
 		return DB_Error;
 	}
 
-
-#ifdef DEBUG
-	std::cout << "ampl_xl: all done!" << std::endl;
-#endif
+	if (verbose > 1){
+		printf("amplxl: all done!\n");
+	}
 	return DB_Done;
 };
 
@@ -612,20 +685,21 @@ ExcelManager::check_columns(
 			excel_col_map[excel_col_name] = iter_col;
 			nempty = 0;
 
-			//~ std::cout << excel_col_name << " -> " << iter_col << std::endl;
-
+			if (verbose == 73){
+				printf("Found column %s\n", &excel_col_name[0u]);
+			}
 
 		}
 		else{
 			nempty += 1;
 		}
 
-
 		if (nempty == max_empty){
-			//~ std::cout << "nempty, breaking" << std::endl;
+			if (verbose > 1){
+				printf("cannot find columns, search done.\n");
+			}
 			break;
 		}
-
 
 		if (iter_col == range_last_col){
 			break;
@@ -638,8 +712,6 @@ ExcelManager::check_columns(
 
 		ampl_col_name = TI->colnames[i];
 
-		//~ std::cout << "checking: " << ampl_col_name << std::endl;
-
 		std::map<std::string,std::string>::iterator it = excel_col_map.find(ampl_col_name);
 
 		if (it != excel_col_map.end()){
@@ -651,10 +723,6 @@ ExcelManager::check_columns(
 	}
 	return -1;
 };
-
-
-
-
 
 
 int
@@ -687,9 +755,6 @@ ExcelManager::get_excel_sheet(std::string &path){
 };
 
 
-
-
-
 int
 ExcelManager::get_shared_strings(){
 
@@ -715,52 +780,41 @@ ExcelManager::get_shared_strings(){
 };
 
 
+void
+inspect_ti(AmplExports *ae, TableInfo *TI){
 
-
-
-
-
-
-
-
-void inspect_ti(TableInfo *TI){
-
-	std::cout << "<inspect TI>" << std::endl;
+	printf("<inspect TI:>\n");
 
 	char* tempchar;
 
 	if (TI->tname != NULL){
-		std::cout << "tname: " << TI->tname << std::endl;
+		printf("\ttname: %s", TI->tname);
 	}
-
-	std::cout << "nstrings: " << TI->nstrings << std::endl;
-	std::cout << "strings:" << std::endl;
+	printf("\tnstrings: %d\n", TI->nstrings);
+	printf("\tstrings:\n");
 	for (int i=0; i<TI->nstrings; i++){
-		std::cout << "\t" << TI->strings[i] << std::endl;
+		printf("\t\t%s\n", TI->strings[i]);
 	}
-
-	std::cout << "arity: " << TI->arity << std::endl;
-	std::cout << "ncols: " << TI->ncols << std::endl;
-	std::cout << "colnames:" << std::endl;
+	printf("\tarity: %d\n", TI->arity);
+	printf("\tncols: %d\n", TI->ncols);
+	printf("\tcolnames:\n");
 	for (int i=0; i<TI->arity + TI->ncols; i++){
-		std::cout << "\t" << TI->colnames[i] << std::endl;
+		printf("\t\t%s\n", TI->colnames[i]);
 	}
+	if (TI->Missing != NULL){
+		printf("Missing: %s\n", TI->Missing);
+	}
+	if (TI->Errmsg != NULL){
+		printf("\tErrmsg: %s\n", TI->Errmsg);
+	}
+	printf("flags: %s\n", TI->flags);
+	printf("flags_bit IN: %d\n", TI->flags & DBTI_flags_IN);
+	printf("flags_bit OUT: %d\n", TI->flags & DBTI_flags_OUT);
+	printf("flags_bit INSET: %d\n", TI->flags & DBTI_flags_INSET);
+	printf("nrows: %d\n", TI->nrows);
+	printf("maxrows: %d\n", TI->maxrows);
 
-	if (TI->Missing != NULL)
-		std::cout << "Missing: " << TI->Missing << std::endl;
-	if (TI->Errmsg != NULL)
-		std::cout << "Errmsg: " << TI->Errmsg << std::endl;
-	std::cout << "flags: " << TI->flags << std::endl;
-	std::cout << "flags_bit IN: " << (TI->flags & DBTI_flags_IN) << std::endl;
-	std::cout << "flags_bit OUT: " << (TI->flags & DBTI_flags_OUT) << std::endl;
-	std::cout << "flags_bit INSET: " << (TI->flags & DBTI_flags_INSET) << std::endl;
-	std::cout << "nrows: " << TI->nrows << std::endl;
-	std::cout << "maxrows: " << TI->maxrows << std::endl;
-
-
-	std::cout << "<inspect TI done>" << std::endl;
-
-
+	printf("<inspect TI done>\n");
 };
 
 
@@ -815,8 +869,6 @@ ExcelManager::parse_data(
 			break;
 		}
 
-		db = TI->cols;
-
 		for (int j = 0; j < temp_strings.size(); j++){
 			temp_strings[j].clear();
 		}
@@ -854,7 +906,6 @@ ExcelManager::parse_data(
 				}
 			}
 
-			db++;
 			ecm.next(iter_col);
 		}
 
@@ -911,6 +962,10 @@ ExcelWriteManager::get_sstrings_map(){
 int
 ExcelWriteManager::manage_data(){
 
+	if (verbose > 1){
+		printf("amplxl: manage data...\n");
+	}
+
 	int result = 0;
 
 	//~ sheet_rel = sheet_rel_map[range_sheet];
@@ -927,6 +982,8 @@ ExcelWriteManager::manage_data(){
 
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
+
+	std::string sheet_final_path = final_path;
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
@@ -960,43 +1017,61 @@ ExcelWriteManager::manage_data(){
 	}
 	last_row = first_row + TI->nrows;
 
-
-	//~ std::cout << "has_range: " << has_range << std::endl;
-	//~ std::cout << "first_row: " << first_row << std::endl;
-	//~ std::cout << "last_row: " << last_row << std::endl;
-	//~ std::cout << "first_col: " << first_col << std::endl;
-	//~ std::cout << "last_col: " << last_col << std::endl;
-
-
-
-
-	result = check_columns(node, first_row, first_col, last_col);
-
-	if (result != -1){
-		cannot_find_column(result);
-		return 1;
-	}
-
-	first_row += 1;
-
-	result = check_rows(node, first_row, last_row);
-
-	if (!result){
-
-		// we needed to add some rows
-
-		//~ if (TI->flags){}
-		//~ doc.save_file(&final_path[0u]);
-
-	}
-
+	// map shared strings for fast access and get the number of existing ones, since we may add
+	// more strings later and need to update the file in excel
 	get_sstrings_map();
 	int n_sstrings = shared_strings.size();
 
 	if (TI->flags == 2){
-		result = write_data_out(node, first_row, last_row, first_col, last_col);
+
+		if (write == std::string("delete")){
+
+			result = check_columns(node, first_row, first_col, last_col);
+
+			if (result != -1){
+				cannot_find_column(result);
+				return 1;
+			}
+
+			first_row += 1;
+
+			if (!result){
+				// we needed to add some rows
+			}
+
+			delete_data(node);
+
+			result = check_rows(node, first_row, last_row);
+
+			range_last_row = last_row;
+
+			result = write_data_out(node, first_row, last_row, first_col, last_col);
+
+		}
+		else if (write == std::string("drop")){
+
+			// delete all info, including header
+			delete_data(node);
+
+			result = check_rows(node, first_row, last_row);
+
+			write_header(node, first_row, first_col);
+
+			first_row += 1;
+			result = write_all_data_out(node, first_row, last_row, first_col, last_col);
+		}
 	}
 	else if (TI->flags == 3){
+
+		result = check_columns(node, first_row, first_col, last_col);
+
+		if (result != -1){
+			cannot_find_column(result);
+			return 1;
+		}
+
+		first_row += 1;
+
 		result = write_data_inout(node, first_row, last_row, first_col, last_col);
 	}
 	else{
@@ -1004,7 +1079,6 @@ ExcelWriteManager::manage_data(){
 		unsuported_flag();
 		return 1;
 	}
-
 
 	if (result){
 		return 1;
@@ -1174,6 +1248,63 @@ ExcelWriteManager::write_data_out(
 
 
 int
+ExcelWriteManager::write_all_data_out(
+	pugi::xml_node node,
+	int first_row,
+	int last_row,
+	std::string &first_col,
+	std::string &last_col
+){
+
+	pugi::xml_node excel_row;
+	pugi::xml_node excel_cell;
+	pugi::xml_node excel_val;
+	pugi::xml_node dnode;
+
+	const char* row_attr = "r";
+	std::stringstream strs;
+	std::string row_id_str;
+	//~ std::string iter_col = std::string("A");
+	std::string iter_col = first_col;
+
+	const int ampl_ncols = TI->arity + TI->ncols;
+	DbCol *db;
+
+	int trow = 0;
+	excel_row = get_excel_row(node, first_row);
+
+	for (int i = first_row; i <= last_row; i++){
+
+		strs.str(std::string()); // clear stringstream
+		strs << i;
+		row_id_str = strs.str();
+
+		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+			excel_row = get_excel_row(node, i);
+		}
+
+		db = TI->cols;
+		//~ iter_col = std::string("A");
+		iter_col = first_col;
+
+		// we have the row now we need to check if it has the column nodes
+		for (int j = 0; j < ampl_ncols; j++){
+
+			excel_cell = get_excel_cell(excel_row, i, iter_col);
+			set_cell_value(db, excel_row, excel_cell, iter_col, i, trow);
+
+			db++;
+			ecm.next(iter_col);
+		}
+		trow += 1;
+		excel_row = excel_row.next_sibling();
+
+	}
+	return 0;
+};
+
+
+int
 ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 
 	for (int i = 0; i < excel_keys.size(); i++){
@@ -1195,6 +1326,8 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 
 		std::string value = excel_cell.first_child().child_value();
 
+		//~ std::cout << "string value: " << value << std::endl;
+
 		if (excel_cell.attribute("t").value() == std::string("s")){
 			value = shared_strings[std::atoi(value.c_str())];
 		}
@@ -1209,11 +1342,13 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 		}
 	}
 
-	//~ std::cout << "< get_excel_keys >: [";
-	//~ for (int i = 0; i < nkeys; i++){
-		//~ std::cout << excel_keys[i] << ", ";
-	//~ }
-	//~ std::cout << "]\n";
+	if (verbose == 73){
+		printf("excel_keys = [");
+		for (int i = 0; i < nkeys; i++){
+			printf("%s, ", &excel_keys[i][0u]);
+		}
+		printf("]\n");
+	}
 
 	return 0;
 };
@@ -1249,12 +1384,22 @@ ExcelWriteManager::get_ampl_keys(int line){
 
 int
 ExcelWriteManager::write_data_inout(
+
 	pugi::xml_node node,
 	int first_row,
 	int last_row,
 	std::string &first_col,
 	std::string &last_col
 ){
+
+	if (verbose == 73){
+		printf("ExcelWriteManager::write_data_inout\n");
+		printf("\tfirst row: %d\n", first_row);
+		printf("\tlast row: %d\n", last_row);
+		printf("\tfirst col: %s\n", &first_col[0u]);
+		printf("\tlast col: %s\n", &last_col[0u]);
+	}
+
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -1279,6 +1424,10 @@ ExcelWriteManager::write_data_inout(
 		strs << i;
 		row_id_str = strs.str();
 
+		if (verbose == 73){
+			printf("cell id: %s\n", &row_id_str[0u]);
+		}
+
 		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
 			excel_row = get_excel_row(node, i);
 		}
@@ -1302,11 +1451,6 @@ ExcelWriteManager::write_data_inout(
 	}
 	return 0;
 };
-
-
-
-
-
 
 
 int
@@ -1345,7 +1489,9 @@ ExcelWriteManager::copy_info(pugi::xml_node excel_row, int row, int ampl_row){
 
 
 
-void inspect_values(TableInfo *TI){
+void inspect_values(AmplExports *ae, TableInfo *TI){
+
+	printf("<Inspect values>\n");
 
 	DbCol *db;
 	const int ampl_ncols = TI->arity + TI->ncols;
@@ -1354,18 +1500,18 @@ void inspect_values(TableInfo *TI){
 		db = TI->cols;
 		for (int i=0; i<ampl_ncols; i++){
 
-			if (db->sval){
-				std::cout << db->sval[j];
+			if (db->sval && db->sval[j]){
+				printf("%s", db->sval[j]);
 			}
 			else{
-				std::cout << db->dval[j];
+				printf("%.5f", db->dval[j]);
 			}
-			std::cout << "\t";
+			printf("\t");
 			db++;
 		}
-		std::cout << std::endl;
-
+		printf("\n");
 	}
+	printf("<Inspect values done>\n");
 };
 
 
@@ -1540,22 +1686,21 @@ ExcelManager::clean_temp_folder(){
 		mystr += std::string(ffd.cFileName);
 		int res_del = DeleteFile(&mystr[0]);
 
-#if DEBUG
-		if (res_del == 0){
-			std::cout << "could not delete: " << GetLastError() << std::endl;
+		if (verbose > 0){
+			if (res_del == 0){
+				std::cout << "could not delete file: " << GetLastError() << std::endl;
+			}
 		}
-#endif
 
 	} while (FindNextFile(hFind, &ffd));
 
 	int res_rem = RemoveDirectory(&temp_folder[0u]);
 
-#if DEBUG
-	if (res_rem == 0){
-		std::cout << "could not remove folder: " << GetLastError() << std::endl;
+	if (verbose > 0){
+		if (res_rem == 0){
+			std::cout << "could not remove folder: " << GetLastError() << std::endl;
+		}
 	}
-#endif
-
 
 #endif
 
@@ -1790,6 +1935,372 @@ void unquote_string(std::string &str){
 		str = str.substr(1, n-2);
 	}
 };
+
+
+int
+ExcelWriteManager::delete_data(pugi::xml_node parent){
+
+	int include_header = 0;
+	if (write == std::string("drop")){
+		include_header = 1;
+	}
+
+
+	if (has_range){
+		if (range_first_row != range_last_row){
+			delete_range(parent, include_header);
+		}
+		else{
+			delete_header_range(parent, include_header);
+		}
+	}
+	else{
+		delete_sheet(parent, include_header);
+	}
+};
+
+int
+ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
+
+	int shift = 1;
+	if (include_header == 1){
+		shift = 0;
+	}
+
+	pugi::xml_node excel_row;
+	pugi::xml_node excel_cell;
+
+	const char* row_attr = "r";
+
+	std::stringstream strs;
+	std::string row_id_str;
+	std::string iter_col;
+	std::string cell_adress;
+
+	excel_row = get_excel_row(parent, range_first_row + shift);
+
+	// iterate rows
+	for (int i = range_first_row + 1; i <= range_last_row; i++){
+
+		strs.str(std::string()); // clear stringstream
+		strs << i;
+		row_id_str = strs.str();
+
+		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+			excel_row = get_excel_row(parent, i);
+		}
+
+		if (excel_row){
+
+			// iterate columns and delete cell (if found)
+			iter_col = range_first_col;
+			while (1){
+				std::string cell_adress = iter_col + row_id_str;
+
+				// get the cell element
+				excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+
+				if (excel_cell){
+					excel_row.remove_child(excel_cell);
+				}
+
+				if (iter_col == range_last_col){
+					break;
+				}
+
+				ecm.next(iter_col);
+			}
+		}
+		excel_row = excel_row.next_sibling();
+	}
+};
+
+
+int
+ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header){
+
+	int shift = 1;
+	if (include_header == 1){
+		shift = 0;
+	}
+
+	// find first empty row in header defined table
+	const char* row_attr = "r";
+	std::stringstream strs;
+	std::string row_id;
+
+	int iter_row = range_first_row + shift;
+	int last_row = iter_row;
+
+	strs.str(std::string()); // clear stringstream
+	strs << iter_row;
+	row_id = strs.str();
+
+	pugi::xml_node row_child = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+
+	while (1){
+
+		strs.str(std::string()); // clear stringstream
+		strs << iter_row;
+		row_id = strs.str();
+
+		if (row_child.attribute(row_attr).value() != row_id){
+			row_child = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+		}
+
+		bool has_content = false;
+
+		std::string iter_col = range_first_col;
+
+		while (1){
+
+			// concatenate iter_col and i to get the excel cell information
+			std::string cell_adress = iter_col + row_id;
+
+			// get the element
+			pugi::xml_node excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
+
+			if (excel_cell){
+
+				std::string value = excel_cell.first_child().child_value();
+
+				if (excel_cell.attribute("t").value() == std::string("s")){
+					value = shared_strings[std::atoi(value.c_str())];
+				}
+				else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
+					value = excel_cell.first_child().first_child().child_value();
+				}
+
+				if (value.length() > 0){
+					has_content = true;
+				}
+			}
+
+			if (iter_col == range_last_col){
+				break;
+			}
+
+			ecm.next(iter_col);
+		}
+
+		if (!has_content){
+			break;
+		}
+
+		last_row = iter_row;
+		row_child = row_child.next_sibling();
+		iter_row += 1;
+	}
+	range_last_row = last_row;
+	delete_range(parent, include_header);
+};
+
+
+int
+ExcelWriteManager::delete_sheet(pugi::xml_node parent, int include_header){
+
+	const char* row_attr = "r";
+	std::stringstream strs;
+	std::string row_id;
+	pugi::xml_node temp_node;
+
+	// save header node
+	if (include_header == 0){
+
+		strs.str(std::string());
+		strs << 1; // header must be first row
+		row_id = strs.str();
+
+		pugi::xml_node child = parent.first_child();
+
+		while (child){
+			pugi::xml_node next_child = child.next_sibling();
+			if (child.attribute(row_attr).value() != row_id){
+				parent.remove_child(child);
+			}
+			child = next_child;
+		}
+
+	}
+	else{
+
+		// delete everything
+		pugi::xml_node child = parent.first_child();
+
+		while (child){
+			pugi::xml_node next_child = child.next_sibling();
+			parent.remove_child(child);
+			child = next_child;
+		}
+	}
+};
+
+
+int
+ExcelWriteManager::update_workbook(
+	//~ int first_row,
+	//~ std::string &first_col,
+	//~ int last_row,
+	//~ std::string &last_col
+){
+
+	std::string new_range;
+	get_new_range(new_range);
+
+	if (verbose > 0){
+		std::cout << "new range: " << new_range << std::endl;
+	}
+
+	int result = 0;
+
+	// extract workbook
+	excel_iner_file = "xl/workbook.xml";
+	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+
+	if (result){
+		// error extracting workbook
+		cannot_extract_workbook();
+		return 1;
+	}
+
+	// get info from workbook
+	excel_file = "workbook.xml";
+	join_path(temp_folder, excel_file, final_path);
+
+	pugi::xml_document doc;
+	pugi::xml_node node;
+	pugi::xml_parse_result presult;
+	pugi::xml_node_iterator it;
+
+	presult = doc.load_file(&final_path[0u]);
+
+	if (!presult){
+		cannot_open_workbook();
+		return 1;
+	}
+
+	// replace named range
+	node = doc.child("workbook").child("definedNames");
+
+	for (it = node.begin(); it != node.end(); ++it){
+
+		if (it->attribute("name").value() == table_name){
+			//~ excel_range = it->child_value();
+			pugi::xml_text my_text = it->text();
+			my_text.set(&new_range[0u]);
+		}
+	}
+
+
+	if (verbose == 73){
+
+		std::cout << "excel_path: " << excel_path << std::endl;
+		std::cout << "excel_iner_file: " << excel_iner_file << std::endl;
+		std::cout << "final_path: " << final_path << std::endl;
+	}
+
+
+	// update sheet xml
+	doc.save_file(&final_path[0u]);
+
+	// replace inside zip
+	result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+
+	return 0;
+};
+
+
+int
+ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::string & first_col){
+
+	// get the header row
+	const char* row_attr = "r";
+
+	std::stringstream strs;
+	strs << first_row;
+	std::string row_id = strs.str();
+
+	pugi::xml_node excel_row = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+
+	std::string iter_col = first_col;
+
+	for (int i = 0; i < TI->arity + TI->ncols; i++){
+
+		std::string wstr = std::string(TI->colnames[i]);
+		int pos = check_shared_strings(wstr);
+
+		strs.str(std::string());
+		strs << pos;
+
+		std::string cell_adress = iter_col + row_id;
+
+		// get the cell element
+		pugi::xml_node excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+
+		if (!excel_cell){
+			excel_cell = excel_row.append_child("c");
+			excel_cell.append_attribute("r") = &cell_adress[0u];
+		}
+
+		pugi::xml_node excel_val = excel_cell.first_child();
+		if(!excel_val){
+			excel_val = excel_cell.append_child("v");
+		}
+
+		pugi::xml_attribute attr = excel_cell.attribute("t");
+		if (attr){
+			attr.set_value("s");
+		}
+		else{
+			excel_cell.append_attribute("t") = "s";
+		}
+
+		pugi::xml_node dnode = excel_val.first_child();
+		if (!dnode){
+			excel_val.append_child(pugi::node_pcdata).set_value(&strs.str()[0u]);
+		}
+		else{
+			dnode.set_value(&strs.str()[0u]);
+		}
+
+		ecm.next(iter_col);
+	}
+
+	range_last_col = iter_col;
+
+};
+
+int
+ExcelWriteManager::get_new_range(std::string & new_range){
+
+	std::stringstream strs;
+	std::string temp_str;
+
+	// ugly, but gets the job done
+	new_range = std::string("$");
+	new_range += range_sheet;
+	new_range += std::string(".$");
+	new_range += range_first_col;
+	new_range += std::string("$");
+
+	strs.str(std::string()); // clear stringstream
+	strs << range_first_row;
+	temp_str = strs.str();
+
+	new_range += temp_str;
+	new_range += std::string(":$");
+	new_range += range_last_col;
+	new_range += std::string("$");
+
+	strs.str(std::string()); // clear stringstream
+	strs << range_last_row;
+	temp_str = strs.str();
+
+	new_range += temp_str;
+
+};
+
+
 
 
 
