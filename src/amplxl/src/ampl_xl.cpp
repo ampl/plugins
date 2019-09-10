@@ -124,7 +124,7 @@ ExcelManager::prepare(){
 
 	if (TI->nstrings >= 3){
 		table_name = TI->strings[2];
-		std::cout << "ampl_xl: using alias: " << table_name << std::endl;
+		//~ std::cout << "ampl_xl: using alias: " << table_name << std::endl;
 	}
 
 	return 0;

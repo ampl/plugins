@@ -72,7 +72,7 @@ int makedir (
   buffer = (char*)malloc(len+1);
 		if (buffer==NULL)
 		{
-				printf("Error allocating memory\n");
+				//~ printf("Error allocating memory\n");
 				return UNZ_INTERNALERROR;
 		}
   strcpy(buffer,newdir);
@@ -97,7 +97,7 @@ int makedir (
 	  *p = 0;
 	  if ((mymkdir(buffer) == -1) && (errno == ENOENT))
 		{
-		  printf("couldn't create directory %s\n",buffer);
+		  //~ printf("couldn't create directory %s\n",buffer);
 		  free(buffer);
 		  return 0;
 		}
@@ -131,11 +131,11 @@ void Display64BitsSize(ZPOS64_T n, int size_char)
 	  while (size_char > size_display_string)
 	  {
 		  size_char--;
-		  printf(" ");
+		  //~ printf(" ");
 	  }
   }
 
-  printf("%s",&number[pos_string]);
+  //~ printf("%s",&number[pos_string]);
 };
 
 int do_list(
@@ -237,7 +237,7 @@ int do_extract_currentfile(
 
 	if (err!=UNZ_OK)
 	{
-		printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
+		//~ printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
 		return err;
 	}
 
@@ -245,7 +245,7 @@ int do_extract_currentfile(
 	buf = (void*)malloc(size_buf);
 	if (buf==NULL)
 	{
-		printf("Error allocating memory\n");
+		//~ printf("Error allocating memory\n");
 		return UNZ_INTERNALERROR;
 	}
 
@@ -262,7 +262,7 @@ int do_extract_currentfile(
 	{
 		if ((*popt_extract_without_path)==0)
 		{
-			printf("creating directory: %s\n",filename_inzip);
+			//~ printf("creating directory: %s\n",filename_inzip);
 			mymkdir(filename_inzip);
 		}
 	}
@@ -292,7 +292,7 @@ int do_extract_currentfile(
 		err = unzOpenCurrentFilePassword(uf,password);
 		if (err!=UNZ_OK)
 		{
-			printf("error %d with zipfile in unzOpenCurrentFilePassword\n",err);
+			//~ printf("error %d with zipfile in unzOpenCurrentFilePassword\n",err);
 		}
 
 		if (((*popt_overwrite)==0) && (err==UNZ_OK))
@@ -308,7 +308,7 @@ int do_extract_currentfile(
 					char answer[128];
 					int ret;
 
-					printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
+					//~ printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
 					ret = scanf("%1s",answer);
 					if (ret != 1)
 					{
@@ -340,14 +340,14 @@ int do_extract_currentfile(
 				makedir(write_filename);
 				*(filename_withoutpath-1)=c;
 
-				printf("write_filename %s\n",write_filename);
+				//~ printf("write_filename %s\n",write_filename);
 
 				fout=FOPEN_FUNC(write_filename,"wb");
 			}
 
 			if (fout==NULL)
 			{
-				printf("error opening %s\n",write_filename);
+				//~ printf("error opening %s\n",write_filename);
 			}
 		}
 
@@ -360,13 +360,13 @@ int do_extract_currentfile(
 				err = unzReadCurrentFile(uf,buf,size_buf);
 				if (err<0)
 				{
-					printf("error %d with zipfile in unzReadCurrentFile\n",err);
+					//~ printf("error %d with zipfile in unzReadCurrentFile\n",err);
 					break;
 				}
 				if (err>0)
 					if (fwrite(buf,err,1,fout)!=1)
 					{
-						printf("error in writing extracted file\n");
+						//~ printf("error in writing extracted file\n");
 						err=UNZ_ERRNO;
 						break;
 					}
@@ -385,7 +385,7 @@ int do_extract_currentfile(
 			err = unzCloseCurrentFile (uf);
 			if (err!=UNZ_OK)
 			{
-				printf("error %d with zipfile in unzCloseCurrentFile\n",err);
+				//~ printf("error %d with zipfile in unzCloseCurrentFile\n",err);
 			}
 		}
 		else
@@ -410,9 +410,9 @@ int do_extract(
 	FILE* fout=NULL;
 
 	err = unzGetGlobalInfo64(uf,&gi);
-	if (err!=UNZ_OK)
-		printf("error %d with zipfile in unzGetGlobalInfo \n",err);
-
+	if (err!=UNZ_OK){
+		//~ printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+	}
 	for (i=0;i<gi.number_entry;i++)
 	{
 		if (do_extract_currentfile(uf,&opt_extract_without_path,
@@ -426,7 +426,7 @@ int do_extract(
 			err = unzGoToNextFile(uf);
 			if (err!=UNZ_OK)
 			{
-				printf("error %d with zipfile in unzGoToNextFile\n",err);
+				//~ printf("error %d with zipfile in unzGoToNextFile\n",err);
 				break;
 			}
 		}
@@ -446,7 +446,7 @@ int do_extract_onefile(
 	int err = UNZ_OK;
 	if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
 	{
-		printf("file %s not found in the zipfile\n",filename);
+		//~ printf("file %s not found in the zipfile\n",filename);
 		return 2;
 	}
 
@@ -523,7 +523,7 @@ int myunzip(
 
 	if (uf==NULL)
 	{
-		printf("Cannot open %s or %s.zip\n",zipfilename,zipfilename);
+		//~ printf("Cannot open %s or %s.zip\n",zipfilename,zipfilename);
 		return 1;
 	}
 

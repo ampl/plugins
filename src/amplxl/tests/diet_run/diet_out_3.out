@@ -16,5 +16,3 @@ TUR    60   15   10   20   450   1397
 
 MINOS 5.51: optimal solution found.
 13 iterations, objective 118.0594032
-ampl_xl: using alias: Foods
-creating diet_xlsx/diet_out_3.xlsx
