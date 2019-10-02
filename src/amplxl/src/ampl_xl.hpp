@@ -282,7 +282,7 @@ public ExcelManager{
 
 
 
-	int check_shared_strings(std::string s);
+	int check_shared_strings(const std::string s);
 	int update_shared_strings(int init_size);
 
 	int get_excel_keys(pugi::xml_node excel_row, int row);

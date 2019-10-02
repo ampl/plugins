@@ -218,7 +218,7 @@ ExcelManager::manage_workbook(){
 
 	// extract workbook
 	excel_iner_file = "xl/workbook.xml";
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		// error extracting workbook
@@ -262,7 +262,7 @@ ExcelManager::manage_workbook(){
 		sheet_rel = it->second;
 	}
 
-	return 0;
+	return result;
 };
 
 int
@@ -272,7 +272,7 @@ ExcelManager::manage_relations(){
 
 	// extract relations
 	excel_iner_file = "xl/_rels/workbook.xml.rels";
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		// error extracting relations
@@ -289,7 +289,7 @@ ExcelManager::manage_relations(){
 		return 1;
 	}
 
-	return 0;
+	return result;
 };
 
 int
@@ -299,7 +299,7 @@ ExcelManager::manage_shared_strings(){
 
 	// extract shared strings
 	excel_iner_file = "xl/sharedStrings.xml";
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		cannot_extract_ss();
@@ -320,12 +320,12 @@ ExcelManager::manage_shared_strings(){
 	if (verbose == 73){
 		printf("Shared strings:\n");
 		for (int i=0; i< shared_strings.size(); i++){
-			printf("\t%d, %s\n", i, &shared_strings[i][0u]);
+			printf("\t%d, %s\n", i, shared_strings[i].c_str());
 		}
 		printf("Shared strings done.\n");
 	}
 
-	return 0;
+	return result;
 };
 
 int
@@ -339,7 +339,7 @@ ExcelReadManager::manage_data(){
 
 	// extract sheet with data
 	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		// error extracting data
@@ -358,7 +358,7 @@ ExcelReadManager::manage_data(){
 	pugi::xml_node excel_cell;
 	const char* row_attr = "r";
 
-	pugi_result = doc.load_file(&final_path[0u]);
+	pugi_result = doc.load_file(final_path.c_str());
 
 	if (!pugi_result){
 		cannot_open_sheet();
@@ -397,11 +397,7 @@ ExcelReadManager::manage_data(){
 	first_row += 1;
 	result = parse_data(node, first_row, last_row, first_col, last_col);
 
-	if (result){
-		return 1;
-	}
-
-	return 0;
+	return result;
 };
 
 int
@@ -563,7 +559,7 @@ ExcelManager::parse_workbook(){
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(&final_path[0u]);
+	result = doc.load_file(final_path.c_str());
 
 	if (!result){
 		cannot_open_workbook();
@@ -595,10 +591,10 @@ ExcelManager::parse_workbook(){
 int
 ExcelManager::parse_excel_range(){
 
-	char* to_split = &excel_range[0u];
+	std::string to_split = excel_range; //make a copy
 	char* pch;
 
-	pch = strtok(to_split, "!$:;");
+	pch = strtok(&to_split[0], "!$:;");
 
 	while(pch != NULL){
 		split.push_back(pch);
@@ -649,7 +645,7 @@ ExcelManager::check_columns(
 	std::stringstream strs;
 	strs << first_row;
 	std::string row_id_str = strs.str();
-	char* row_id = &row_id_str[0u];
+	const char* row_id = row_id_str.c_str();
 
 	pugi::xml_node row_child = node.find_child_by_attribute(row_attr, row_id);
 	pugi::xml_node excel_cell;
@@ -671,7 +667,7 @@ ExcelManager::check_columns(
 	while(1){
 
 		cell_adress = iter_col + row_id_str;
-		excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
+		excel_cell = row_child.find_child_by_attribute(row_attr, cell_adress.c_str());
 		excel_col_name = excel_cell.first_child().child_value();
 
 		if (excel_cell.attribute("t").value() == std::string("s")){
@@ -686,7 +682,7 @@ ExcelManager::check_columns(
 			nempty = 0;
 
 			if (verbose == 73){
-				printf("Found column %s\n", &excel_col_name[0u]);
+				printf("Found column %s\n", excel_col_name.c_str());
 			}
 
 		}
@@ -733,7 +729,7 @@ ExcelManager::get_excel_sheet(std::string &path){
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(&path[0u]);
+	result = doc.load_file(path.c_str());
 
 	if (!result){
 		return 1;
@@ -763,7 +759,7 @@ ExcelManager::get_shared_strings(){
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(&final_path[0u]);
+	result = doc.load_file(final_path.c_str());
 
 	if (!result){
 		return 1;
@@ -841,13 +837,13 @@ ExcelManager::parse_data(
 
 	std::stringstream strs;
 	std::string row_id_str;
-	char* row_id;
+	const char* row_id;
 
 	//~ row_id = &std::to_string(i)[0u];
 	strs.str(std::string()); // clear stringstream
 	strs << first_row;
 	row_id_str = strs.str();
-	row_id = &row_id_str[0u];
+	row_id = row_id_str.c_str();
 
 	row_child = node.find_child_by_attribute(row_attr, row_id);
 
@@ -858,7 +854,7 @@ ExcelManager::parse_data(
 		strs.str(std::string()); // clear stringstream
 		strs << i;
 		row_id_str = strs.str();
-		row_id = &row_id_str[0u];
+		row_id = row_id_str.c_str();
 
 		if (row_child.attribute(row_attr).value() != row_id_str){
 
@@ -883,7 +879,7 @@ ExcelManager::parse_data(
 			std::string cell_adress = iter_col + row_id_str;
 
 			// get the element
-			excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
+			excel_cell = row_child.find_child_by_attribute(row_attr, cell_adress.c_str());
 
 			if (excel_cell){
 
@@ -921,7 +917,7 @@ ExcelManager::parse_data(
 			}
 			else{
 				//dont trust excel, always try to convert the value
-				t = strtod(&temp_strings[j][0u], &se);
+				t = strtod(temp_strings[j].c_str(), &se);
 				if (!*se) {/* valid number */
 					db->sval[0] = 0;
 					db->dval[0] = t;
@@ -972,7 +968,7 @@ ExcelWriteManager::manage_data(){
 
 	// extract sheet with data
 	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		// error extracting data
@@ -993,7 +989,7 @@ ExcelWriteManager::manage_data(){
 	pugi::xml_node excel_cell;
 	const char* row_attr = "r";
 
-	pugi_result = doc.load_file(&final_path[0u]);
+	pugi_result = doc.load_file(final_path.c_str());
 
 
 	if (!pugi_result){
@@ -1100,7 +1096,7 @@ ExcelWriteManager::manage_data(){
 		//~ std::cout << "final_path: " << final_path << std::endl;
 	//~ }
 
-	doc.save_file(&final_path[0u]);
+	doc.save_file(final_path.c_str());
 
 	changed_files.push_back(excel_iner_file);
 
@@ -1142,7 +1138,7 @@ ExcelWriteManager::manage_data(){
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
-	result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	result = myzip(xl_copy_path.c_str(), excel_iner_file.c_str(), final_path.c_str());
 	if (result){
 		cannot_update_sheet();
 		return 1;
@@ -1155,15 +1151,15 @@ ExcelWriteManager::manage_data(){
 
 		join_path(temp_folder, excel_file, final_path);
 
-		result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
+		result = myzip(xl_copy_path.c_str(), excel_iner_file.c_str(), final_path.c_str());
 		if (result){
 			cannot_update_sheet();
 			return 1;
 		}
 	}
 
-	remove(&excel_path[0u]);
-	if (rename(&xl_copy_path[0u], &excel_path[0u]) != 0)
+	remove(excel_path.c_str());
+	if (rename(xl_copy_path.c_str(), excel_path.c_str()) != 0)
 	{
 		// cannot swap files
 		return 1;
@@ -1224,7 +1220,7 @@ ExcelWriteManager::write_data_out(
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1279,7 +1275,7 @@ ExcelWriteManager::write_all_data_out(
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1345,7 +1341,7 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 	if (verbose == 73){
 		printf("excel_keys = [");
 		for (int i = 0; i < nkeys; i++){
-			printf("%s, ", &excel_keys[i][0u]);
+			printf("%s, ", excel_keys[i].c_str());
 		}
 		printf("]\n");
 	}
@@ -1396,8 +1392,8 @@ ExcelWriteManager::write_data_inout(
 		printf("ExcelWriteManager::write_data_inout\n");
 		printf("\tfirst row: %d\n", first_row);
 		printf("\tlast row: %d\n", last_row);
-		printf("\tfirst col: %s\n", &first_col[0u]);
-		printf("\tlast col: %s\n", &last_col[0u]);
+		printf("\tfirst col: %s\n", first_col.c_str());
+		printf("\tlast col: %s\n", last_col.c_str());
 	}
 
 	pugi::xml_node excel_row;
@@ -1425,10 +1421,10 @@ ExcelWriteManager::write_data_inout(
 		row_id_str = strs.str();
 
 		if (verbose == 73){
-			printf("cell id: %s\n", &row_id_str[0u]);
+			printf("cell id: %s\n", row_id_str.c_str());
 		}
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1525,11 +1521,8 @@ get_excel_row(pugi::xml_node parent, int row){
 	std::stringstream strs;
 	strs << row;
 	std::string row_id_str = strs.str();
-	char* row_id = &row_id_str[0u];
 
-	return parent.find_child_by_attribute(row_attr, row_id);
-
-
+	return parent.find_child_by_attribute(row_attr, row_id_str.c_str());
 };
 
 pugi::xml_node
@@ -1541,15 +1534,14 @@ get_excel_cell(pugi::xml_node parent, int row, std::string &col){
 	std::string row_id_str = strs.str();
 
 	std::string cell_id_str = col + row_id_str;
-	char* cell_id = &cell_id_str[0u];
 
-	return parent.find_child_by_attribute(row_attr, cell_id);
+	return parent.find_child_by_attribute(row_attr, cell_id_str.c_str());
 };
 
 
 
 int
-ExcelWriteManager::check_shared_strings(std::string s){
+ExcelWriteManager::check_shared_strings(const std::string s){
 
 	std::map<std::string,int>::iterator it = sstrings_map.find(s);
 	if (it == sstrings_map.end()){
@@ -1589,7 +1581,7 @@ ExcelWriteManager::update_shared_strings(int init_size){
 	pugi::xml_node si_node;
 	pugi::xml_node t_node;
 
-	result = doc.load_file(&final_path[0u]);
+	result = doc.load_file(final_path.c_str());
 
 	if (!result){
 		return 1;
@@ -1601,14 +1593,14 @@ ExcelWriteManager::update_shared_strings(int init_size){
 
 		si_node = node.append_child("si");
 		t_node = si_node.append_child("t");
-		t_node.append_child(pugi::node_pcdata).set_value(&shared_strings[i][0u]);
+		t_node.append_child(pugi::node_pcdata).set_value(shared_strings[i].c_str());
 	}
 
 	// update sheet xml
-	doc.save_file(&final_path[0u]);
+	doc.save_file(final_path.c_str());
 
 	// replace inside zip
-	//~ res = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	//~ res = myzip(excel_path.c_str(), excel_iner_file.c_str(), final_path.c_str());
 
 	return 0;
 };
@@ -1638,7 +1630,7 @@ ExcelManager::create_temp_folder(){
 
 	std::string full_path = temp_path + std::string("\\") + tplt;
 
-	res = CreateDirectory(&full_path[0u], NULL);
+	res = CreateDirectory(full_path.c_str(), NULL);
 
 	if (res == 0){
 		cannot_create_temp();
@@ -1678,7 +1670,7 @@ ExcelManager::clean_temp_folder(){
 	std::string help_path = temp_folder;
 	help_path += "\\*";
 
-	hFind = FindFirstFile(&help_path[0], &ffd);
+	hFind = FindFirstFile(help_path.c_str(), &ffd);
 
 	do {
 		std::string mystr = temp_folder;
@@ -1694,7 +1686,7 @@ ExcelManager::clean_temp_folder(){
 
 	} while (FindNextFile(hFind, &ffd));
 
-	int res_rem = RemoveDirectory(&temp_folder[0u]);
+	int res_rem = RemoveDirectory(temp_folder.c_str());
 
 	if (verbose > 0){
 		if (res_rem == 0){
@@ -1738,7 +1730,7 @@ ExcelWriteManager::set_cell_value(
 		strs << i;
 		std::string srow = strs.str();
 		std::string scell = scol + srow;
-		excel_cell.append_attribute("r") = &scell[0u];
+		excel_cell.append_attribute("r") = scell.c_str();
 	}
 
 	// excel cell has a child of type "v"
@@ -1776,10 +1768,10 @@ ExcelWriteManager::set_cell_value(
 
 	dnode = excel_val.first_child();
 	if (!dnode){
-		excel_val.append_child(pugi::node_pcdata).set_value(&temp_str[0u]);
+		excel_val.append_child(pugi::node_pcdata).set_value(temp_str.c_str());
 	}
 	else{
-		dnode.set_value(&temp_str[0u]);
+		dnode.set_value(temp_str.c_str());
 	}
 
 };
@@ -1815,15 +1807,15 @@ ExcelManager::cannot_open_workbook(){
 void
 ExcelManager::cannot_parse_range(){
 
-	sprintf(TI->Errmsg = (char*)TM(strlen(&excel_range[0u]) + 26),
-		"Cannot parse range \"%s\".", &excel_range[0u]);
+	sprintf(TI->Errmsg = (char*)TM(excel_range.size() + 26),
+		"Cannot parse range \"%s\".", excel_range.c_str());
 };
 
 
 void
 ExcelManager::cannot_find_table(){
-	sprintf(TI->Errmsg = (char*)TM(strlen(&table_name[0u]) + 25),
-		"Cannot find table \"%s\".", &table_name[0u]);
+	sprintf(TI->Errmsg = (char*)TM(table_name.size() + 25),
+		"Cannot find table \"%s\".", table_name.c_str());
 };
 
 
@@ -1957,6 +1949,7 @@ ExcelWriteManager::delete_data(pugi::xml_node parent){
 	else{
 		delete_sheet(parent, include_header);
 	}
+        return 0;
 };
 
 int
@@ -1986,7 +1979,7 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(parent, i);
 		}
 
@@ -1998,7 +1991,7 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 				std::string cell_adress = iter_col + row_id_str;
 
 				// get the cell element
-				excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+				excel_cell = excel_row.find_child_by_attribute(row_attr, cell_adress.c_str());
 
 				if (excel_cell){
 					excel_row.remove_child(excel_cell);
@@ -2013,6 +2006,7 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 		}
 		excel_row = excel_row.next_sibling();
 	}
+        return 0;
 };
 
 
@@ -2036,7 +2030,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 	strs << iter_row;
 	row_id = strs.str();
 
-	pugi::xml_node row_child = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+	pugi::xml_node row_child = parent.find_child_by_attribute(row_attr, row_id.c_str());
 
 	while (1){
 
@@ -2045,7 +2039,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 		row_id = strs.str();
 
 		if (row_child.attribute(row_attr).value() != row_id){
-			row_child = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+			row_child = parent.find_child_by_attribute(row_attr, row_id.c_str());
 		}
 
 		bool has_content = false;
@@ -2058,7 +2052,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 			std::string cell_adress = iter_col + row_id;
 
 			// get the element
-			pugi::xml_node excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
+			pugi::xml_node excel_cell = row_child.find_child_by_attribute(row_attr, cell_adress.c_str());
 
 			if (excel_cell){
 
@@ -2071,7 +2065,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 					value = excel_cell.first_child().first_child().child_value();
 				}
 
-				if (value.length() > 0){
+				if (!value.empty()){
 					has_content = true;
 				}
 			}
@@ -2093,6 +2087,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 	}
 	range_last_row = last_row;
 	delete_range(parent, include_header);
+        return 0;
 };
 
 
@@ -2133,6 +2128,7 @@ ExcelWriteManager::delete_sheet(pugi::xml_node parent, int include_header){
 			child = next_child;
 		}
 	}
+        return 0;
 };
 
 
@@ -2155,7 +2151,7 @@ ExcelWriteManager::update_workbook(
 
 	// extract workbook
 	excel_iner_file = "xl/workbook.xml";
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
+	result = myunzip(excel_path.c_str(), excel_iner_file.c_str(), temp_folder.c_str());
 
 	if (result){
 		// error extracting workbook
@@ -2172,7 +2168,7 @@ ExcelWriteManager::update_workbook(
 	pugi::xml_parse_result presult;
 	pugi::xml_node_iterator it;
 
-	presult = doc.load_file(&final_path[0u]);
+	presult = doc.load_file(final_path.c_str());
 
 	if (!presult){
 		cannot_open_workbook();
@@ -2201,10 +2197,10 @@ ExcelWriteManager::update_workbook(
 
 
 	// update sheet xml
-	doc.save_file(&final_path[0u]);
+	doc.save_file(final_path.c_str());
 
 	// replace inside zip
-	result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	result = myzip(excel_path.c_str(), excel_iner_file.c_str(), final_path.c_str());
 
 	return 0;
 };
@@ -2220,7 +2216,7 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 	strs << first_row;
 	std::string row_id = strs.str();
 
-	pugi::xml_node excel_row = parent.find_child_by_attribute(row_attr, &row_id[0u]);
+	pugi::xml_node excel_row = parent.find_child_by_attribute(row_attr, row_id.c_str());
 
 	std::string iter_col = first_col;
 
@@ -2235,11 +2231,11 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 		std::string cell_adress = iter_col + row_id;
 
 		// get the cell element
-		pugi::xml_node excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+		pugi::xml_node excel_cell = excel_row.find_child_by_attribute(row_attr, cell_adress.c_str());
 
 		if (!excel_cell){
 			excel_cell = excel_row.append_child("c");
-			excel_cell.append_attribute("r") = &cell_adress[0u];
+			excel_cell.append_attribute("r") = cell_adress.c_str();
 		}
 
 		pugi::xml_node excel_val = excel_cell.first_child();
@@ -2257,17 +2253,17 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 
 		pugi::xml_node dnode = excel_val.first_child();
 		if (!dnode){
-			excel_val.append_child(pugi::node_pcdata).set_value(&strs.str()[0u]);
+			excel_val.append_child(pugi::node_pcdata).set_value(strs.str().c_str());
 		}
 		else{
-			dnode.set_value(&strs.str()[0u]);
+			dnode.set_value(strs.str().c_str());
 		}
 
 		ecm.next(iter_col);
 	}
 
 	range_last_col = iter_col;
-
+        return 0;
 };
 
 int
@@ -2297,7 +2293,7 @@ ExcelWriteManager::get_new_range(std::string & new_range){
 	temp_str = strs.str();
 
 	new_range += temp_str;
-
+        return 0;
 };
 
 
