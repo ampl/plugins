@@ -968,8 +968,6 @@ ExcelWriteManager::manage_data(){
 
 	int result = 0;
 
-	//~ sheet_rel = sheet_rel_map[range_sheet];
-
 	// extract sheet with data
 	excel_iner_file = "xl/" + data_sheet;
 	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
@@ -1017,7 +1015,7 @@ ExcelWriteManager::manage_data(){
 	}
 	last_row = first_row + TI->nrows;
 
-	// map shared strings for fast access and get the number of existing ones, since we may add
+	// map shared strings for fast access and get the number of existing strings, since we may add
 	// more strings later and need to update the file in excel
 	get_sstrings_map();
 	int n_sstrings = shared_strings.size();
@@ -1084,11 +1082,11 @@ ExcelWriteManager::manage_data(){
 		return 1;
 	}
 
+	// vector with the names of the files we need to update in the original spreadsheet
 	std::vector<std::string> changed_files;
 
 
 	// update sheet xml
-
 	excel_iner_file = "xl/" + data_sheet;
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
@@ -1264,7 +1262,6 @@ ExcelWriteManager::write_all_data_out(
 	const char* row_attr = "r";
 	std::stringstream strs;
 	std::string row_id_str;
-	//~ std::string iter_col = std::string("A");
 	std::string iter_col = first_col;
 
 	const int ampl_ncols = TI->arity + TI->ncols;
@@ -1284,7 +1281,6 @@ ExcelWriteManager::write_all_data_out(
 		}
 
 		db = TI->cols;
-		//~ iter_col = std::string("A");
 		iter_col = first_col;
 
 		// we have the row now we need to check if it has the column nodes
@@ -1528,8 +1524,6 @@ get_excel_row(pugi::xml_node parent, int row){
 	char* row_id = &row_id_str[0u];
 
 	return parent.find_child_by_attribute(row_attr, row_id);
-
-
 };
 
 pugi::xml_node
@@ -1945,7 +1939,6 @@ ExcelWriteManager::delete_data(pugi::xml_node parent){
 		include_header = 1;
 	}
 
-
 	if (has_range){
 		if (range_first_row != range_last_row){
 			delete_range(parent, include_header);
@@ -2137,80 +2130,6 @@ ExcelWriteManager::delete_sheet(pugi::xml_node parent, int include_header){
 
 
 int
-ExcelWriteManager::update_workbook(
-	//~ int first_row,
-	//~ std::string &first_col,
-	//~ int last_row,
-	//~ std::string &last_col
-){
-
-	std::string new_range;
-	get_new_range(new_range);
-
-	if (verbose > 0){
-		std::cout << "new range: " << new_range << std::endl;
-	}
-
-	int result = 0;
-
-	// extract workbook
-	excel_iner_file = "xl/workbook.xml";
-	result = myunzip(&excel_path[0u], &excel_iner_file[0u], &temp_folder[0u]);
-
-	if (result){
-		// error extracting workbook
-		cannot_extract_workbook();
-		return 1;
-	}
-
-	// get info from workbook
-	excel_file = "workbook.xml";
-	join_path(temp_folder, excel_file, final_path);
-
-	pugi::xml_document doc;
-	pugi::xml_node node;
-	pugi::xml_parse_result presult;
-	pugi::xml_node_iterator it;
-
-	presult = doc.load_file(&final_path[0u]);
-
-	if (!presult){
-		cannot_open_workbook();
-		return 1;
-	}
-
-	// replace named range
-	node = doc.child("workbook").child("definedNames");
-
-	for (it = node.begin(); it != node.end(); ++it){
-
-		if (it->attribute("name").value() == table_name){
-			//~ excel_range = it->child_value();
-			pugi::xml_text my_text = it->text();
-			my_text.set(&new_range[0u]);
-		}
-	}
-
-
-	if (verbose == 73){
-
-		std::cout << "excel_path: " << excel_path << std::endl;
-		std::cout << "excel_iner_file: " << excel_iner_file << std::endl;
-		std::cout << "final_path: " << final_path << std::endl;
-	}
-
-
-	// update sheet xml
-	doc.save_file(&final_path[0u]);
-
-	// replace inside zip
-	result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
-
-	return 0;
-};
-
-
-int
 ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::string & first_col){
 
 	// get the header row
@@ -2269,43 +2188,3 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 	range_last_col = iter_col;
 
 };
-
-int
-ExcelWriteManager::get_new_range(std::string & new_range){
-
-	std::stringstream strs;
-	std::string temp_str;
-
-	// ugly, but gets the job done
-	new_range = std::string("$");
-	new_range += range_sheet;
-	new_range += std::string(".$");
-	new_range += range_first_col;
-	new_range += std::string("$");
-
-	strs.str(std::string()); // clear stringstream
-	strs << range_first_row;
-	temp_str = strs.str();
-
-	new_range += temp_str;
-	new_range += std::string(":$");
-	new_range += range_last_col;
-	new_range += std::string("$");
-
-	strs.str(std::string()); // clear stringstream
-	strs << range_last_row;
-	temp_str = strs.str();
-
-	new_range += temp_str;
-
-};
-
-
-
-
-
-
-
-
-
-
