@@ -1222,7 +1222,7 @@ ExcelWriteManager::write_data_out(
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1276,7 +1276,7 @@ ExcelWriteManager::write_all_data_out(
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1424,7 +1424,7 @@ ExcelWriteManager::write_data_inout(
 			printf("cell id: %s\n", &row_id_str[0u]);
 		}
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
 		}
 
@@ -1992,7 +1992,7 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 		strs << i;
 		row_id_str = strs.str();
 
-		if (excel_row.attribute(row_attr).value() != &row_id_str[0u]){
+		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(parent, i);
 		}
 
