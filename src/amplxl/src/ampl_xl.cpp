@@ -1696,6 +1696,19 @@ ExcelManager::clean_temp_folder(){
 		}
 	}
 
+#else
+	std::string test_string = std::string("/tmp/ampltemp");
+	if (temp_folder.substr(0, test_string.size()) == test_string){
+
+		std::string my_com = std::string("exec rm -r ") + temp_folder;
+		int res_rem = system(my_com.c_str());
+
+	if (verbose > 0){
+		if (res_rem != 0){
+			printf("Could not remove temporary folder.\n");
+		}
+	}
+	}
 #endif
 
 	return 0;
