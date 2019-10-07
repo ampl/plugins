@@ -130,6 +130,22 @@ ExcelManager::prepare(){
 	int has_alias = 0;
 	int n = 0;
 
+	// check value for inout
+	if ((TI->flags & DBTI_flags_IN) && (TI->flags & DBTI_flags_OUT)){
+		inout = std::string("INOUT");
+	}
+	else if (TI->flags & DBTI_flags_IN){
+		inout = std::string("IN");
+	}
+	else if (TI->flags & DBTI_flags_OUT){
+		inout = std::string("OUT");
+	}
+	else{
+		//unsuported flag
+		unsuported_flag();
+		return 1;
+	}
+
 	// first string holds table handler name, second the file name
 	// we need to parse remaining ones
 
@@ -150,6 +166,7 @@ ExcelManager::prepare(){
 		printf("amplxl:\n");
 		printf("\thandler: %s\n", TI->strings[0]);
 		printf("\tfile: %s\n", TI->strings[1]);
+		printf("\tinout: %s\n", inout.c_str());
 		printf("\tverbose: %d\n", verbose);
 	}
 
@@ -208,15 +225,7 @@ ExcelManager::prepare(){
 
 	if (verbose > 0){
 		printf("\twrite option: %s\n", &write[0u]);
-		if (TI->flags == 1){
-			printf("\tstatus: IN\n");
-		}
-		else if (TI->flags == 2){
-			printf("\tstatus: OUT\n");
-		}
-		else if (TI->flags == 3){
-			printf("\tstatus: INOUT\n");
-		}
+
 		if (backup){
 			printf("\tbackup: true\n");
 		}
@@ -1041,7 +1050,7 @@ ExcelWriteManager::manage_data(){
 	get_sstrings_map();
 	int n_sstrings = shared_strings.size();
 
-	if (TI->flags == 2){
+	if (inout == "OUT"){
 
 		if (write == std::string("delete")){
 
@@ -1080,7 +1089,7 @@ ExcelWriteManager::manage_data(){
 			result = write_all_data_out(node, first_row, last_row, first_col, last_col);
 		}
 	}
-	else if (TI->flags == 3){
+	else if (inout == "INOUT"){
 
 		result = check_columns(node, first_row, first_col, last_col);
 

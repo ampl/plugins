@@ -164,6 +164,9 @@ class ExcelManager
 	// weather to backup the initial data or not
 	bool backup;
 
+	// inout keyword of the table, can be IN, OUT or INOUT
+	std::string inout;
+
 	// methods
 
 
