@@ -161,6 +161,8 @@ class ExcelManager
 	// weather to delete or drop a table
 	std::string write;
 
+	// weather to backup the initial data or not
+	bool backup;
 
 	// methods
 

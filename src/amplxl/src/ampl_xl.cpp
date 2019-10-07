@@ -88,6 +88,7 @@ ExcelManager::ExcelManager(){
 	break_mode = false;
 	verbose = 0;
 	write = std::string("delete");
+	backup = true;
 };
 
 
@@ -174,6 +175,20 @@ ExcelManager::prepare(){
 				printf("\tignoring write option: %s\n", TI->strings[i]);
 			}
 		}
+		else if (temp_string.substr(0, 7) == std::string("backup=")){
+
+			option_string = temp_string.substr(7, temp_string.size() - 7);
+
+			if (option_string == std::string("true")){
+				backup = true;
+			}
+			else if (option_string == std::string("false")){
+				backup = false;
+			}
+			else if (verbose > 0){
+				printf("\tignoring backup option: %s\n", TI->strings[i]);
+			}
+		}
 		else{
 
 			if (has_alias == 0){
@@ -201,6 +216,12 @@ ExcelManager::prepare(){
 		}
 		else if (TI->flags == 3){
 			printf("\tstatus: INOUT\n");
+		}
+		if (backup){
+			printf("\tbackup: true\n");
+		}
+		else{
+			printf("\tbackup: false\n");
 		}
 	}
 
@@ -1160,7 +1181,15 @@ ExcelWriteManager::manage_data(){
 		}
 	}
 
-	remove(&excel_path[0u]);
+	// check if backup was requested
+	if (backup){
+		std::string backup_path = excel_path + ".amplbak";
+		rename(&excel_path[0u], &backup_path[0u]);
+	}
+	else{
+		remove(&excel_path[0u]);
+	}
+
 	if (rename(&xl_copy_path[0u], &excel_path[0u]) != 0)
 	{
 		// cannot swap files
