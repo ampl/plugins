@@ -656,6 +656,7 @@ int reuse_ofstream(std::ofstream & ofs, std::string & orig, std::string & dest){
 	ofs.open(dest.c_str());
 	ofs << orig;
 	ofs.close();
+	return 0;
 };
 
 
@@ -671,6 +672,8 @@ zip_xml_files(
 	int res = 0;
 
 # ifdef USEWIN32IOAPI
+	zlib_filefunc64_def ffunc;
+	fill_win32_filefunc64A(&ffunc);
 	zipFile dzip = zipOpen2_64(tmp_name, APPEND_STATUS_CREATE, NULL, &ffunc);
 # else
 	zipFile dzip = zipOpen64(tmp_name, APPEND_STATUS_CREATE);
