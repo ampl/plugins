@@ -333,6 +333,7 @@ set(AMPLXL_SOURCES
     amplxl/src/myzip.cpp
     amplxl/src/copyzip.cpp
     amplxl/src/pugixml.cpp
+    amplxl/src/oxmlutils.cpp
     amplxl/src/unzip.c
     amplxl/src/zip.c)
 if (WIN32)
