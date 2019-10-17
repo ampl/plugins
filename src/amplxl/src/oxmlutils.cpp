@@ -744,7 +744,7 @@ bool
 check_file_exists(const std::string & filename){
 
   std::ifstream ifile(filename.c_str());
-  return ifile;
+  return static_cast<bool>(ifile);
 };
 
 
