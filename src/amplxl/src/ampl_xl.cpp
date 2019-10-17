@@ -439,13 +439,6 @@ ExcelManager::manage_shared_strings(){
 		return 1;
 	}
 
-	if (verbose > 1){
-		printf("amplxl: shared strings\n");
-		for (int i=0; i<shared_strings.size(); i++){
-			printf("\t%s\n", shared_strings[i].c_str());
-		}
-	}
-
 	return 0;
 };
 
@@ -919,7 +912,7 @@ inspect_ti(AmplExports *ae, TableInfo *TI){
 	if (TI->Errmsg != NULL){
 		printf("\tErrmsg: %s\n", TI->Errmsg);
 	}
-	printf("flags: %s\n", TI->flags);
+	printf("flags: %d\n", TI->flags);
 	printf("flags_bit IN: %d\n", TI->flags & DBTI_flags_IN);
 	printf("flags_bit OUT: %d\n", TI->flags & DBTI_flags_OUT);
 	printf("flags_bit INSET: %d\n", TI->flags & DBTI_flags_INSET);
@@ -1507,15 +1500,6 @@ ExcelWriteManager::write_data_inout(
 	std::string &first_col,
 	std::string &last_col
 ){
-
-	if (verbose == 73){
-		printf("ExcelWriteManager::write_data_inout\n");
-		printf("\tfirst row: %d\n", first_row);
-		printf("\tlast row: %d\n", last_row);
-		printf("\tfirst col: %s\n", &first_col[0u]);
-		printf("\tlast col: %s\n", &last_col[0u]);
-	}
-
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -1891,6 +1875,7 @@ ExcelWriteManager::set_cell_value(
 	}
 
 	// check cell data type ("t" attribute)
+	// if we are writing a string we change it to a shared string
 	if (is_str){
 		pugi::xml_attribute attr = excel_cell.attribute("t");
 		if (attr){
@@ -1900,6 +1885,18 @@ ExcelWriteManager::set_cell_value(
 			excel_cell.append_attribute("t") = "s";
 		}
 	}
+	// change to number
+	else{
+		pugi::xml_attribute attr = excel_cell.attribute("t");
+		if (attr){
+			attr.set_value("n");
+		}
+		else{
+			excel_cell.append_attribute("t") = "n";
+		}
+	}
+
+
 
 	dnode = excel_val.first_child();
 	if (!dnode){
