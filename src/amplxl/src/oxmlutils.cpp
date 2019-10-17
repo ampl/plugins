@@ -740,6 +740,11 @@ has_shared_strings(std::string & oxml_file, std::string & temp_folder){
 	return has_shared_strings;
 };
 
+bool
+check_file_exists(const std::string & filename){
 
+  std::ifstream ifile(filename.c_str());
+  return ifile;
+};
 
 

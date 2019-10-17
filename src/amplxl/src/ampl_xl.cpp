@@ -115,6 +115,20 @@ ExcelManager::add_info(AmplExports *ae, TableInfo *TI){
 int
 ExcelManager::prepare(){
 
+	// at leat the table handler must be declared
+	if (TI->nstrings == 0){
+		std::string err = "amplxl: no table handler declared.\n";
+		generic_error(err);
+		return 1;
+	}
+
+	// first string must be the table handler
+	if (std::string(TI->strings[0]) != "amplxl"){
+		std::string err = "amplxl: no table handler declared.\n";
+		generic_error(err);
+		return 1;
+	}
+
 	excel_path = get_excel_path(TI);
 
 	table_name = TI->tname;
@@ -266,12 +280,42 @@ ExcelManager::prepare(){
 				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 			}
 		}
-		// nothing to read/INOUT file must be declared
+		// IN or INOUT file must exist beforehand
 		else{
 			cannot_find_file();
 			return 1;
 		}
 	}
+	else if(!check_file_exists(excel_path)){
+
+		// we create the non existing file with the declared name
+		if (inout == "OUT"){
+			int res = 0;
+			res = build_oxml_file(excel_path, temp_folder);
+
+			if (res){
+				// Failed to build oxml
+				return 1;
+			}
+
+			res = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+
+			if (res){
+				// Failed to add new sheet
+				return 1;
+			}
+
+			if (verbose > 0){
+				printf("\tDeclared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			}
+		}
+		// IN or INOUT file must exist beforehand
+		else{
+			cannot_find_file();
+			return 1;
+		}
+	}
+
 
 	return 0;
 };
@@ -1907,6 +1951,13 @@ ExcelWriteManager::set_cell_value(
 	}
 
 };
+
+void
+ExcelManager::generic_error(std::string & err)
+{
+	sprintf(TI->Errmsg = (char*)TM(strlen(err.c_str())), err.c_str());
+};
+
 
 void
 ExcelManager::cannot_find_file()

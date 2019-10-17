@@ -268,6 +268,7 @@ class ExcelManager
 	int prepare();
 
 	//error messages
+	void generic_error(std::string & err);
 	void cannot_find_file();
 	void cannot_create_temp();
 	void cannot_extract_workbook();

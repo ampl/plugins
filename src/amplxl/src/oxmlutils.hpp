@@ -349,5 +349,9 @@ Returns:
 int
 has_shared_strings(std::string & oxml_file, std::string & temp_folder);
 
-
+/*
+Check if a given filename exists.
+*/
+bool
+check_file_exists(const std::string & filename);
 
