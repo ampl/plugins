@@ -117,12 +117,6 @@ ExcelManager::prepare(){
 
 	excel_path = get_excel_path(TI);
 
-	if (excel_path.empty()){
-
-		cannot_find_file();
-		return 1;
-	}
-
 	table_name = TI->tname;
 
 	std::string temp_string;
@@ -146,11 +140,11 @@ ExcelManager::prepare(){
 		return 1;
 	}
 
-	// first string holds table handler name, second the file name
+	// first string holds table handler name
 	// we need to parse remaining ones
 
-	// first parse verbose only
-	for (int i = 2; i < TI->nstrings; i++){
+	// first search for verbose only
+	for (int i = 0; i < TI->nstrings; i++){
 
 		temp_string = TI->strings[i];
 
@@ -164,20 +158,32 @@ ExcelManager::prepare(){
 
 	if (verbose > 0){
 		printf("amplxl:\n");
-		printf("\thandler: %s\n", TI->strings[0]);
-		printf("\tfile: %s\n", TI->strings[1]);
+		if (!excel_path.empty()){
+			printf("\tfile: %s\n", excel_path.c_str());
+		}
 		printf("\tinout: %s\n", inout.c_str());
 		printf("\tverbose: %d\n", verbose);
 	}
 
 	// parse remaining args
-	for (int i = 2; i < TI->nstrings; i++){
+	for (int i = 0; i < TI->nstrings; i++){
 
 		temp_string = TI->strings[i];
+		std::string extension = get_file_extension(temp_string);
 
-		if (temp_string.substr(0, 8) == "verbose="){
+		// exclude handler
+		if (temp_string == "amplxl"){
 			continue;
 		}
+		// exclude oxml file
+		else if (extension == "xlsm" || extension == "xlsx"){
+			continue;
+		}
+		// exclude verbose
+		else if (temp_string.substr(0, 8) == "verbose="){
+			continue;
+		}
+		// parse remaining args
 		else if (temp_string.substr(0, 6) == std::string("write=")){
 
 			option_string = temp_string.substr(6, temp_string.size() - 6);
@@ -234,6 +240,39 @@ ExcelManager::prepare(){
 		}
 	}
 
+
+	// no file declared
+	if (excel_path.empty()){
+
+		// we create a file with the table name or potential (alias)
+		if (inout == "OUT"){
+			int res = 0;
+			excel_path = table_name + ".xlsx";
+			res = build_oxml_file(excel_path, temp_folder);
+
+			if (res){
+				// Failed to build oxml
+				return 1;
+			}
+
+			res = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+
+			if (res){
+				// Failed to add new sheet
+				return 1;
+			}
+
+			if (verbose > 0){
+				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			}
+		}
+		// nothing to read/INOUT file must be declared
+		else{
+			cannot_find_file();
+			return 1;
+		}
+	}
+
 	return 0;
 };
 
@@ -285,8 +324,26 @@ ExcelManager::manage_workbook(){
 	std::map<std::string,std::string>::iterator it = sheet_rel_map.find(range_sheet);
 	if (it == sheet_rel_map.end()){
 		// cannot find table
-		cannot_find_table();
-		return 1;
+		// if inout is OUT we create a new sheet with the table name
+		if (inout == "OUT"){
+
+			result = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+
+			if (result){
+				// Failed to add new sheet
+				return 1;
+			}
+
+			// remove current workbook file
+			remove(final_path.c_str());
+
+			// try again
+			manage_workbook();
+		}
+		else{
+			cannot_find_table();
+			return 1;
+		}
 	}
 	else{
 		sheet_rel = it->second;
@@ -325,7 +382,42 @@ ExcelManager::manage_relations(){
 int
 ExcelManager::manage_shared_strings(){
 
+	if (verbose > 1){
+		printf("amplxl: manage shared strings...\n");
+	}
+
 	int result = 0;
+
+	result = has_shared_strings(excel_path, temp_folder);
+
+	if (result == 0){
+
+		if (verbose > 0){
+			printf("amplxl: File has no shared strings table.\n");
+		}
+
+		// reading a file without shared strings, probably all are inline
+		if (inout == "IN"){
+			return 0;
+		}
+		else{
+
+			if (verbose > 0){
+				printf("amplxl: adding shared strings to file\n");
+			}
+
+			int res = add_shared_strings_to_oxml(excel_path, temp_folder);
+
+			if (res){
+				// error adding shared strings
+				return 1;
+			}
+		}
+	}
+	else if (result == -1){
+		// error scaning for shared strings
+		return 1;
+	}
 
 	// extract shared strings
 	excel_iner_file = "xl/sharedStrings.xml";
@@ -347,12 +439,11 @@ ExcelManager::manage_shared_strings(){
 		return 1;
 	}
 
-	if (verbose == 73){
-		printf("Shared strings:\n");
-		for (int i=0; i< shared_strings.size(); i++){
-			printf("\t%d, %s\n", i, &shared_strings[i][0u]);
+	if (verbose > 1){
+		printf("amplxl: shared strings\n");
+		for (int i=0; i<shared_strings.size(); i++){
+			printf("\t%s\n", shared_strings[i].c_str());
 		}
-		printf("Shared strings done.\n");
 	}
 
 	return 0;
@@ -439,16 +530,12 @@ ExcelReadManager::run(){
 
 	int result = 0;
 
-	if (verbose == 73){
-		inspect_ti(ae, TI);
-	}
-
-	result = prepare();
+	result = create_temp_folder();
 	if (result){
 		return DB_Error;
 	}
 
-	result = create_temp_folder();
+	result = prepare();
 	if (result){
 		return DB_Error;
 	}
@@ -489,17 +576,12 @@ ExcelWriteManager::run(){
 
 	int result = 0;
 
-	if (verbose == 73){
-		inspect_ti(ae, TI);
-		inspect_values(ae, TI);
-	}
-
-	result = prepare();
+	result = create_temp_folder();
 	if (result){
 		return DB_Error;
 	}
 
-	result = create_temp_folder();
+	result = prepare();
 	if (result){
 		return DB_Error;
 	}

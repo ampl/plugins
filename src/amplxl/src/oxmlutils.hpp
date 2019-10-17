@@ -336,3 +336,18 @@ Returns:
 int
 update_date_modified(std::string & current_date, std::string & path);
 
+/*
+Verifies if a given oxml file has a shared strings table defined in its Content_Types
+Parameters:
+	oxml_file - name of the file
+	temp_folder - temporary folder to extract temporary files
+Returns:
+	0 false
+	1 true
+	-1 error
+*/
+int
+has_shared_strings(std::string & oxml_file, std::string & temp_folder);
+
+
+

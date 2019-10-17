@@ -690,3 +690,56 @@ zip_xml_files(
 	}
 	return 0;
 };
+
+
+int
+has_shared_strings(std::string & oxml_file, std::string & temp_folder){
+
+	int res = 0;
+
+	std::string file_in_zip = "[Content_Types].xml";
+	res = myunzip(oxml_file.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+
+	if (res){
+		return -1;
+	}
+
+	std::string file_in_temp;
+	join_path(temp_folder, file_in_zip, file_in_temp);
+
+	pugi::xml_document doc;
+	pugi::xml_node node;
+	pugi::xml_parse_result result;
+	pugi::xml_node_iterator it;
+
+	result = doc.load_file(file_in_temp.c_str());
+
+	if (!result){
+		return -1;
+	}
+
+	int has_shared_strings = 0;
+
+	node = doc.child("Types");
+	node = node.first_child();
+
+	while (node){
+
+		if (std::string(node.attribute("PartName").value()) == "/xl/sharedStrings.xml"){
+
+			has_shared_strings = 1;
+			break;
+		}
+		node = node.next_sibling();
+	};
+
+	std::string fpath;
+	join_path(temp_folder, file_in_zip, fpath);
+	remove(fpath.c_str());
+
+	return has_shared_strings;
+};
+
+
+
+

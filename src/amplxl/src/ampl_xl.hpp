@@ -47,6 +47,7 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "myunz.hpp"
 #include "myzip.hpp"
 #include "copyzip.hpp"
+#include "oxmlutils.hpp"
 
 
 // headers from AMPL
