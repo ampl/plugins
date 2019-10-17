@@ -171,7 +171,7 @@ ExcelManager::prepare(){
 	}
 
 	if (verbose > 0){
-		printf("amplxl:\n");
+		printf("amplxl %s:\n", version.c_str());
 		if (!excel_path.empty()){
 			printf("\tfile: %s\n", excel_path.c_str());
 		}
