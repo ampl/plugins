@@ -1040,7 +1040,7 @@ ExcelManager::parse_data(
 				// if the node has a "t" attribute with value "s" it's child node holds the position of a shared string
 				// if the attribute is not present the child holds a numeric value
 
-				std::string value = excel_cell.first_child().child_value();
+				std::string value = excel_cell.child("v").child_value();
 
 				if (excel_cell.attribute("t").value() == std::string("s")){
 					value = shared_strings[std::atoi(value.c_str())];
@@ -1897,7 +1897,7 @@ ExcelWriteManager::set_cell_value(
 	}
 
 	// excel cell has a child of type "v"
-	excel_val = excel_cell.first_child();
+	excel_val = excel_cell.child("v");
 	if(!excel_val){
 		excel_val = excel_cell.append_child("v");
 	}
