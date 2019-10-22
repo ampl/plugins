@@ -2135,6 +2135,17 @@ ExcelWriteManager::delete_data(pugi::xml_node parent){
 int
 ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 
+	if (verbose > 1){
+		printf("Deleting range...\n");
+
+		std::cout << "range fc:" << range_first_col << std::endl;
+		std::cout << "range lc:" << range_last_col << std::endl;
+
+		std::cout << "range fr:" << range_first_row << std::endl;
+		std::cout << "range lr:" << range_last_row << std::endl;
+
+	}
+
 	int shift = 1;
 	if (include_header == 1){
 		shift = 0;
@@ -2167,25 +2178,43 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 
 			// iterate columns and delete cell (if found)
 			iter_col = range_first_col;
+			std::string cell_adress = iter_col + row_id_str;
+			excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+
+
 			while (1){
 				std::string cell_adress = iter_col + row_id_str;
 
 				// get the cell element
-				excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+				
+				if (excel_cell.attribute(row_attr).value() != cell_adress){
+					excel_cell = excel_row.find_child_by_attribute(row_attr, &cell_adress[0u]);
+				}
 
 				if (excel_cell){
-					excel_row.remove_child(excel_cell);
+
+					pugi::xml_node excel_val = excel_cell.child("v");
+
+					if (excel_val){
+						excel_cell.remove_child(excel_val);
+					}
 				}
 
 				if (iter_col == range_last_col){
 					break;
 				}
 
+				excel_cell = excel_cell.next_sibling();
 				ecm.next(iter_col);
 			}
 		}
 		excel_row = excel_row.next_sibling();
 	}
+
+	if (verbose > 1){
+		printf("Delete range done.");
+	}
+
 };
 
 
