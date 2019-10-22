@@ -821,13 +821,13 @@ ExcelManager::check_columns(
 
 		cell_adress = iter_col + row_id_str;
 		excel_cell = row_child.find_child_by_attribute(row_attr, &cell_adress[0u]);
-		excel_col_name = excel_cell.first_child().child_value();
+		excel_col_name = excel_cell.child("v").child_value();
 
 		if (excel_cell.attribute("t").value() == std::string("s")){
 			excel_col_name = shared_strings[std::atoi(excel_col_name.c_str())];
 		}
 		else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
-			excel_col_name = excel_cell.first_child().first_child().child_value();
+			excel_col_name = excel_cell.child("v").first_child().child_value();
 		}
 
 		if (!excel_col_name.empty()){
@@ -1477,7 +1477,7 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 			return 1;
 		}
 
-		std::string value = excel_cell.first_child().child_value();
+		std::string value = excel_cell.child("v").child_value();
 
 		//~ std::cout << "string value: " << value << std::endl;
 
@@ -1886,7 +1886,6 @@ ExcelWriteManager::set_cell_value(
 	std::stringstream strs;
 	std::string temp_str;
 
-
 	if (!excel_cell){
 		excel_cell = excel_row.append_child("c");
 		strs.str(std::string());
@@ -2236,7 +2235,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 
 			if (excel_cell){
 
-				std::string value = excel_cell.first_child().child_value();
+				std::string value = excel_cell.child("v").child_value();
 
 				if (excel_cell.attribute("t").value() == std::string("s")){
 					value = shared_strings[std::atoi(value.c_str())];
@@ -2342,7 +2341,7 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 			excel_cell.append_attribute("r") = &cell_adress[0u];
 		}
 
-		pugi::xml_node excel_val = excel_cell.first_child();
+		pugi::xml_node excel_val = excel_cell.child("v");
 		if(!excel_val){
 			excel_val = excel_cell.append_child("v");
 		}
