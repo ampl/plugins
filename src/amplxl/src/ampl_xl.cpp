@@ -1759,7 +1759,6 @@ int
 ExcelManager::create_temp_folder(){
 
 #ifdef _WIN32
-
 	// get windows temporary folder, example from
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/creating-and-using-a-temporary-file
 
@@ -1769,21 +1768,36 @@ ExcelManager::create_temp_folder(){
 	res = GetTempPath(MAX_PATH, temp_path);
 
 	if (res > MAX_PATH || (res == 0)){
-		cannot_create_temp();
 		return 1;
 	}
 
 	// template for unique filename
-	std::string tplt = std::string("ampltemp-XXXXXXXXXXXX");
-	// fill the Xs after the 9th character
-	mymkstemp(tplt, 9);
+	std::string tplt = "ampltemp-";
+
+	tplt += get_current_date2();
+	tplt += "-";
+
+	DWORD gtc = GetTickCount();
+	DWOED gcpi = GetCurrentProcessId();
+
+	std::stringstream ss;
+	ss << gtc;
+
+	tplt += ss.str();
+	tplt += "-";
+
+	ss.str(std::string());
+	ss.clear();
+	ss << gcpi;
+
+	tplt += ss.str();
 
 	std::string full_path = temp_path + std::string("\\") + tplt;
 
-	res = CreateDirectory(&full_path[0u], NULL);
+	res = CreateDirectory(full_path.c_str(), NULL);
+	Sleep(10); // to avoid potential name colisions
 
 	if (res == 0){
-		cannot_create_temp();
 		return 1;
 	}
 
@@ -1795,16 +1809,12 @@ ExcelManager::create_temp_folder(){
 
 
 	if (dir_name == NULL){
-		cannot_create_temp();
 		return 1;
 	}
 
 	temp_folder = std::string(dir_name);
 	
 #endif
-
-
-
 
 	return 0;
 };
