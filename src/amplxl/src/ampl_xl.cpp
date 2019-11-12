@@ -598,11 +598,11 @@ ExcelReadManager::run(){
 	}
 
 	result = clean_temp_folder();
-	if (result){
-		return DB_Error;
-	}
+	//~ if (result){
+		//~ return DB_Error;
+	//~ }
 
-	if (verbose > 1){
+	if (verbose > 0){
 		printf("amplxl: all done!\n");
 	}
 	return DB_Done;
@@ -644,11 +644,11 @@ ExcelWriteManager::run(){
 	}
 
 	result = clean_temp_folder();
-	if (result){
-		return DB_Error;
-	}
+	//~ if (result){
+		//~ return DB_Error;
+	//~ }
 
-	if (verbose > 1){
+	if (verbose > 0){
 		printf("amplxl: all done!\n");
 	}
 	return DB_Done;
@@ -1828,9 +1828,9 @@ ExcelManager::clean_temp_folder(){
 		mystr += std::string(ffd.cFileName);
 		int res_del = DeleteFile(&mystr[0]);
 
-		if (verbose > 0){
+		if (verbose > 1){
 			if (res_del == 0){
-				std::cout << "could not delete file: " << GetLastError() << std::endl;
+				std::cout << "amplxl: could not delete temporary file: " << GetLastError() << std::endl;
 			}
 		}
 
@@ -1838,9 +1838,9 @@ ExcelManager::clean_temp_folder(){
 
 	int res_rem = RemoveDirectory(&temp_folder[0u]);
 
-	if (verbose > 0){
+	if (verbose > 1){
 		if (res_rem == 0){
-			std::cout << "could not remove folder: " << GetLastError() << std::endl;
+			std::cout << "amplxl: could not remove temporary folder: " << GetLastError() << std::endl;
 		}
 	}
 
@@ -1851,9 +1851,9 @@ ExcelManager::clean_temp_folder(){
 		std::string my_com = std::string("exec rm -r ") + temp_folder;
 		int res_rem = system(my_com.c_str());
 
-	if (verbose > 0){
+	if (verbose > 1){
 		if (res_rem != 0){
-			printf("Could not remove temporary folder.\n");
+			printf("amplxl: could not remove temporary folder.\n");
 		}
 	}
 	}
