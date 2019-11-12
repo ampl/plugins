@@ -1954,7 +1954,7 @@ ExcelWriteManager::set_cell_value(
 void
 ExcelManager::generic_error(std::string & err)
 {
-	sprintf(TI->Errmsg = (char*)TM(strlen(err.c_str())), err.c_str());
+	sprintf(TI->Errmsg = (char*)TM(strlen(err.c_str())), "%s", err.c_str());
 };
 
 
