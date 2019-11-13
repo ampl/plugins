@@ -432,17 +432,13 @@ public ExcelManager{
 	** excel_cell is created if it does not exist.
 	** Parameters:
 	** - db : pointer to a DbCol of the AMPL table;
-	** - excel_row : row of the XML were the excel_cell;
 	** - excel_cell : cell in the spreadsheet row that will hold the data;
-	** - scol : string defining the column of the cell in the spreadsheet; 
 	** - i : integer defining the row of the cell in the spreadsheet;
 	** - trow: considered row in AMPL DbCol;
 	*/
 	void set_cell_value(
 		DbCol *db,
-		pugi::xml_node excel_row,
 		pugi::xml_node excel_cell,
-		std::string &scol,
 		int i,
 		int trow
 	);
@@ -670,3 +666,54 @@ pugi::xml_node get_excel_cell(pugi::xml_node parent, int row, std::string &col);
 **     str : string to remove quotes;
 */
 void unquote_string(std::string &str);
+
+
+void
+get_maps(
+	pugi::xml_node parent,
+	std::map<std::string, pugi::xml_node> & row_map,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int verbose
+);
+
+
+int
+check_table_cells(
+	pugi::xml_node parent,
+	std::map<std::string, pugi::xml_node> & row_map,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int first_row,
+	int last_row,
+	std::string & first_col,
+	std::string & last_col,
+	int verbose
+);
+
+void
+add_missing_cells(
+	pugi::xml_node row,
+	int row_num,
+	std::vector<std::string> & col_range,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int verbose
+);
+
+
+std::string
+my_to_string(int num);
+
+
+int
+cell_reference_to_number(std::string s);
+
+
+double
+clock_to_seconds(std::clock_t start_time, std::clock_t end_time);
+
+void
+fill_range(std::vector<std::string> & col_range, std::string & first_col, std::string & last_col);
+
+
+void
+add_range_cells(pugi::xml_node row, int row_num, std::vector<std::string> & col_range, std::map<std::string, pugi::xml_node> & cell_map);
+

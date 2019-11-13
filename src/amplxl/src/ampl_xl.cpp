@@ -1182,16 +1182,6 @@ ExcelWriteManager::manage_data(){
 
 			first_row += 1;
 
-			if (!result){
-				// we needed to add some rows
-			}
-
-			delete_data(node);
-
-			result = check_rows(node, first_row, last_row);
-
-			range_last_row = last_row;
-
 			result = write_data_out(node, first_row, last_row, first_col, last_col);
 
 		}
@@ -1363,40 +1353,45 @@ ExcelWriteManager::write_data_out(
 	pugi::xml_node excel_val;
 	pugi::xml_node dnode;
 
-	const char* row_attr = "r";
 	std::stringstream strs;
 	std::string row_id_str;
 
+	// map rows and cells for faster access
+	std::map<std::string, pugi::xml_node> row_map;
+	std::map<std::string, pugi::xml_node> cell_map;
+	get_maps(node, row_map, cell_map, verbose);
+
+	// check that all required cells exist
+	check_table_cells(
+		node,
+		row_map,
+		cell_map,
+		first_row,
+		last_row,
+		first_col,
+		last_col,
+		verbose
+	);
+
+	// write data
 	const int ampl_ncols = TI->arity + TI->ncols;
 	DbCol *db;
 
 	int trow = 0;
-	excel_row = get_excel_row(node, first_row);
-
 	for (int i = first_row; i <= last_row; i++){
-
-		strs.str(std::string()); // clear stringstream
-		strs << i;
-		row_id_str = strs.str();
-
-		if (excel_row.attribute(row_attr).value() != row_id_str){
-			excel_row = get_excel_row(node, i);
-		}
 
 		db = TI->cols;
 
-		// we have the row now we need to check if it has the column nodes
 		for (int j = 0; j < ampl_ncols; j++){
 
-			std::string scol = ampl_to_excel_cols[j];
-			excel_cell = get_excel_cell(excel_row, i, scol);
-
-			set_cell_value(db, excel_row, excel_cell, scol, i, trow);
-
+			std::string cell_col = ampl_to_excel_cols[j];
+			std::string cell_row = my_to_string(i);
+			std::string cell_reference = cell_col + cell_row;
+			pugi::xml_node write_cell = cell_map[cell_reference];
+			set_cell_value(db, write_cell, i, trow);
 			db++;
 		}
 		trow += 1;
-		excel_row = excel_row.next_sibling();
 	}
 	return 0;
 };
@@ -1444,7 +1439,7 @@ ExcelWriteManager::write_all_data_out(
 		for (int j = 0; j < ampl_ncols; j++){
 
 			excel_cell = get_excel_cell(excel_row, i, iter_col);
-			set_cell_value(db, excel_row, excel_cell, iter_col, i, trow);
+			set_cell_value(db, excel_cell, i, trow);
 
 			db++;
 			ecm.next(iter_col);
@@ -1624,7 +1619,7 @@ ExcelWriteManager::copy_info(pugi::xml_node excel_row, int row, int ampl_row){
 		std::string scol = ampl_to_excel_cols[i];
 		pugi::xml_node excel_cell = get_excel_cell(excel_row, row, scol);
 
-		set_cell_value(db, excel_row, excel_cell, scol, row, ampl_row);
+		set_cell_value(db, excel_cell, row, ampl_row);
 
 		db++;
 	}
@@ -1881,11 +1876,8 @@ ExcelManager::clean_temp_folder(){
 
 void
 ExcelWriteManager::set_cell_value(
-
 	DbCol *db,
-	pugi::xml_node excel_row,
 	pugi::xml_node excel_cell,
-	std::string &scol,
 	int i,
 	int trow
 ){
@@ -1896,15 +1888,6 @@ ExcelWriteManager::set_cell_value(
 	std::stringstream strs;
 	std::string temp_str;
 
-	if (!excel_cell){
-		excel_cell = excel_row.append_child("c");
-		strs.str(std::string());
-		strs << i;
-		std::string srow = strs.str();
-		std::string scell = scol + srow;
-		excel_cell.append_attribute("r") = &scell[0u];
-	}
-
 	// excel cell has a child of type "v"
 	excel_val = excel_cell.child("v");
 	if(!excel_val){
@@ -1914,7 +1897,8 @@ ExcelWriteManager::set_cell_value(
 	bool is_str = false;
 
 	// check value 
-	if (db->sval){
+	if (db->sval && db->sval[trow]){
+
 		int sstring_pos = check_shared_strings(std::string(db->sval[trow]));
 		strs.str(std::string());
 		strs << sstring_pos;
@@ -1949,8 +1933,6 @@ ExcelWriteManager::set_cell_value(
 		}
 	}
 
-
-
 	dnode = excel_val.first_child();
 	if (!dnode){
 		excel_val.append_child(pugi::node_pcdata).set_value(&temp_str[0u]);
@@ -1958,7 +1940,6 @@ ExcelWriteManager::set_cell_value(
 	else{
 		dnode.set_value(&temp_str[0u]);
 	}
-
 };
 
 void
@@ -2407,3 +2388,300 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 	range_last_col = iter_col;
 
 };
+
+void
+get_maps(
+	pugi::xml_node parent,
+	std::map<std::string, pugi::xml_node> & row_map,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int verbose
+){
+
+	if (verbose > 0){
+		std::cout << "get_maps...\n";
+	}
+	std::clock_t start_time = std::clock();
+
+	pugi::xml_node row_node = parent.first_child();
+
+	while(row_node){
+
+		std::string row_ref = row_node.attribute("r").value();
+		row_map[row_ref] = row_node;
+
+		pugi::xml_node cell_node = row_node.first_child();
+
+		while(cell_node){
+
+			std::string cell_ref = cell_node.attribute("r").value();
+			cell_map[cell_ref] = cell_node;
+			cell_node = cell_node.next_sibling();
+		}
+		row_node = row_node.next_sibling();
+	}
+
+	std::clock_t end_time = std::clock();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	if (verbose > 0){
+		std::cout << "get_maps done in " << total_time << "s." << std::endl;
+	}
+};
+
+
+int
+check_table_cells(
+	pugi::xml_node parent,
+	std::map<std::string, pugi::xml_node> & row_map,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int first_row,
+	int last_row,
+	std::string & first_col,
+	std::string & last_col,
+	int verbose
+){
+	if (verbose > 0){
+		std::cout << "check_table_cells...\n";
+	}
+	std::clock_t start_time = std::clock();
+
+
+	// auxiliary vector with the strings that define the columns in the spreadsheet representation 
+	// of the table, e.g., ["AA", "AB", "AC"]
+	std::vector<std::string> col_range;
+	fill_range(col_range, first_col, last_col);
+
+	// check if the first row of the table already exists
+	pugi::xml_node anchor = row_map[my_to_string(first_row)];
+
+	if (!anchor){
+		// row does not exist, get the first existing row in the sheet
+		pugi::xml_node init_row = parent.first_child();
+
+		if (!init_row){
+			// xl sheet has no rows, the first row of the table will be the first one 
+			anchor = parent.append_child("row");
+		}
+		else{
+			int init_row_num = std::atoi(init_row.attribute("r").value());
+
+			if (init_row_num > first_row){
+				// our new row will be the first
+				anchor = parent.prepend_child("row");
+			}
+			else{
+				// we iterate untill we get the position of the new row
+				bool found = false;
+				pugi::xml_node iter_row = init_row;
+				while (iter_row){
+					pugi::xml_node next_row = iter_row.next_sibling();
+					int next_row_num = std::atoi(next_row.attribute("r").value());
+
+					if (next_row_num > first_row){
+						found = true;
+						break;
+					}
+					iter_row = next_row;
+				}
+
+				if (found){
+					// we got the position for the insertion
+					anchor = parent.insert_child_after("row", iter_row);
+				}
+				else{
+					// insert at the end
+					anchor = parent.append_child("row");
+				}
+			}
+		}
+		std::string row_num = my_to_string(first_row);
+		anchor.append_attribute("r") = row_num.c_str();
+		row_map[row_num] = anchor;
+	}
+	// garantee that the row has all the required cells
+	add_missing_cells(anchor, first_row, col_range, cell_map, verbose);
+
+	// now that we have the first row we know that the following rows are contiguous
+	// so we just iterate and add rows as needed
+
+	for (int i = first_row + 1; i <= last_row; i++){
+
+		std::string next_row_num_str = my_to_string(i);
+		pugi::xml_node next_row = anchor.next_sibling();
+
+		if (next_row_num_str == next_row.attribute("r").value()){
+			//we have a match, just advance
+			anchor = next_row;
+			add_missing_cells(anchor, i, col_range, cell_map, verbose);
+		}
+		else{
+			// no match, add the new cell
+			pugi::xml_node child = parent.insert_child_after("row", anchor);
+			anchor = child;
+			anchor.append_attribute("r") = next_row_num_str.c_str();
+			row_map[next_row_num_str] = anchor;
+			add_range_cells(anchor, i, col_range, cell_map);
+		}
+	}
+
+	std::clock_t end_time = std::clock();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	if (verbose > 0){
+		std::cout << "check_table_cells done in " << total_time << "s." << std::endl;
+	}
+
+};
+
+
+void
+add_missing_cells(
+	pugi::xml_node row,
+	int row_num,
+	std::vector<std::string> & col_range,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	int verbose
+){
+	if (verbose > 1){
+		std::cout << "add_missing_cells..." << std::endl;
+	}
+
+	// get the first cell (anchor) of the column range we are checking
+	std::string cell_ref = col_range[0] + my_to_string(row_num);
+	pugi::xml_node anchor = cell_map[cell_ref];
+
+	if (!anchor){
+		// if anchor does not exist we get the first child in the row
+		pugi::xml_node iter_cell = row.first_child();
+
+		if (!iter_cell){
+			// if the first child does not exist our new cell will be the first cell in the row
+			anchor = row.append_child("c");
+		}
+		else{
+			// check if already existing first child in the row is before or after our new cell
+			int new_cell_col_num = cell_reference_to_number(cell_ref);
+			int curr_cell_col_num = cell_reference_to_number(std::string(iter_cell.attribute("r").value()));
+
+			if (curr_cell_col_num > new_cell_col_num){
+				// the existing first cell in the row is after the first cell of the range
+				// we insert our new cell in the first positionof the row
+				anchor = row.prepend_child("c");
+			}
+			else{
+				// we iterate existing cells until we find the position to insert the new cell
+				bool found = false;
+				while(iter_cell){
+					pugi::xml_node next_cell = iter_cell.next_sibling();
+					int next_cell_col_num = cell_reference_to_number(std::string(next_cell.attribute("r").value()));
+
+					if (next_cell_col_num > new_cell_col_num){
+						found = true;
+						break;
+					}
+					iter_cell = next_cell;
+				}
+				if (found){
+					// new cell is inserted after iter_cell
+					anchor = row.insert_child_after("c", iter_cell);
+				}
+				else{
+					// all existing cells are before the new one
+					// we insert the new cell at the end of the row
+					anchor = row.append_child("c");
+				}
+			}
+		}
+		// update new cell attributes
+		anchor.append_attribute("r") = cell_ref.c_str();
+		// we assume the cell has attribute t=s, this may be overriden later
+		anchor.append_attribute("t") = "s";
+		cell_map[cell_ref] = anchor;
+	}
+
+	// now that we have the first cell we know that the following ones are contiguous
+	// so we just iterate and add cells as required
+	for (int i = 1; i < col_range.size(); i++){
+
+		std::string new_cell_ref = col_range[i] + my_to_string(row_num);
+		pugi::xml_node next_cell = anchor.next_sibling();
+
+		if (new_cell_ref == next_cell.attribute("r").value()){
+			//we have a match, just advance
+			anchor = next_cell;
+		}
+		else{
+			// no match, add the new cell
+			pugi::xml_node child = row.insert_child_after("c", anchor);
+			anchor = child;
+			anchor.append_attribute("r") = new_cell_ref.c_str();
+			// we assume the cell has attribute t=s, this may be overriden later
+			anchor.append_attribute("t") = "s";
+			cell_map[new_cell_ref] = anchor;
+		}
+	}
+	if (verbose > 1){
+		std::cout << "add_missing_cells done." << std::endl;
+	}
+};
+
+
+std::string
+my_to_string(int num){
+
+	std::stringstream strs;
+	strs << num;
+	return strs.str();
+};
+
+int
+cell_reference_to_number(std::string s){
+
+	int r = 0;
+	for (int i = 0; i < s.length(); i ++) {
+		r = r * 26 + s[i] - 64;
+	}
+	return r;
+};
+
+double
+clock_to_seconds(std::clock_t start_time, std::clock_t end_time){
+	return ((double)((end_time - start_time) / CLOCKS_PER_SEC));
+};
+
+void
+fill_range(std::vector<std::string> & col_range, std::string & first_col, std::string & last_col){
+
+	std::string iter_col = first_col;
+
+	ExcelColumnManager ecm;
+
+	while (true){
+		col_range.push_back(iter_col);
+
+		if (iter_col == last_col){break;}
+
+		ecm.next(iter_col);
+	}
+
+};
+
+void
+add_range_cells(pugi::xml_node row, int row_num, std::vector<std::string> & col_range, std::map<std::string, pugi::xml_node> & cell_map){
+
+	std::string row_num_str = my_to_string(row_num);
+
+	for (int i = 0; i < col_range.size(); i++){
+
+		std::string cell_ref = col_range[i] + row_num_str;
+
+		pugi::xml_node child = row.append_child("c");
+		child.append_attribute("r") = cell_ref.c_str();
+		// we assume the cell has attribute t=s, this may be overriden later
+		child.append_attribute("t") = "s";
+		cell_map[cell_ref] = child;
+	}
+
+};
+
+
