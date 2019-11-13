@@ -30,6 +30,7 @@
 #include <map>
 #include <cstdlib>
 #include <sstream>
+#include <ctime>
 
 // headers to manipulate folders in windows
 #ifdef _WIN32
@@ -673,6 +674,7 @@ get_maps(
 	pugi::xml_node parent,
 	std::map<std::string, pugi::xml_node> & row_map,
 	std::map<std::string, pugi::xml_node> & cell_map,
+	AmplExports *ae,
 	int verbose
 );
 
@@ -686,6 +688,7 @@ check_table_cells(
 	int last_row,
 	std::string & first_col,
 	std::string & last_col,
+	AmplExports *ae,
 	int verbose
 );
 
@@ -695,6 +698,7 @@ add_missing_cells(
 	int row_num,
 	std::vector<std::string> & col_range,
 	std::map<std::string, pugi::xml_node> & cell_map,
+	AmplExports *ae,
 	int verbose
 );
 
@@ -709,6 +713,8 @@ cell_reference_to_number(std::string s);
 
 double
 clock_to_seconds(std::clock_t start_time, std::clock_t end_time);
+
+std::clock_t get_time();
 
 void
 fill_range(std::vector<std::string> & col_range, std::string & first_col, std::string & last_col);

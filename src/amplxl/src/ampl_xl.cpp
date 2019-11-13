@@ -1348,6 +1348,13 @@ ExcelWriteManager::write_data_out(
 	std::string &first_col,
 	std::string &last_col
 ){
+
+	if (verbose > 0){
+		//~ std::cout << "check_table_cells...\n";
+		printf("amplxl: write_data_out...\n");
+	}
+	std::clock_t start_time = get_time();
+
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -1359,7 +1366,7 @@ ExcelWriteManager::write_data_out(
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
 	std::map<std::string, pugi::xml_node> cell_map;
-	get_maps(node, row_map, cell_map, verbose);
+	get_maps(node, row_map, cell_map, ae, verbose);
 
 	// check that all required cells exist
 	check_table_cells(
@@ -1370,6 +1377,7 @@ ExcelWriteManager::write_data_out(
 		last_row,
 		first_col,
 		last_col,
+		ae,
 		verbose
 	);
 
@@ -1393,6 +1401,15 @@ ExcelWriteManager::write_data_out(
 		}
 		trow += 1;
 	}
+
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	if (verbose > 0){
+		printf("amplxl: write_data_out done in %.3f s.\n", total_time);
+	}
+
+
 	return 0;
 };
 
@@ -1835,7 +1852,8 @@ ExcelManager::clean_temp_folder(){
 
 		if (verbose > 1){
 			if (res_del == 0){
-				std::cout << "amplxl: could not delete temporary file: " << GetLastError() << std::endl;
+				//~ std::cout << "amplxl: could not delete temporary file: " << GetLastError() << std::endl;
+				printf("amplxl: could not delete temporary file: error %d", GetLastError());
 			}
 		}
 
@@ -1845,7 +1863,8 @@ ExcelManager::clean_temp_folder(){
 
 	if (verbose > 1){
 		if (res_rem == 0){
-			std::cout << "amplxl: could not remove temporary folder: " << GetLastError() << std::endl;
+			//~ std::cout << "amplxl: could not remove temporary folder: " << GetLastError() << std::endl;
+			printf("amplxl: could not remove temporary folder:: error %d", GetLastError());
 		}
 	}
 
@@ -2129,11 +2148,11 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 	if (verbose > 1){
 		printf("Deleting range...\n");
 
-		std::cout << "range fc:" << range_first_col << std::endl;
-		std::cout << "range lc:" << range_last_col << std::endl;
+		//~ std::cout << "range fc:" << range_first_col << std::endl;
+		//~ std::cout << "range lc:" << range_last_col << std::endl;
 
-		std::cout << "range fr:" << range_first_row << std::endl;
-		std::cout << "range lr:" << range_last_row << std::endl;
+		//~ std::cout << "range fr:" << range_first_row << std::endl;
+		//~ std::cout << "range lr:" << range_last_row << std::endl;
 
 	}
 
@@ -2394,13 +2413,15 @@ get_maps(
 	pugi::xml_node parent,
 	std::map<std::string, pugi::xml_node> & row_map,
 	std::map<std::string, pugi::xml_node> & cell_map,
+	AmplExports *ae,
 	int verbose
 ){
 
 	if (verbose > 0){
-		std::cout << "get_maps...\n";
+		//~ std::cout << "get_maps...\n";
+		printf("amplxl: get_maps...\n");
 	}
-	std::clock_t start_time = std::clock();
+	std::clock_t start_time = get_time();
 
 	pugi::xml_node row_node = parent.first_child();
 
@@ -2420,11 +2441,12 @@ get_maps(
 		row_node = row_node.next_sibling();
 	}
 
-	std::clock_t end_time = std::clock();
+	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
 	if (verbose > 0){
-		std::cout << "get_maps done in " << total_time << "s." << std::endl;
+		//~ std::cout << "get_maps done in " << total_time << "s." << std::endl;
+		printf("amplxl: get_maps done in %.3f s.\n", total_time);
 	}
 };
 
@@ -2438,12 +2460,14 @@ check_table_cells(
 	int last_row,
 	std::string & first_col,
 	std::string & last_col,
+	AmplExports *ae,
 	int verbose
 ){
 	if (verbose > 0){
-		std::cout << "check_table_cells...\n";
+		//~ std::cout << "check_table_cells...\n";
+		printf("amplxl: check_table_cells...\n");
 	}
-	std::clock_t start_time = std::clock();
+	std::clock_t start_time = get_time();
 
 
 	// auxiliary vector with the strings that define the columns in the spreadsheet representation 
@@ -2499,7 +2523,7 @@ check_table_cells(
 		row_map[row_num] = anchor;
 	}
 	// garantee that the row has all the required cells
-	add_missing_cells(anchor, first_row, col_range, cell_map, verbose);
+	add_missing_cells(anchor, first_row, col_range, cell_map, ae, verbose);
 
 	// now that we have the first row we know that the following rows are contiguous
 	// so we just iterate and add rows as needed
@@ -2512,7 +2536,7 @@ check_table_cells(
 		if (next_row_num_str == next_row.attribute("r").value()){
 			//we have a match, just advance
 			anchor = next_row;
-			add_missing_cells(anchor, i, col_range, cell_map, verbose);
+			add_missing_cells(anchor, i, col_range, cell_map, ae, verbose);
 		}
 		else{
 			// no match, add the new cell
@@ -2524,11 +2548,12 @@ check_table_cells(
 		}
 	}
 
-	std::clock_t end_time = std::clock();
+	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
 	if (verbose > 0){
-		std::cout << "check_table_cells done in " << total_time << "s." << std::endl;
+		//~ std::cout << "check_table_cells done in " << total_time << "s." << std::endl;
+		printf("amplxl: check_table_cells done in %.3f s.\n", total_time);
 	}
 
 };
@@ -2540,10 +2565,12 @@ add_missing_cells(
 	int row_num,
 	std::vector<std::string> & col_range,
 	std::map<std::string, pugi::xml_node> & cell_map,
+	AmplExports *ae,
 	int verbose
 ){
 	if (verbose > 1){
-		std::cout << "add_missing_cells..." << std::endl;
+		//~ std::cout << "add_missing_cells..." << std::endl;
+		printf("amplxl: add_missing_cells...\n");
 	}
 
 	// get the first cell (anchor) of the column range we are checking
@@ -2621,7 +2648,8 @@ add_missing_cells(
 		}
 	}
 	if (verbose > 1){
-		std::cout << "add_missing_cells done." << std::endl;
+		//~ std::cout << "add_missing_cells done." << std::endl;
+		printf("amplxl: add_missing_cells done.\n");
 	}
 };
 
@@ -2646,7 +2674,12 @@ cell_reference_to_number(std::string s){
 
 double
 clock_to_seconds(std::clock_t start_time, std::clock_t end_time){
-	return ((double)((end_time - start_time) / CLOCKS_PER_SEC));
+	return double(end_time - start_time) / CLOCKS_PER_SEC;
+};
+
+
+std::clock_t get_time(){
+	return std::clock();
 };
 
 void
