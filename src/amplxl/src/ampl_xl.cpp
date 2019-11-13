@@ -1790,7 +1790,7 @@ ExcelManager::create_temp_folder(){
 	tplt += "-";
 
 	DWORD gtc = GetTickCount();
-	DWOED gcpi = GetCurrentProcessId();
+	DWORD gcpi = GetCurrentProcessId();
 
 	std::stringstream ss;
 	ss << gtc;

@@ -312,6 +312,11 @@ Gets the current date in gmtime and return a string with the date in the format 
 */
 std::string get_current_date();
 
+
+std::string
+get_current_date2();
+
+
 /*
 Updates the created date attribute of the docProps/core.xml file in an oxml document.
 Parameters:

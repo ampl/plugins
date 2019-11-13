@@ -56,6 +56,19 @@ get_current_date(){
 };
 
 
+std::string
+get_current_date2(){
+
+	std::time_t now = std::time(0);
+	std::tm* now_tm = std::gmtime(&now);
+	char buf[100];
+	std::strftime(buf, 100, "%Y%m%d%H%M%S", now_tm);
+	return std::string(buf);
+
+};
+
+
+
 
 void
 join_path(const std::string & temp_folder, const std::string & excel_file, std::string & path){
