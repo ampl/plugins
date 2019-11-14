@@ -692,6 +692,11 @@ zip_xml_files(
 	zipFile dzip = zipOpen64(tmp_name, APPEND_STATUS_CREATE);
 # endif
 
+	if(dzip == NULL){
+		// could not create zip file
+		return 1;
+	}
+
 	for (int i = 0; i < zip_orig.size(); i++){
 		std::string full_orig;
 		join_path(temp_path, zip_orig[i], full_orig);

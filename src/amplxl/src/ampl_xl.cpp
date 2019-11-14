@@ -260,12 +260,19 @@ ExcelManager::prepare(){
 
 		// we create a file with the table name or potential (alias)
 		if (inout == "OUT"){
+
+			if (verbose > 0){
+				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			}
+
 			int res = 0;
 			excel_path = table_name + ".xlsx";
 			res = build_oxml_file(excel_path, temp_folder);
 
 			if (res){
 				// Failed to build oxml
+				std::string err = "amplxl: could not create oxml file.\n";
+				generic_error(err);
 				return 1;
 			}
 
@@ -273,11 +280,9 @@ ExcelManager::prepare(){
 
 			if (res){
 				// Failed to add new sheet
+				std::string err = "amplxl: could not add new sheet to oxml file.\n";
+				generic_error(err);
 				return 1;
-			}
-
-			if (verbose > 0){
-				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 			}
 		}
 		// IN or INOUT file must exist beforehand
@@ -290,11 +295,18 @@ ExcelManager::prepare(){
 
 		// we create the non existing file with the declared name
 		if (inout == "OUT"){
+
+			if (verbose > 0){
+				printf("\tDeclared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			}
+
 			int res = 0;
 			res = build_oxml_file(excel_path, temp_folder);
 
 			if (res){
 				// Failed to build oxml
+				std::string err = "amplxl: could not create oxml file, please confirm that the folders to the defined file exist.\n";
+				generic_error(err);
 				return 1;
 			}
 
@@ -302,11 +314,9 @@ ExcelManager::prepare(){
 
 			if (res){
 				// Failed to add new sheet
+				std::string err = "amplxl: could not add new sheet to oxml file.\n";
+				generic_error(err);
 				return 1;
-			}
-
-			if (verbose > 0){
-				printf("\tDeclared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 			}
 		}
 		// IN or INOUT file must exist beforehand
