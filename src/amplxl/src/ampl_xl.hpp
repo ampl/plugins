@@ -73,7 +73,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.0-beta";
+const std::string version = "0.1.0";
 
 
 
@@ -433,15 +433,13 @@ public ExcelManager{
 	** excel_cell is created if it does not exist.
 	** Parameters:
 	** - db : pointer to a DbCol of the AMPL table;
-	** - excel_cell : cell in the spreadsheet row that will hold the data;
-	** - i : integer defining the row of the cell in the spreadsheet;
-	** - trow: considered row in AMPL DbCol;
+	** - db_row: considered row in AMPL DbCol;
+	** - xl_cell : cell in the spreadsheet row that will hold the data;
 	*/
 	void set_cell_value(
 		DbCol *db,
-		pugi::xml_node excel_cell,
-		int i,
-		int trow
+		int db_row,
+		pugi::xml_node xl_cell
 	);
 
 
@@ -585,6 +583,9 @@ public ExcelManager{
 	** Not checking for errors.
 	*/
 	int write_header(pugi::xml_node parent, int first_row, std::string & first_col);
+
+
+	void write_arity_cells(pugi::xml_node row_node, int xl_row, int db_row);
 };
 
 
@@ -658,7 +659,7 @@ pugi::xml_node get_excel_row(pugi::xml_node parent, int row);
 ** Returns:
 **     pugi::xml_node of the requested cell (might be NULL).
 */
-pugi::xml_node get_excel_cell(pugi::xml_node parent, int row, std::string &col);
+pugi::xml_node get_xl_cell(pugi::xml_node parent, int row, std::string &col);
 
 
 /*
@@ -708,7 +709,7 @@ my_to_string(int num);
 
 
 int
-cell_reference_to_number(std::string s);
+cell_reference_to_number(std::string & s);
 
 
 double
@@ -722,4 +723,19 @@ fill_range(std::vector<std::string> & col_range, std::string & first_col, std::s
 
 void
 add_range_cells(pugi::xml_node row, int row_num, std::vector<std::string> & col_range, std::map<std::string, pugi::xml_node> & cell_map);
+
+
+
+pugi::xml_node
+row_insert_cell(pugi::xml_node row_node, int row_num, std::string & cell_col);
+
+
+void
+cell_add_basic_attrs(pugi::xml_node node, std::string & cell_ref);
+
+
+
+
+
+
 

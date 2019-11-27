@@ -1406,7 +1406,7 @@ ExcelWriteManager::write_data_out(
 			std::string cell_row = my_to_string(i);
 			std::string cell_reference = cell_col + cell_row;
 			pugi::xml_node write_cell = cell_map[cell_reference];
-			set_cell_value(db, write_cell, i, trow);
+			set_cell_value(db, trow, write_cell);
 			db++;
 		}
 		trow += 1;
@@ -1465,8 +1465,8 @@ ExcelWriteManager::write_all_data_out(
 		// we have the row now we need to check if it has the column nodes
 		for (int j = 0; j < ampl_ncols; j++){
 
-			excel_cell = get_excel_cell(excel_row, i, iter_col);
-			set_cell_value(db, excel_cell, i, trow);
+			excel_cell = get_xl_cell(excel_row, i, iter_col);
+			set_cell_value(db, trow, excel_cell);
 
 			db++;
 			ecm.next(iter_col);
@@ -1491,7 +1491,7 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 	for (int i = 0; i < nkeys; i++){
 
 		std::string scol = ampl_to_excel_cols[i];
-		pugi::xml_node excel_cell = get_excel_cell(excel_row, row, scol);
+		pugi::xml_node excel_cell = get_xl_cell(excel_row, row, scol);
 
 		if (!excel_cell){
 			// could not find key
@@ -1543,7 +1543,7 @@ ExcelWriteManager::get_ampl_keys(int line){
 
 	for (int i = 0; i < nkeys; i++){
 
-		if (db->sval){
+		if (db->sval && db->sval[line]){
 			ampl_keys[i] = std::string(db->sval[line]);
 		}
 		else{
@@ -1582,17 +1582,16 @@ ExcelWriteManager::write_data_inout(
 	excel_keys.resize(nkeys);
 	ampl_keys.resize(nkeys);
 
+	// map xl rows according to arity keys and get last row of xl table
+	// mapping only stops when we cannot find keys (assume blank row)
+	std::map<std::vector<std::string>, pugi::xml_node> xl_key_map;
+	int xl_table_last_row = first_row;
 	excel_row = get_excel_row(node, first_row);
+	pugi::xml_node pg_table_last_row = excel_row;
 
-	for (int i = first_row; i <= last_row; i++){
+	for (int i = first_row; i <= EXCEL_MAX_ROWS; i++){
 
-		strs.str(std::string()); // clear stringstream
-		strs << i;
-		row_id_str = strs.str();
-
-		if (verbose == 73){
-			printf("cell id: %s\n", &row_id_str[0u]);
-		}
+		row_id_str = my_to_string(i);
 
 		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
@@ -1601,20 +1600,50 @@ ExcelWriteManager::write_data_inout(
 		int res = get_excel_keys(excel_row, i);
 
 		if (res){
-			// we could not find all the keys
-			return 1;
+			// we could not find all the keys, assume end of table
+			break;
 		}
 
-		int ampl_row = get_ampl_row();
+		xl_key_map[excel_keys] = excel_row;
+		xl_table_last_row = i;
+		pg_table_last_row = excel_row;
 
-		if (ampl_row == -1){
-			// we could not find an ampl row with the provided excel keys
-			return 1;
-		}
-
-		copy_info(excel_row, i, ampl_row);
 		excel_row = excel_row.next_sibling();
 	}
+
+	// iterate AMPL table and write data to spreadsheet
+	for (int i = 0; i < TI->nrows; i++){
+
+		get_ampl_keys(i);
+
+		// get the corresponding row in xl table
+		pugi::xml_node row_to_write;
+
+		std::map<std::vector<std::string>, pugi::xml_node>::iterator it = xl_key_map.find(ampl_keys);
+		if (it == xl_key_map.end()){
+			// row is not mapped, append to table
+			xl_table_last_row += 1;
+
+			// check row already exists
+			row_to_write = get_excel_row(node, xl_table_last_row);
+
+			if (!row_to_write){
+				row_to_write = node.insert_child_after("row", pg_table_last_row);
+				pg_table_last_row = row_to_write;
+			}
+
+			// write cells of arity columns as the new/append row does not have it
+			write_arity_cells(row_to_write, xl_table_last_row, i);
+		}
+		else{
+			row_to_write = it->second;
+		}
+
+		// write info
+		copy_info(row_to_write, xl_table_last_row, i);
+	}
+
+
 	return 0;
 };
 
@@ -1644,14 +1673,30 @@ ExcelWriteManager::copy_info(pugi::xml_node excel_row, int row, int ampl_row){
 	for (int i = TI->arity; i < TI->arity + TI->ncols; i++){
 
 		std::string scol = ampl_to_excel_cols[i];
-		pugi::xml_node excel_cell = get_excel_cell(excel_row, row, scol);
+		pugi::xml_node excel_cell = get_xl_cell(excel_row, row, scol);
 
-		set_cell_value(db, excel_cell, row, ampl_row);
+		set_cell_value(db, ampl_row, excel_cell);
 
 		db++;
 	}
 	return 0;
 };
+
+void
+ExcelWriteManager::write_arity_cells(pugi::xml_node row_node, int xl_row, int db_row){
+
+	DbCol *db = TI->cols;
+
+	for (int i = 0; i < TI->arity; i++){
+
+		std::string xl_col = ampl_to_excel_cols[i];
+		pugi::xml_node xl_cell = get_xl_cell(row_node, xl_row, xl_col);
+		set_cell_value(db, db_row, xl_cell);
+		db++;
+	}
+
+};
+
 
 
 
@@ -1697,7 +1742,7 @@ get_excel_row(pugi::xml_node parent, int row){
 };
 
 pugi::xml_node
-get_excel_cell(pugi::xml_node parent, int row, std::string &col){
+get_xl_cell(pugi::xml_node parent, int row, std::string &col){
 
 	const char* row_attr = "r";
 	std::stringstream strs;
@@ -1906,68 +1951,58 @@ ExcelManager::clean_temp_folder(){
 void
 ExcelWriteManager::set_cell_value(
 	DbCol *db,
-	pugi::xml_node excel_cell,
-	int i,
-	int trow
+	int db_row,
+	pugi::xml_node xl_cell
 ){
-
-	pugi::xml_node excel_val;
-	pugi::xml_node dnode;
-
-	std::stringstream strs;
-	std::string temp_str;
-
-	// excel cell has a child of type "v"
-	excel_val = excel_cell.child("v");
-	if(!excel_val){
-		excel_val = excel_cell.append_child("v");
+	// xl cell has a value child of type "v"
+	pugi::xml_node xl_val = xl_cell.child("v");
+	if(!xl_val){
+		xl_val = xl_cell.append_child("v");
 	}
 
+	std::string temp_str;
 	bool is_str = false;
 
-	// check value 
-	if (db->sval && db->sval[trow]){
+	// check if value to write is string or numeric 
+	if (db->sval && db->sval[db_row]){
 
-		int sstring_pos = check_shared_strings(std::string(db->sval[trow]));
-		strs.str(std::string());
-		strs << sstring_pos;
-		temp_str = strs.str();
+		int sstring_pos = check_shared_strings(std::string(db->sval[db_row]));
+		temp_str = my_to_string(sstring_pos);
 		is_str = true;
 	}
 	else{
-		strs.str(std::string());
-		strs << db->dval[trow];
-		temp_str = strs.str();
+		temp_str = my_to_string(db->dval[db_row]);
 	}
 
 	// check cell data type ("t" attribute)
 	// if we are writing a string we change it to a shared string
 	if (is_str){
-		pugi::xml_attribute attr = excel_cell.attribute("t");
+		pugi::xml_attribute attr = xl_cell.attribute("t");
 		if (attr){
 			attr.set_value("s");
 		}
 		else{
-			excel_cell.append_attribute("t") = "s";
+			xl_cell.append_attribute("t") = "s";
 		}
 	}
 	// change to number
 	else{
-		pugi::xml_attribute attr = excel_cell.attribute("t");
+		pugi::xml_attribute attr = xl_cell.attribute("t");
 		if (attr){
 			attr.set_value("n");
 		}
 		else{
-			excel_cell.append_attribute("t") = "n";
+			xl_cell.append_attribute("t") = "n";
 		}
 	}
 
-	dnode = excel_val.first_child();
-	if (!dnode){
-		excel_val.append_child(pugi::node_pcdata).set_value(&temp_str[0u]);
+	// write info in data node
+	pugi::xml_node data_node = xl_val.first_child();
+	if (!data_node){
+		xl_val.append_child(pugi::node_pcdata).set_value(&temp_str[0u]);
 	}
 	else{
-		dnode.set_value(&temp_str[0u]);
+		data_node.set_value(&temp_str[0u]);
 	}
 };
 
@@ -2587,6 +2622,8 @@ add_missing_cells(
 	std::string cell_ref = col_range[0] + my_to_string(row_num);
 	pugi::xml_node anchor = cell_map[cell_ref];
 
+	std::string temp_str;
+
 	if (!anchor){
 		// if anchor does not exist we get the first child in the row
 		pugi::xml_node iter_cell = row.first_child();
@@ -2598,7 +2635,8 @@ add_missing_cells(
 		else{
 			// check if already existing first child in the row is before or after our new cell
 			int new_cell_col_num = cell_reference_to_number(cell_ref);
-			int curr_cell_col_num = cell_reference_to_number(std::string(iter_cell.attribute("r").value()));
+			temp_str = iter_cell.attribute("r").value();
+			int curr_cell_col_num = cell_reference_to_number(temp_str);
 
 			if (curr_cell_col_num > new_cell_col_num){
 				// the existing first cell in the row is after the first cell of the range
@@ -2610,7 +2648,8 @@ add_missing_cells(
 				bool found = false;
 				while(iter_cell){
 					pugi::xml_node next_cell = iter_cell.next_sibling();
-					int next_cell_col_num = cell_reference_to_number(std::string(next_cell.attribute("r").value()));
+					temp_str = next_cell.attribute("r").value();
+					int next_cell_col_num = cell_reference_to_number(temp_str);
 
 					if (next_cell_col_num > new_cell_col_num){
 						found = true;
@@ -2673,7 +2712,7 @@ my_to_string(int num){
 };
 
 int
-cell_reference_to_number(std::string s){
+cell_reference_to_number(std::string & s){
 
 	int r = 0;
 	for (int i = 0; i < s.length(); i ++) {
@@ -2725,6 +2764,67 @@ add_range_cells(pugi::xml_node row, int row_num, std::vector<std::string> & col_
 		cell_map[cell_ref] = child;
 	}
 
+};
+
+
+
+
+pugi::xml_node
+row_insert_cell(
+	pugi::xml_node row_node,
+	int row_num,
+	std::string & cell_col
+){
+	std::string cell_ref = cell_col + my_to_string(row_num);
+	pugi::xml_node cell_iter_node = row_node.first_child();
+	pugi::xml_node cell_node;
+
+	std::string tmp_str;
+
+	// if row is empty, add cell to row
+	if (!cell_iter_node){
+		cell_node = row_node.append_child("c");
+		cell_add_basic_attrs(cell_node, cell_ref);
+		return cell_node;
+	}
+
+	int cell_node_num = cell_reference_to_number(cell_ref);
+	tmp_str = cell_iter_node.attribute("r").value();
+	int cell_iter_num = cell_reference_to_number(tmp_str);
+
+	// if first cell in row is after our cell add cell at the beggining of the row
+	if (cell_iter_num > cell_node_num){
+		cell_node = row_node.prepend_child("c");
+		cell_add_basic_attrs(cell_node, cell_ref);
+		return cell_node;
+	}
+
+	// iterate cells to find place of insertion
+	pugi::xml_node prev_node;
+
+	while (cell_iter_node){
+
+		tmp_str = cell_iter_node.attribute("r").value();
+		cell_iter_num = cell_reference_to_number(tmp_str);
+
+		if (cell_iter_num > cell_node_num){
+			break;
+		}
+		prev_node = cell_iter_node;
+		cell_iter_node = cell_iter_node.next_sibling();
+	}
+	cell_node = row_node.insert_child_after("c", prev_node);
+	cell_add_basic_attrs(cell_node, cell_ref);
+	return cell_node;
+};
+
+void
+cell_add_basic_attrs(
+	pugi::xml_node node,
+	std::string & cell_ref
+){
+	node.append_attribute("r") = cell_ref.c_str();
+	node.append_attribute("t") = "s";
 };
 
 
