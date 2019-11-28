@@ -2703,14 +2703,6 @@ add_missing_cells(
 };
 
 
-std::string
-my_to_string(int num){
-
-	std::stringstream strs;
-	strs << num;
-	return strs.str();
-};
-
 int
 cell_reference_to_number(std::string & s){
 

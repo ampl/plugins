@@ -73,7 +73,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.0";
+const std::string version = "0.1.1";
 
 
 
@@ -704,8 +704,13 @@ add_missing_cells(
 );
 
 
-std::string
-my_to_string(int num);
+
+template <class T>
+std::string my_to_string(T num){
+	std::stringstream strs;
+	strs << num;
+	return strs.str();
+};
 
 
 int
