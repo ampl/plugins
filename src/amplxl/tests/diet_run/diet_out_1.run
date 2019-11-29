@@ -24,3 +24,28 @@ solve;
 table ExportFoods OUT "amplxl" (fname_out) "Foods":
     FOOD <- [FOOD], Buy, Buy.rc ~ BuyRC, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac;
 write table ExportFoods;
+
+reset;
+
+set FOOD;
+set Buy{FOOD};
+set BuyRC{FOOD};
+set BuyFrac{FOOD};
+
+table Validation IN "amplxl" (fname_out) "Foods":
+    FOOD <- [FOOD], Buy, BuyRC, BuyFrac;
+read table ExportFoods;
+
+display FOOD;
+display Buy;
+display BuyRC;
+display BuyFrac;
+
+
+
+
+
+
+
+
+
