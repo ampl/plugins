@@ -1629,6 +1629,7 @@ ExcelWriteManager::write_data_inout(
 
 			if (!row_to_write){
 				row_to_write = node.insert_child_after("row", pg_table_last_row);
+				row_to_write.append_attribute("r") = my_to_string(xl_table_last_row).c_str();
 				pg_table_last_row = row_to_write;
 			}
 
@@ -1640,7 +1641,7 @@ ExcelWriteManager::write_data_inout(
 		}
 
 		// write info
-		copy_info(row_to_write, xl_table_last_row, i);
+		copy_info(row_to_write, atoi(row_to_write.attribute("r").value()), i);
 	}
 
 
@@ -1674,6 +1675,10 @@ ExcelWriteManager::copy_info(pugi::xml_node excel_row, int row, int ampl_row){
 
 		std::string scol = ampl_to_excel_cols[i];
 		pugi::xml_node excel_cell = get_xl_cell(excel_row, row, scol);
+
+		if (!excel_cell){
+			excel_cell = row_insert_cell(excel_row, row, scol);
+		}
 
 		set_cell_value(db, ampl_row, excel_cell);
 
