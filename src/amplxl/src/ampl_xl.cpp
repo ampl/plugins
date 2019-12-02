@@ -291,6 +291,7 @@ ExcelManager::prepare(){
 			return 1;
 		}
 	}
+	// file declared but does not exist
 	else if(!check_file_exists(excel_path)){
 
 		// we create the non existing file with the declared name
@@ -323,6 +324,17 @@ ExcelManager::prepare(){
 		else{
 			cannot_find_file();
 			return 1;
+		}
+	}
+	// file exists
+	else{
+		if (inout != "IN" && backup){
+			// if backup file already exists we do nothing
+			// (to avoid issues with multiple writes to the same table)
+			std::string backup_path = excel_path + ".amplbak";
+			if (!check_file_exists(backup_path)){
+				my_copy_file(excel_path.c_str(), backup_path.c_str());
+			}
 		}
 	}
 
@@ -1309,15 +1321,15 @@ ExcelWriteManager::manage_data(){
 		}
 	}
 
-	// check if backup was requested
-	if (backup){
-		std::string backup_path = excel_path + ".amplbak";
-		my_copy_file(&excel_path[0u], &backup_path[0u]);
-	}
-	remove(&excel_path[0u]);
+	// remove initial file
+	result = remove(excel_path.c_str());
 
-	my_copy_file(&xl_copy_path[0u], &excel_path[0u]);
-	remove(&xl_copy_path[0u]);
+	// replace it by modified copy
+	// cannot use rename due to issue with files in different partitions
+	my_copy_file(xl_copy_path.c_str(), excel_path.c_str());
+
+	// remove
+	result = remove(xl_copy_path.c_str());
 
 	return 0;
 };
