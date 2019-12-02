@@ -360,3 +360,8 @@ Check if a given filename exists.
 bool
 check_file_exists(const std::string & filename);
 
+
+void
+my_copy_file(const char* source_path, const char* dest_path);
+
+

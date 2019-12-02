@@ -1312,17 +1312,12 @@ ExcelWriteManager::manage_data(){
 	// check if backup was requested
 	if (backup){
 		std::string backup_path = excel_path + ".amplbak";
-		rename(&excel_path[0u], &backup_path[0u]);
+		my_copy_file(&excel_path[0u], &backup_path[0u]);
 	}
-	else{
-		remove(&excel_path[0u]);
-	}
+	remove(&excel_path[0u]);
 
-	if (rename(&xl_copy_path[0u], &excel_path[0u]) != 0)
-	{
-		// cannot swap files
-		return 1;
-	}
+	my_copy_file(&xl_copy_path[0u], &excel_path[0u]);
+	remove(&xl_copy_path[0u]);
 
 	return 0;
 };

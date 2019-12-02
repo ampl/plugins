@@ -239,11 +239,8 @@ add_shared_strings_update_relations(std::string & oxml, int new_rel_number, std:
 	result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
 
 	remove(fpath.c_str());
-
-	if (rename(new_file.c_str(), oxml.c_str()) != 0)
-	{
-		return 1;
-	}
+	my_copy_file(new_file.c_str(), oxml.c_str());
+	remove(new_file.c_str());
 
 	return 0;
 
@@ -299,11 +296,8 @@ int add_sheet_update_relations(std::string & oxml, int new_sheet_number, int new
 	result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
 
 	remove(fpath.c_str());
-
-	if (rename(new_file.c_str(), oxml.c_str()) != 0)
-	{
-		return 1;
-	}
+	my_copy_file(new_file.c_str(), oxml.c_str());
+	remove(new_file.c_str());
 
 	return 0;
 };
@@ -764,5 +758,17 @@ check_file_exists(const std::string & filename){
   std::ifstream ifile(filename.c_str());
   return static_cast<bool>(ifile);
 };
+
+
+void
+my_copy_file(const char* source_path, const char* dest_path){
+
+	std::ifstream source(source_path, std::ios::binary);
+	std::ofstream dest(dest_path, std::ios::binary);
+
+	dest << source.rdbuf();
+};
+
+
 
 
