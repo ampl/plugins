@@ -16,3 +16,71 @@ TUR    60   15   10   20   450   1397
 
 MINOS 5.51: optimal solution found.
 13 iterations, objective 118.0594032
+set FOOD := TUR SPG MTL MCH HAM FISH CHK BEEF;
+
+cost [*] :=
+BEEF  2.49
+ CHK  1.99
+FISH  1.99
+ HAM  1.89
+ MCH  2.89
+ MTL  2.29
+ SPG  2.59
+ TUR  3.19
+;
+
+f_min [*] :=
+BEEF  2
+ CHK  2
+FISH  2
+ HAM  2
+ MCH  2
+ MTL  2
+ SPG  2
+ TUR  2
+;
+
+f_max [*] :=
+BEEF  10
+ CHK  10
+FISH  10
+ HAM  10
+ MCH  10
+ MTL  10
+ SPG  10
+ TUR  10
+;
+
+Buy [*] :=
+BEEF   5.36061
+ CHK   2
+FISH   2
+ HAM  10
+ MCH  10
+ MTL  10
+ SPG   9.30605
+ TUR   2
+;
+
+BuyFrac [*] :=
+BEEF  0.536061
+ CHK  0.2
+FISH  0.2
+ HAM  1
+ MCH  1
+ MTL  1
+ SPG  0.930605
+ TUR  0.2
+;
+
+BuyRC [*] :=
+BEEF   2.22045e-15
+ CHK   1.18884
+FISH   1.14441
+ HAM  -0.302651
+ MCH  -0.551151
+ MTL  -1.3289
+ SPG   0
+ TUR   2.73162
+;
+

@@ -1,14 +1,16 @@
 
+option display_precision 0;
 model diet.mod;
 
+param dname symbolic := "amplxl";
 param fname_in symbolic := "diet_xlsx/diet_in_1.xlsx";
 param fname_out symbolic := "diet_xlsx/diet_out_1.xlsx";
 
-table Amounts IN "amplxl" (fname_in): 
+table Amounts IN (dname) (fname_in):
     [NUTR,FOOD], amt;
-table Foods IN "amplxl" (fname_in):
+table Foods IN (dname) (fname_in):
     FOOD <- [FOOD], cost, f_min, f_max;
-table Nutrients IN "amplxl" (fname_in):
+table Nutrients IN (dname) (fname_in):
     NUTR <- [NUTR], n_min, n_max;
 
 read table Foods;
@@ -21,31 +23,34 @@ display amt;
 
 solve;
 
-table ExportFoods OUT "amplxl" (fname_out) "Foods":
-    FOOD <- [FOOD], Buy, Buy.rc ~ BuyRC, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac;
+table ExportFoods OUT (dname) (fname_out) "Foods":
+    [FOOD], cost, f_min, f_max, Buy, Buy.rc ~ BuyRC, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac;
 write table ExportFoods;
 
+# read exported table to validate results
 reset;
+option display_precision 0;
+
+param dname symbolic := "amplxl";
+param fname_out symbolic := "diet_xlsx/diet_out_1.xlsx";
 
 set FOOD;
-set Buy{FOOD};
-set BuyRC{FOOD};
-set BuyFrac{FOOD};
+param cost{FOOD};
+param f_min{FOOD};
+param f_max{FOOD};
+param Buy{FOOD};
+param BuyFrac{FOOD};
+param BuyRC{FOOD};
 
-table Validation IN "amplxl" (fname_out) "Foods":
-    FOOD <- [FOOD], Buy, BuyRC, BuyFrac;
-read table ExportFoods;
+table Foods IN (dname) (fname_out):
+    FOOD <- [FOOD], cost, f_min, f_max, Buy, BuyFrac, BuyRC;
+
+read table Foods;
 
 display FOOD;
+display cost;
+display f_min;
+display f_max;
 display Buy;
-display BuyRC;
 display BuyFrac;
-
-
-
-
-
-
-
-
-
+display BuyRC;
