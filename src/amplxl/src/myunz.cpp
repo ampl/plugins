@@ -460,6 +460,12 @@ int do_extract_onefile(
 		return 1;
 };
 
+int myunzip(
+    const std::string & zipfilename,
+    const std::string & filename_to_extract,
+    const std::string & dirname) {
+    return myunzip(zipfilename.c_str(), filename_to_extract.c_str(), dirname.c_str());
+}
 
 int myunzip(
 	const char *zipfilename,

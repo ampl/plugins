@@ -309,7 +309,7 @@ update_content_types(std::string & oxml, std::string & part_name, std::string & 
 	int res = 0;
 
 	std::string file_in_zip = "[Content_Types].xml";
-	res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return 1;
@@ -349,7 +349,7 @@ add_sheet_update_xl_workbook(std::string & oxml, int new_sheet_number, int new_r
 	strs << new_sheet_number;
 
 	std::string file_in_zip = "xl/workbook.xml";
-	res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return 1;
@@ -398,7 +398,7 @@ add_sheet_update_xl_rels_workbook(std::string & oxml, int new_sheet_number, int 
 	strs << new_sheet_number;
 
 	std::string file_in_zip = "xl/_rels/workbook.xml.rels";
-	res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return 1;
@@ -455,7 +455,7 @@ add_shared_strings_update_xl_rels_workbook(std::string & oxml, int new_rel_numbe
 	std::stringstream strs;
 
 	std::string file_in_zip = "xl/_rels/workbook.xml.rels";
-	res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return 1;
@@ -558,7 +558,7 @@ get_last_sheet_number(std::string & oxml, std::string & temp_folder){
 	int res = 0;
 
 	std::string file_in_zip = "[Content_Types].xml";
-	res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return -1;
@@ -611,7 +611,7 @@ int
 get_last_relation_number(std::string & oxml, std::string & temp_folder){
 
 	std::string file_in_zip = "xl/_rels/workbook.xml.rels";
-	int res = myunzip(oxml.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	int res = myunzip(oxml, file_in_zip, temp_folder);
 
 	if (res){
 		return -1;
@@ -710,7 +710,7 @@ has_shared_strings(std::string & oxml_file, std::string & temp_folder){
 	int res = 0;
 
 	std::string file_in_zip = "[Content_Types].xml";
-	res = myunzip(oxml_file.c_str(), file_in_zip.c_str(), temp_folder.c_str());
+	res = myunzip(oxml_file, file_in_zip, temp_folder);
 
 	if (res){
 		return -1;

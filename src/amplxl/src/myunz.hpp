@@ -38,6 +38,7 @@ based in miniunzip.c
 #include <time.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <string> // std::string
 
 #ifdef _WIN32
 # include <direct.h>
@@ -123,9 +124,15 @@ int do_extract_onefile(
 
 
 int myunzip(
-	const char *zipfilename,
-	const char *filename_to_extract,
-	const char *dirname
+    const std::string & zipfilename,
+    const std::string & filename_to_extract,
+    const std::string & dirname
+);
+
+int myunzip(
+    const char *zipfilename,
+    const char *filename_to_extract,
+    const char *dirname
 );
 
 /*
