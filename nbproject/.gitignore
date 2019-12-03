@@ -1,4 +1,4 @@
 *
 !.gitignore
 !project.properties
-!project.xml
+!*.xml

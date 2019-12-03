@@ -1,0 +1,1270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="build">
+        <df name="src">
+          <in>details.c</in>
+        </df>
+      </df>
+      <df name="src">
+        <df name="amplxl">
+          <df name="src">
+            <in>ampl_xl.cpp</in>
+            <in>copyzip.cpp</in>
+            <in>ioapi.c</in>
+            <in>myunz.cpp</in>
+            <in>myzip.cpp</in>
+            <in>oxmlutils.cpp</in>
+            <in>pugixml.cpp</in>
+            <in>unzip.c</in>
+            <in>zip.c</in>
+          </df>
+          <df name="zlib-1.2.11">
+            <df name="test">
+              <in>example.c</in>
+              <in>minigzip.c</in>
+            </df>
+            <in>adler32.c</in>
+            <in>compress.c</in>
+            <in>crc32.c</in>
+            <in>deflate.c</in>
+            <in>gzclose.c</in>
+            <in>gzlib.c</in>
+            <in>gzread.c</in>
+            <in>gzwrite.c</in>
+            <in>infback.c</in>
+            <in>inffast.c</in>
+            <in>inflate.c</in>
+            <in>inftrees.c</in>
+            <in>trees.c</in>
+            <in>uncompr.c</in>
+            <in>zutil.c</in>
+          </df>
+        </df>
+        <df name="solvers2">
+          <in>asldate.c</in>
+          <in>atof.c</in>
+          <in>auxinfo.c</in>
+          <in>avltree.c</in>
+          <in>b_search.c</in>
+          <in>basename.c</in>
+          <in>bscanf.c</in>
+          <in>conscale.c</in>
+          <in>degree.c</in>
+          <in>derprop.c</in>
+          <in>dtoa1.c</in>
+          <in>duthes.c</in>
+          <in>dynlink.c</in>
+          <in>eval1.c</in>
+          <in>eval2.c</in>
+          <in>ewalloc1.c</in>
+          <in>ewalloc2.c</in>
+          <in>f_read.c</in>
+          <in>fg_read.c</in>
+          <in>fg_write.c</in>
+          <in>fpecatch.c</in>
+          <in>fpinit.c</in>
+          <in>fullhes.c</in>
+          <in>func_add.c</in>
+          <in>funcadd.c</in>
+          <in>funcadd0.c</in>
+          <in>funcadd1.c</in>
+          <in>g_fmt.c</in>
+          <in>genrowno.c</in>
+          <in>getenv.c</in>
+          <in>getstub.c</in>
+          <in>htcl.c</in>
+          <in>indic_cons.c</in>
+          <in>jac0dim.c</in>
+          <in>jac2dim.c</in>
+          <in>jacdim.c</in>
+          <in>jacinc.c</in>
+          <in>jacinc1.c</in>
+          <in>libnamsave.c</in>
+          <in>mach.c</in>
+          <in>mainexit.c</in>
+          <in>mip_pri.c</in>
+          <in>misc.c</in>
+          <in>mpec_adj.c</in>
+          <in>mpec_adj0.c</in>
+          <in>mqpcheckv.c</in>
+          <in>mypow.c</in>
+          <in>names.c</in>
+          <in>nl_obj.c</in>
+          <in>nqpcheck.c</in>
+          <in>nqpcheckZ.c</in>
+          <in>obj_adj.c</in>
+          <in>obj_adj0.c</in>
+          <in>obj_prec.c</in>
+          <in>objconst.c</in>
+          <in>objval_.c</in>
+          <in>op_type.c</in>
+          <in>pfghread.c</in>
+          <in>printf.c</in>
+          <in>pshvprod.c</in>
+          <in>punknown.c</in>
+          <in>qpcheck.c</in>
+          <in>qpcheckZ.c</in>
+          <in>qsortv.c</in>
+          <in>readsol.c</in>
+          <in>repwhere.c</in>
+          <in>sigcatch.c</in>
+          <in>sjac0dim.c</in>
+          <in>sos_add.c</in>
+          <in>sphes.c</in>
+          <in>sprintf.c</in>
+          <in>sscanf.c</in>
+          <in>stderr.c</in>
+          <in>strerror.c</in>
+          <in>studchk0.c</in>
+          <in>suf_sos.c</in>
+          <in>value.c</in>
+          <in>writesol.c</in>
+          <in>wrtsol_.c</in>
+          <in>ws_desc.c</in>
+          <in>wsu_desc.c</in>
+          <in>xectim.c</in>
+          <in>xp2known.c</in>
+        </df>
+        <df name="sqlite3">
+          <in>handler.c</in>
+        </df>
+        <df name="tables">
+          <in>fullbit.c</in>
+          <in>simpbit.c</in>
+          <in>tableproxy.c</in>
+        </df>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>CMakeLists.txt</itemPath>
+      <itemPath>build/Makefile</itemPath>
+      <itemPath>nbproject/private/launcher.properties</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>build/Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-fPIC"/>
+        <element flagsID="1" commonFlags="-fPIC -std=gnu99"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>build</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <ccTool>
+            <incDir>
+              <pElem>src/amplxl/zlib-1.2.11</pElem>
+              <pElem>build/src/amplxl/zlib-1.2.11</pElem>
+              <pElem>src/amplxl/zlib-1.2.11/contrib/minizip</pElem>
+              <pElem>src/solvers2</pElem>
+              <pElem>build/src</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>amplxl_EXPORTS</Elem>
+            </preprocessorList>
+          </ccTool>
+        </makeTool>
+        <preBuild>
+          <preBuildCommandWorkingDir>build</preBuildCommandWorkingDir>
+          <preBuildCommand>${CMAKE} -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=${IDE_CC} -DCMAKE_CXX_COMPILER=${IDE_CXX} -DCMAKE_C_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_CXX_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..</preBuildCommand>
+        </preBuild>
+      </makefileType>
+      <item path="build/src/details.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <folder path="0/build">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <folder path="0/src/amplxl">
+        <cTool>
+          <incDir>
+            <pElem>src/amplxl/zlib-1.2.11</pElem>
+            <pElem>build/src/amplxl/zlib-1.2.11</pElem>
+          </incDir>
+        </cTool>
+      </folder>
+      <folder path="0/src/amplxl/src">
+        <cTool>
+          <incDir>
+            <pElem>src/amplxl/zlib-1.2.11/contrib/minizip</pElem>
+            <pElem>src/solvers2</pElem>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>amplxl_EXPORTS</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <folder path="0/src/amplxl/zlib-1.2.11">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>_LARGEFILE64_SOURCE=1</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <folder path="0/src/amplxl/zlib-1.2.11/test">
+        <cTool>
+          <preprocessorList>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <folder path="0/src/sqlite3">
+        <cTool>
+          <incDir>
+            <pElem>src/solvers2</pElem>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>sqlite3th_EXPORTS</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <folder path="0/src/tables">
+        <cTool>
+          <incDir>
+            <pElem>src/solvers2</pElem>
+            <pElem>build/src</pElem>
+          </incDir>
+        </cTool>
+      </folder>
+      <item path="src/amplxl/src/ampl_xl.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/copyzip.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/ioapi.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/amplxl/src/myunz.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/myzip.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/oxmlutils.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/pugixml.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/amplxl/src/unzip.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/amplxl/src/zip.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/adler32.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/compress.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/crc32.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/deflate.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/gzclose.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/gzlib.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/gzread.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/gzwrite.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/infback.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/inffast.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/inflate.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/inftrees.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/test/example.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/test/minigzip.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/trees.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/uncompr.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/amplxl/zlib-1.2.11/zutil.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>ZLIB_DLL</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/asldate.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/atof.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/auxinfo.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/avltree.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/b_search.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/basename.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/bscanf.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/conscale.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/degree.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/derprop.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/dtoa1.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/duthes.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/dynlink.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/eval1.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/eval2.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/ewalloc1.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/ewalloc2.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/f_read.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/fg_read.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/fg_write.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/fpecatch.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/fpinit.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/fullhes.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/func_add.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/funcadd.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/funcadd0.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/funcadd1.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/g_fmt.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/genrowno.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/getenv.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/getstub.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/htcl.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/indic_cons.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/jac0dim.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/jac2dim.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/jacdim.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/jacinc.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/jacinc1.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/libnamsave.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mach.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mainexit.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mip_pri.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/misc.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mpec_adj.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mpec_adj0.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mqpcheckv.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/mypow.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/names.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/nl_obj.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/nqpcheck.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/nqpcheckZ.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/obj_adj.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/obj_adj0.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/obj_prec.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/objconst.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/objval_.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/op_type.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/pfghread.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/printf.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>src/solvers2</pElem>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>QUOTIFY=1</Elem>
+            <Elem>STAND_ALONE=1</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/pshvprod.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/punknown.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/qpcheck.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/qpcheckZ.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/qsortv.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/readsol.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/repwhere.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sigcatch.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sjac0dim.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sos_add.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sphes.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sprintf.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/sscanf.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/stderr.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/strerror.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/studchk0.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/suf_sos.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/value.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/writesol.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/wrtsol_.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/ws_desc.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/wsu_desc.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/xectim.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/solvers2/xp2known.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <incDir>
+            <pElem>build/src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>No_Control87</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/sqlite3/handler.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="1">
+        </cTool>
+      </item>
+      <item path="src/tables/fullbit.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>fullbit_EXPORTS</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/tables/simpbit.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>simpbit_EXPORTS</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="src/tables/tableproxy.c" ex="false" tool="0" flavor2="0">
+        <cTool>
+          <preprocessorList>
+            <Elem>QUOTIFY=1</Elem>
+            <Elem>STAND_ALONE=1</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
