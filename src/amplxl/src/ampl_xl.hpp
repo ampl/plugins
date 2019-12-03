@@ -710,8 +710,7 @@ add_missing_cells(
 template <class T>
 std::string my_to_string(T num){
 	std::stringstream strs;
-	//~ strs << std::setprecision(std::numeric_limits<T>::digits10) << num;
-	strs << num;
+	strs << std::scientific << std::setprecision(std::numeric_limits<T>::digits10+1) << num;	
 	return strs.str();
 };
 
