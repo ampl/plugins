@@ -24,6 +24,8 @@ display FOOD;
 display amt;
 
 solve;
+
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
 """
 
 DIET_INOUT="""
@@ -50,6 +52,8 @@ display FOOD;
 display amt;
 
 solve;
+
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
 
 table ExportFoods (dname) (fname_out) "Foods":
     [FOOD] IN, Buy OUT, Buy.rc ~ BuyRC OUT, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac OUT;
@@ -108,6 +112,8 @@ display FOOD;
 display amt;
 
 solve;
+
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
 
 table ExportFoods OUT (dname) (fname_out) "Foods":
     [FOOD], cost, f_min, f_max, Buy, Buy.rc ~ BuyRC, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac;
@@ -169,6 +175,8 @@ display FOOD;
 display amt;
 
 solve;
+
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
 
 write table Foods;
 
@@ -251,4 +259,3 @@ if __name__ == '__main__':
                 script, script.replace('.run', '.out')
             )
         )
-

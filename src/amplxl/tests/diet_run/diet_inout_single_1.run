@@ -26,6 +26,8 @@ display amt;
 
 solve;
 
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
+
 write table Foods;
 
 # read exported table to validate results

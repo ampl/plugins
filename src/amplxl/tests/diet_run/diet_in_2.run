@@ -21,3 +21,5 @@ display FOOD;
 display amt;
 
 solve;
+
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);

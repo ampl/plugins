@@ -23,6 +23,8 @@ display amt;
 
 solve;
 
+display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
+
 table ExportFoods OUT (dname) (fname_out) "Foods":
     [FOOD], cost, f_min, f_max, Buy, Buy.rc ~ BuyRC, {j in FOOD} Buy[j]/f_max[j] ~ BuyFrac;
 write table ExportFoods;
