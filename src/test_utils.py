@@ -22,7 +22,7 @@ def check_stderr(stderr):
     return True
 
 def check_stdout(stdout, expected_output):
-    d = diff(stdout, expected_output)
+    d = diff(expected_output, stdout)
     if d != '':
         print('FAILED:')
         print(d)
