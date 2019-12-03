@@ -2,6 +2,7 @@
 based on minizip.c
 */
 #pragma once
+#include <string>
 
 #if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__))
 		#ifndef __USE_FILE_OFFSET64
@@ -86,9 +87,15 @@ int isLargeFile(const char* filename);
 
 
 int myzip(
-	const char *zipfilename,
-	const char *filename_to_replace,
-	const char *filename_outside
+    const std::string & zipfilename,
+    const std::string & filename_to_replace,
+    const std::string & filename_outside
+);
+
+int myzip(
+    const char *zipfilename,
+    const char *filename_to_replace,
+    const char *filename_outside
 );
 
 

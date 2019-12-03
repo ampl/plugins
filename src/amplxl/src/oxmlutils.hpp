@@ -362,6 +362,6 @@ check_file_exists(const std::string & filename);
 
 
 void
-my_copy_file(const char* source_path, const char* dest_path);
+my_copy_file(const std::string & source_path, const std::string & dest_path);
 
 

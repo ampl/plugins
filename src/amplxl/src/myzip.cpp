@@ -1,4 +1,5 @@
 #include "myzip.hpp"
+#include <string>
 
 #ifdef _WIN32
 uLong filetime(
@@ -155,6 +156,13 @@ int isLargeFile(const char* filename)
 	}
 
 	return largeFile;
+}
+
+int myzip(
+    const std::string & zipfilename,
+    const std::string & filename_to_replace,
+    const std::string & filename_outside) {
+    return myzip(zipfilename.c_str(), filename_to_replace.c_str(), filename_outside.c_str());
 }
 
 int myzip(

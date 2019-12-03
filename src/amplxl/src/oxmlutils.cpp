@@ -230,16 +230,16 @@ add_shared_strings_update_relations(std::string & oxml, int new_rel_number, std:
 	std::string ct = "[Content_Types].xml";
 	std::string fpath;
 	join_path(temp_folder, ct, fpath);
-	int result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
+	int result = myzip(new_file, ct, fpath);
 
 	remove(fpath.c_str());
 
 	ct = "xl/_rels/workbook.xml.rels";
 	join_path(temp_folder, "workbook.xml.rels", fpath);
-	result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
+	result = myzip(new_file, ct, fpath);
 
 	remove(fpath.c_str());
-	my_copy_file(new_file.c_str(), oxml.c_str());
+	my_copy_file(new_file, oxml);
 	remove(new_file.c_str());
 
 	return 0;
@@ -280,23 +280,23 @@ int add_sheet_update_relations(std::string & oxml, int new_sheet_number, int new
 	std::string ct = "[Content_Types].xml";
 	std::string fpath;
 	join_path(temp_folder, ct, fpath);
-	int result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
+	int result = myzip(new_file, ct, fpath);
 
 	remove(fpath.c_str());
 
 	ct = "xl/workbook.xml"; 
 	join_path(temp_folder, "workbook.xml", fpath);
-	result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
+	result = myzip(new_file, ct, fpath);
 
 	remove(fpath.c_str());
 
 	ct = "xl/_rels/workbook.xml.rels"; 
 
 	join_path(temp_folder, "workbook.xml.rels", fpath);
-	result = myzip(new_file.c_str(), ct.c_str(), fpath.c_str());
+	result = myzip(new_file, ct, fpath);
 
 	remove(fpath.c_str());
-	my_copy_file(new_file.c_str(), oxml.c_str());
+	my_copy_file(new_file, oxml);
 	remove(new_file.c_str());
 
 	return 0;
@@ -515,7 +515,7 @@ add_sheet(std::string & oxml, int new_sheet_number, std::string & temp_folder){
 
 	std::string zip_dest = "xl/worksheets/sheet" + strs.str() + ".xml";
 
-	res = myzip(oxml.c_str(), zip_dest.c_str(), new_sheet_file.c_str());
+	res = myzip(oxml, zip_dest, new_sheet_file);
 
 	if (res){
 		return 1;
@@ -539,7 +539,7 @@ add_shared_strings_file(std::string & oxml, std::string & temp_folder){
 
 	std::string zip_dest = "xl/sharedStrings.xml";
 
-	int res = myzip(oxml.c_str(), zip_dest.c_str(), shared_strings_file.c_str());
+	int res = myzip(oxml, zip_dest, shared_strings_file);
 
 	if (res){
 		return 1;
@@ -694,7 +694,7 @@ zip_xml_files(
 	for (int i = 0; i < zip_orig.size(); i++){
 		std::string full_orig;
 		join_path(temp_path, zip_orig[i], full_orig);
-		int res = myzip(tmp_name, zip_dest[i].c_str(), full_orig.c_str());
+		int res = myzip(tmp_name, zip_dest[i], full_orig);
 
 		if (res != 0){
 			return 1;
@@ -754,18 +754,15 @@ has_shared_strings(std::string & oxml_file, std::string & temp_folder){
 
 bool
 check_file_exists(const std::string & filename){
-
   std::ifstream ifile(filename.c_str());
   return static_cast<bool>(ifile);
 };
 
 
 void
-my_copy_file(const char* source_path, const char* dest_path){
-
-	std::ifstream source(source_path, std::ios::binary);
-	std::ofstream dest(dest_path, std::ios::binary);
-
+my_copy_file(const std::string & source_path, const std::string & dest_path){
+	std::ifstream source(source_path.c_str(), std::ios::binary);
+	std::ofstream dest(dest_path.c_str(), std::ios::binary);
 	dest << source.rdbuf();
 };
 

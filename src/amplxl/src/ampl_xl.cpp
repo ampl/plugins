@@ -333,7 +333,7 @@ ExcelManager::prepare(){
 			// (to avoid issues with multiple writes to the same table)
 			std::string backup_path = excel_path + ".amplbak";
 			if (!check_file_exists(backup_path)){
-				my_copy_file(excel_path.c_str(), backup_path.c_str());
+				my_copy_file(excel_path, backup_path);
 			}
 		}
 	}
@@ -1301,7 +1301,7 @@ ExcelWriteManager::manage_data(){
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
-	result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
+	result = myzip(xl_copy_path, excel_iner_file, final_path);
 	if (result){
 		cannot_update_sheet();
 		return 1;
@@ -1314,7 +1314,7 @@ ExcelWriteManager::manage_data(){
 
 		join_path(temp_folder, excel_file, final_path);
 
-		result = myzip(&xl_copy_path[0u], &excel_iner_file[0u], &final_path[0u]);
+		result = myzip(xl_copy_path, excel_iner_file, final_path);
 		if (result){
 			cannot_update_sheet();
 			return 1;
@@ -1326,7 +1326,7 @@ ExcelWriteManager::manage_data(){
 
 	// replace it by modified copy
 	// cannot use rename due to issue with files in different partitions
-	my_copy_file(xl_copy_path.c_str(), excel_path.c_str());
+	my_copy_file(xl_copy_path, excel_path);
 
 	// remove
 	result = remove(xl_copy_path.c_str());
@@ -2011,10 +2011,10 @@ ExcelWriteManager::set_cell_value(
 	// write info in data node
 	pugi::xml_node data_node = xl_val.first_child();
 	if (!data_node){
-		xl_val.append_child(pugi::node_pcdata).set_value(&temp_str[0u]);
+		xl_val.append_child(pugi::node_pcdata).set_value(temp_str.c_str());
 	}
 	else{
-		data_node.set_value(&temp_str[0u]);
+		data_node.set_value(temp_str.c_str());
 	}
 };
 
