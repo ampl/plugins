@@ -1,0 +1,671 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="build">
+        <df name="CMakeFiles">
+          <df name="3.15.5">
+            <df name="CompilerIdC">
+              <df name="tmp">
+              </df>
+              <in>CMakeCCompilerId.c</in>
+            </df>
+            <df name="CompilerIdCXX">
+              <df name="tmp">
+              </df>
+              <in>CMakeCXXCompilerId.cpp</in>
+            </df>
+          </df>
+          <df name="CheckTypeSize">
+            <in>OFF64_T.c</in>
+          </df>
+          <df name="CMakeTmp">
+          </df>
+          <df name="Continuous.dir">
+          </df>
+          <df name="ContinuousBuild.dir">
+          </df>
+          <df name="ContinuousConfigure.dir">
+          </df>
+          <df name="ContinuousCoverage.dir">
+          </df>
+          <df name="ContinuousMemCheck.dir">
+          </df>
+          <df name="ContinuousStart.dir">
+          </df>
+          <df name="ContinuousSubmit.dir">
+          </df>
+          <df name="ContinuousTest.dir">
+          </df>
+          <df name="ContinuousUpdate.dir">
+          </df>
+          <df name="Experimental.dir">
+          </df>
+          <df name="ExperimentalBuild.dir">
+          </df>
+          <df name="ExperimentalConfigure.dir">
+          </df>
+          <df name="ExperimentalCoverage.dir">
+          </df>
+          <df name="ExperimentalMemCheck.dir">
+          </df>
+          <df name="ExperimentalStart.dir">
+          </df>
+          <df name="ExperimentalSubmit.dir">
+          </df>
+          <df name="ExperimentalTest.dir">
+          </df>
+          <df name="ExperimentalUpdate.dir">
+          </df>
+          <df name="Nightly.dir">
+          </df>
+          <df name="NightlyBuild.dir">
+          </df>
+          <df name="NightlyConfigure.dir">
+          </df>
+          <df name="NightlyCoverage.dir">
+          </df>
+          <df name="NightlyMemCheck.dir">
+          </df>
+          <df name="NightlyMemoryCheck.dir">
+          </df>
+          <df name="NightlyStart.dir">
+          </df>
+          <df name="NightlySubmit.dir">
+          </df>
+          <df name="NightlyTest.dir">
+          </df>
+          <df name="NightlyUpdate.dir">
+          </df>
+        </df>
+        <df name="src">
+          <df name="amplxl">
+            <df name="tests">
+              <df name="diet_run">
+              </df>
+              <df name="diet_xlsx">
+              </df>
+              <in>diet.mod</in>
+            </df>
+            <df name="zlib-1.2.11">
+              <df name="CMakeFiles">
+                <df name="example.dir">
+                  <df name="test">
+                  </df>
+                </df>
+                <df name="minigzip.dir">
+                  <df name="test">
+                  </df>
+                </df>
+                <df name="zlib.dir">
+                </df>
+                <df name="zlibstatic.dir">
+                </df>
+              </df>
+              <in>zconf.h</in>
+            </df>
+          </df>
+          <df name="CMakeFiles">
+            <df name="ampltabl.dir">
+              <df name="tables">
+              </df>
+            </df>
+            <df name="amplxl.dir">
+              <df name="amplxl">
+                <df name="src">
+                </df>
+              </df>
+            </df>
+            <df name="arith-h.dir">
+            </df>
+            <df name="asl-core.dir">
+              <df name="solvers2">
+              </df>
+            </df>
+            <df name="asl.dir">
+            </df>
+            <df name="fullbit.dir">
+              <df name="tables">
+              </df>
+            </df>
+            <df name="simpbit.dir">
+              <df name="tables">
+              </df>
+            </df>
+            <df name="sqlite3th.dir">
+              <df name="sqlite3">
+              </df>
+            </df>
+            <df name="tableproxy.dir">
+              <df name="solvers2">
+              </df>
+              <df name="tables">
+              </df>
+            </df>
+          </df>
+          <df name="sqlite3">
+            <df name="tests">
+              <in>diet.mod</in>
+            </df>
+          </df>
+          <in>arith.h</in>
+          <in>details.c</in>
+          <in>stdio1.h</in>
+        </df>
+        <df name="Testing">
+          <df name="Temporary">
+          </df>
+        </df>
+      </df>
+      <df name="cmake">
+      </df>
+      <df name="src">
+        <df name="amplxl">
+          <df name="src">
+            <in>ampl_xl.cpp</in>
+            <in>ampl_xl.hpp</in>
+            <in>copyzip.cpp</in>
+            <in>copyzip.hpp</in>
+            <in>ioapi.c</in>
+            <in>ioapi.h</in>
+            <in>iowin32.c</in>
+            <in>myunz.cpp</in>
+            <in>myunz.hpp</in>
+            <in>myzip.cpp</in>
+            <in>myzip.hpp</in>
+            <in>oxmlutils.cpp</in>
+            <in>oxmlutils.hpp</in>
+            <in>pugiconfig.hpp</in>
+            <in>pugixml.cpp</in>
+            <in>pugixml.hpp</in>
+            <in>unzip.c</in>
+            <in>unzip.h</in>
+            <in>zip.c</in>
+            <in>zip.h</in>
+          </df>
+          <df name="tests">
+            <df name="diet_run">
+            </df>
+            <df name="diet_xlsx">
+            </df>
+            <in>diet.mod</in>
+          </df>
+          <df name="zlib-1.2.11">
+            <df name="amiga">
+            </df>
+            <df name="contrib">
+              <df name="ada">
+              </df>
+              <df name="amd64">
+                <in>amd64-match.S</in>
+              </df>
+              <df name="asm686">
+                <in>match.S</in>
+              </df>
+              <df name="blast">
+                <in>blast.c</in>
+                <in>blast.h</in>
+              </df>
+              <df name="delphi">
+              </df>
+              <df name="dotzlib">
+                <df name="DotZLib">
+                </df>
+              </df>
+              <df name="gcc_gvmat64">
+                <in>gvmat64.S</in>
+              </df>
+              <df name="infback9">
+                <in>infback9.c</in>
+                <in>infback9.h</in>
+                <in>inffix9.h</in>
+                <in>inflate9.h</in>
+                <in>inftree9.c</in>
+                <in>inftree9.h</in>
+              </df>
+              <df name="inflate86">
+                <in>inffas86.c</in>
+                <in>inffast.S</in>
+              </df>
+              <df name="iostream">
+                <in>test.cpp</in>
+                <in>zfstream.cpp</in>
+                <in>zfstream.h</in>
+              </df>
+              <df name="iostream2">
+                <in>zstream.h</in>
+                <in>zstream_test.cpp</in>
+              </df>
+              <df name="iostream3">
+                <in>test.cc</in>
+                <in>zfstream.cc</in>
+                <in>zfstream.h</in>
+              </df>
+              <df name="masmx64">
+                <in>gvmat64.asm</in>
+                <in>inffas8664.c</in>
+                <in>inffasx64.asm</in>
+              </df>
+              <df name="masmx86">
+                <in>inffas32.asm</in>
+                <in>match686.asm</in>
+              </df>
+              <df name="minizip">
+                <in>crypt.h</in>
+                <in>ioapi.c</in>
+                <in>ioapi.h</in>
+                <in>iowin32.c</in>
+                <in>iowin32.h</in>
+                <in>miniunz.c</in>
+                <in>minizip.c</in>
+                <in>mztools.c</in>
+                <in>mztools.h</in>
+                <in>unzip.c</in>
+                <in>unzip.h</in>
+                <in>zip.c</in>
+                <in>zip.h</in>
+              </df>
+              <df name="pascal">
+              </df>
+              <df name="puff">
+                <in>puff.c</in>
+                <in>puff.h</in>
+                <in>pufftest.c</in>
+              </df>
+              <df name="testzlib">
+                <in>testzlib.c</in>
+              </df>
+              <df name="untgz">
+                <in>untgz.c</in>
+              </df>
+              <df name="vstudio">
+                <df name="vc10">
+                </df>
+                <df name="vc11">
+                </df>
+                <df name="vc12">
+                </df>
+                <df name="vc14">
+                </df>
+                <df name="vc9">
+                </df>
+              </df>
+            </df>
+            <df name="doc">
+            </df>
+            <df name="examples">
+              <in>enough.c</in>
+              <in>fitblk.c</in>
+              <in>gun.c</in>
+              <in>gzappend.c</in>
+              <in>gzjoin.c</in>
+              <in>gzlog.c</in>
+              <in>gzlog.h</in>
+              <in>zpipe.c</in>
+              <in>zran.c</in>
+            </df>
+            <df name="msdos">
+            </df>
+            <df name="nintendods">
+            </df>
+            <df name="old">
+              <df name="os2">
+              </df>
+            </df>
+            <df name="os400">
+            </df>
+            <df name="qnx">
+            </df>
+            <df name="test">
+              <in>example.c</in>
+              <in>infcover.c</in>
+              <in>minigzip.c</in>
+            </df>
+            <df name="watcom">
+            </df>
+            <df name="win32">
+            </df>
+            <in>adler32.c</in>
+            <in>compress.c</in>
+            <in>crc32.c</in>
+            <in>crc32.h</in>
+            <in>deflate.c</in>
+            <in>deflate.h</in>
+            <in>gzclose.c</in>
+            <in>gzguts.h</in>
+            <in>gzlib.c</in>
+            <in>gzread.c</in>
+            <in>gzwrite.c</in>
+            <in>infback.c</in>
+            <in>inffast.c</in>
+            <in>inffast.h</in>
+            <in>inffixed.h</in>
+            <in>inflate.c</in>
+            <in>inflate.h</in>
+            <in>inftrees.c</in>
+            <in>inftrees.h</in>
+            <in>trees.c</in>
+            <in>trees.h</in>
+            <in>uncompr.c</in>
+            <in>zlib.h</in>
+            <in>zutil.c</in>
+            <in>zutil.h</in>
+          </df>
+        </df>
+        <df name="solvers2">
+          <df name="CMakeFiles">
+            <df name="3.10.2">
+              <df name="CompilerIdC">
+                <in>CMakeCCompilerId.c</in>
+              </df>
+              <df name="CompilerIdCXX">
+                <in>CMakeCXXCompilerId.cpp</in>
+              </df>
+            </df>
+            <df name="CMakeTmp">
+              <df name="CMakeFiles">
+                <df name="cmTC_fecc7.dir">
+                </df>
+              </df>
+            </df>
+            <in>feature_tests.c</in>
+          </df>
+          <df name="sys.x86_64.Linux">
+            <in>arith.h</in>
+            <in>arithchk.c</in>
+            <in>asl.h</in>
+            <in>asl_pfg.h</in>
+            <in>asl_pfgh.h</in>
+            <in>asldate.c</in>
+            <in>atof.c</in>
+            <in>auxinfo.c</in>
+            <in>avltree.c</in>
+            <in>avltree.h</in>
+            <in>b_search.c</in>
+            <in>basename.c</in>
+            <in>bscanf.c</in>
+            <in>conscale.c</in>
+            <in>degree.c</in>
+            <in>derprop.c</in>
+            <in>details.c</in>
+            <in>dtoa.c</in>
+            <in>dtoa1.c</in>
+            <in>duthes.c</in>
+            <in>dynlink.c</in>
+            <in>errchk.h</in>
+            <in>eval1.c</in>
+            <in>eval2.c</in>
+            <in>ewalloc1.c</in>
+            <in>ewalloc2.c</in>
+            <in>f_read.c</in>
+            <in>fg_read.c</in>
+            <in>fg_write.c</in>
+            <in>fpecatch.c</in>
+            <in>fpinit.c</in>
+            <in>fpinitmt.c</in>
+            <in>fpsetprec.s</in>
+            <in>fpsetprec64.s</in>
+            <in>fullhes.c</in>
+            <in>func_add.c</in>
+            <in>funcadd.c</in>
+            <in>funcadd.h</in>
+            <in>funcadd0.c</in>
+            <in>funcadd1.c</in>
+            <in>funcaddk.c</in>
+            <in>funcaddr.c</in>
+            <in>g_fmt.c</in>
+            <in>genrowno.c</in>
+            <in>getenv.c</in>
+            <in>getstub.c</in>
+            <in>getstub.h</in>
+            <in>htcl.c</in>
+            <in>indic_cons.c</in>
+            <in>jac0dim.c</in>
+            <in>jac2dim.c</in>
+            <in>jac2dim.h</in>
+            <in>jacdim.c</in>
+            <in>jacinc.c</in>
+            <in>jacinc1.c</in>
+            <in>jacpdim.h</in>
+            <in>libnamsave.c</in>
+            <in>mach.c</in>
+            <in>mainexit.c</in>
+            <in>mip_pri.c</in>
+            <in>misc.c</in>
+            <in>mpec_adj.c</in>
+            <in>mpec_adj0.c</in>
+            <in>mqpcheckv.c</in>
+            <in>mypow.c</in>
+            <in>names.c</in>
+            <in>nl_obj.c</in>
+            <in>nlp.h</in>
+            <in>nlp2.h</in>
+            <in>nqpcheck.c</in>
+            <in>nqpcheckZ.c</in>
+            <in>obj_adj.c</in>
+            <in>obj_adj.h</in>
+            <in>obj_adj0.c</in>
+            <in>obj_prec.c</in>
+            <in>objconst.c</in>
+            <in>objval_.c</in>
+            <in>op_type.c</in>
+            <in>op_type.hd</in>
+            <in>op_typeb.hd</in>
+            <in>opcode.hd</in>
+            <in>opno.hd</in>
+            <in>opno2.h</in>
+            <in>opnos.hd</in>
+            <in>pfghread.c</in>
+            <in>printf.c</in>
+            <in>pshvprod.c</in>
+            <in>psinfo.h</in>
+            <in>punknown.c</in>
+            <in>qpcheck.c</in>
+            <in>qpcheckZ.c</in>
+            <in>qsortv.c</in>
+            <in>r_opn.hd</in>
+            <in>r_opn0.hd</in>
+            <in>readsol.c</in>
+            <in>repwhere.c</in>
+            <in>rnd_prod.s</in>
+            <in>sigcatch.c</in>
+            <in>sjac0dim.c</in>
+            <in>sos_add.c</in>
+            <in>sphes.c</in>
+            <in>sprintf.c</in>
+            <in>sscanf.c</in>
+            <in>stderr.c</in>
+            <in>stdio1.h</in>
+            <in>strerror.c</in>
+            <in>studchk0.c</in>
+            <in>suf_sos.c</in>
+            <in>value.c</in>
+            <in>writesol.c</in>
+            <in>wrtsol_.c</in>
+            <in>ws_desc.c</in>
+            <in>wsu_desc.c</in>
+            <in>xectim.c</in>
+            <in>xp2known.c</in>
+          </df>
+          <in>arith.h</in>
+          <in>arithchk.c</in>
+          <in>asl.h</in>
+          <in>asl_pfg.h</in>
+          <in>asl_pfgh.h</in>
+          <in>asldate.c</in>
+          <in>atof.c</in>
+          <in>auxinfo.c</in>
+          <in>avltree.c</in>
+          <in>avltree.h</in>
+          <in>b_search.c</in>
+          <in>basename.c</in>
+          <in>bscanf.c</in>
+          <in>conscale.c</in>
+          <in>degree.c</in>
+          <in>derprop.c</in>
+          <in>dtoa.c</in>
+          <in>dtoa1.c</in>
+          <in>duthes.c</in>
+          <in>dynlink.c</in>
+          <in>errchk.h</in>
+          <in>eval1.c</in>
+          <in>eval2.c</in>
+          <in>ewalloc1.c</in>
+          <in>ewalloc2.c</in>
+          <in>f_read.c</in>
+          <in>fg_read.c</in>
+          <in>fg_write.c</in>
+          <in>fpecatch.c</in>
+          <in>fpinit.c</in>
+          <in>fpinitmt.c</in>
+          <in>fpsetprec.s</in>
+          <in>fpsetprec64.s</in>
+          <in>fullhes.c</in>
+          <in>func_add.c</in>
+          <in>funcadd.c</in>
+          <in>funcadd.h</in>
+          <in>funcadd0.c</in>
+          <in>funcadd1.c</in>
+          <in>funcaddk.c</in>
+          <in>funcaddr.c</in>
+          <in>g_fmt.c</in>
+          <in>genrowno.c</in>
+          <in>getenv.c</in>
+          <in>getstub.c</in>
+          <in>getstub.h</in>
+          <in>htcl.c</in>
+          <in>indic_cons.c</in>
+          <in>jac0dim.c</in>
+          <in>jac2dim.c</in>
+          <in>jac2dim.h</in>
+          <in>jacdim.c</in>
+          <in>jacinc.c</in>
+          <in>jacinc1.c</in>
+          <in>jacpdim.h</in>
+          <in>libnamsave.c</in>
+          <in>mach.c</in>
+          <in>mainexit.c</in>
+          <in>mip_pri.c</in>
+          <in>misc.c</in>
+          <in>mpec_adj.c</in>
+          <in>mpec_adj0.c</in>
+          <in>mqpcheckv.c</in>
+          <in>mypow.c</in>
+          <in>names.c</in>
+          <in>nl_obj.c</in>
+          <in>nlp.h</in>
+          <in>nlp2.h</in>
+          <in>nqpcheck.c</in>
+          <in>nqpcheckZ.c</in>
+          <in>obj_adj.c</in>
+          <in>obj_adj.h</in>
+          <in>obj_adj0.c</in>
+          <in>obj_prec.c</in>
+          <in>objconst.c</in>
+          <in>objval_.c</in>
+          <in>op_type.c</in>
+          <in>op_type.hd</in>
+          <in>op_typeb.hd</in>
+          <in>opcode.hd</in>
+          <in>opno.hd</in>
+          <in>opno2.h</in>
+          <in>opnos.hd</in>
+          <in>pfghread.c</in>
+          <in>printf.c</in>
+          <in>pshvprod.c</in>
+          <in>psinfo.h</in>
+          <in>punknown.c</in>
+          <in>qpcheck.c</in>
+          <in>qpcheckZ.c</in>
+          <in>qsortv.c</in>
+          <in>r_opn.hd</in>
+          <in>r_opn0.hd</in>
+          <in>readsol.c</in>
+          <in>repwhere.c</in>
+          <in>rnd_prod.s</in>
+          <in>sigcatch.c</in>
+          <in>sjac0dim.c</in>
+          <in>sos_add.c</in>
+          <in>sphes.c</in>
+          <in>sprintf.c</in>
+          <in>sscanf.c</in>
+          <in>stderr.c</in>
+          <in>strerror.c</in>
+          <in>studchk0.c</in>
+          <in>suf_sos.c</in>
+          <in>value.c</in>
+          <in>writesol.c</in>
+          <in>wrtsol_.c</in>
+          <in>ws_desc.c</in>
+          <in>wsu_desc.c</in>
+          <in>xectim.c</in>
+          <in>xp2known.c</in>
+        </df>
+        <df name="sqlite3">
+          <df name="tests">
+            <in>diet.mod</in>
+          </df>
+          <in>handler.c</in>
+        </df>
+        <df name="tables">
+          <in>amplodbc.c</in>
+          <in>diet.mod</in>
+          <in>fullbit.c</in>
+          <in>simpbit.c</in>
+          <in>tableproxy.c</in>
+          <in>tableproxyver.h</in>
+        </df>
+        <in>mkstemps.c</in>
+      </df>
+    </df>
+  </logicalFolder>
+  <projectmakefile>build/Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>4</platform>
+      </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <nativedebugger version="1">
+        <engine>gdb</engine>
+      </nativedebugger>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>bash nbproject/test.sh</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>bash nbproject/test.sh</runcommand>
+        <rundir></rundir>
+        <buildfirst>false</buildfirst>
+        <terminal-type>0</terminal-type>
+        <remove-instrumentation>0</remove-instrumentation>
+        <environment>
+        </environment>
+      </runprofile>
+    </conf>
+  </confs>
+</configurationDescriptor>

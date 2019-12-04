@@ -166,9 +166,9 @@
       </codeAssistance>
       <makefileType>
         <makeTool>
-          <buildCommandWorkingDir>build</buildCommandWorkingDir>
-          <buildCommand>${MAKE} -f Makefile</buildCommand>
-          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>bash nbproject/build.sh</buildCommand>
+          <cleanCommand>bash nbproject/clean.sh</cleanCommand>
           <executablePath></executablePath>
           <ccTool>
             <incDir>
@@ -184,8 +184,9 @@
           </ccTool>
         </makeTool>
         <preBuild>
-          <preBuildCommandWorkingDir>build</preBuildCommandWorkingDir>
-          <preBuildCommand>${CMAKE} -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=${IDE_CC} -DCMAKE_CXX_COMPILER=${IDE_CXX} -DCMAKE_C_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_CXX_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..</preBuildCommand>
+          <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
+          <preBuildCommand>bash nbproject/pre-build.sh</preBuildCommand>
+          <preBuildFirst>true</preBuildFirst>
         </preBuild>
       </makefileType>
       <item path="build/src/details.c" ex="false" tool="0" flavor2="0">
