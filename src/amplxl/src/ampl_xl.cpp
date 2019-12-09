@@ -243,16 +243,7 @@ ExcelManager::prepare(){
 		}
 	}
 
-	if (verbose > 0){
-		printf("\twrite option: %s\n", write.c_str());
 
-		if (backup){
-			printf("\tbackup: true\n");
-		}
-		else{
-			printf("\tbackup: false\n");
-		}
-	}
 
 
 	// no file declared
@@ -260,6 +251,8 @@ ExcelManager::prepare(){
 
 		// we create a file with the table name or potential (alias)
 		if (inout == "OUT"){
+
+			write = "drop";
 
 			if (verbose > 0){
 				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
@@ -296,6 +289,8 @@ ExcelManager::prepare(){
 
 		// we create the non existing file with the declared name
 		if (inout == "OUT"){
+
+			write = "drop";
 
 			if (verbose > 0){
 				printf("\tDeclared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
@@ -337,6 +332,20 @@ ExcelManager::prepare(){
 			}
 		}
 	}
+
+
+	if (verbose > 0){
+		printf("\twrite option: %s\n", write.c_str());
+
+		if (backup){
+			printf("\tbackup: true\n");
+		}
+		else{
+			printf("\tbackup: false\n");
+		}
+	}
+
+
 
 
 	return 0;
@@ -415,11 +424,20 @@ ExcelManager::manage_workbook(){
 		sheet_rel = it->second;
 	}
 
+	if (verbose > 1){
+		printf("amplxl: manage workbook done!\n");
+	}
+
 	return 0;
 };
 
 int
 ExcelManager::manage_relations(){
+
+	if (verbose > 1){
+		printf("Manage relations...\n");
+	}
+
 
 	int result = 0;
 
@@ -441,6 +459,11 @@ ExcelManager::manage_relations(){
 		// error parsing relations
 		return 1;
 	}
+
+	if (verbose > 1){
+		printf("Manage relations done!\n");
+	}
+
 
 	return 0;
 };
@@ -1184,6 +1207,9 @@ ExcelWriteManager::manage_data(){
 		first_col = range_first_col; 
 		last_col = range_last_col;
 	}
+	else{
+		last_col = number_to_cell_reference(TI->arity + TI->ncols);
+	}
 	last_row = first_row + TI->nrows;
 
 	// map shared strings for fast access and get the number of existing strings, since we may add
@@ -1193,7 +1219,7 @@ ExcelWriteManager::manage_data(){
 
 	if (inout == "OUT"){
 
-		if (write == std::string("delete")){
+		if (write == "delete"){
 
 			result = check_columns(node, first_row, first_col, last_col);
 
@@ -1202,21 +1228,13 @@ ExcelWriteManager::manage_data(){
 				return 1;
 			}
 
-			first_row += 1;
+			first_row += 1; // advance header
 
 			result = write_data_out(node, first_row, last_row, first_col, last_col);
 
 		}
-		else if (write == std::string("drop")){
+		else if (write == "drop"){
 
-			// delete all info, including header
-			delete_data(node);
-
-			result = check_rows(node, first_row, last_row);
-
-			write_header(node, first_row, first_col);
-
-			first_row += 1;
 			result = write_all_data_out(node, first_row, last_row, first_col, last_col);
 		}
 	}
@@ -1440,6 +1458,81 @@ ExcelWriteManager::write_all_data_out(
 	std::string &last_col
 ){
 
+	if (verbose > 0){
+		//~ std::cout << "check_table_cells...\n";
+		printf("amplxl: write_data_drop_out...\n");
+	}
+	printf("amplxl: %d, %d, %s, %s.\n", first_row, last_row, first_col.c_str(), last_col.c_str());
+
+
+	std::clock_t start_time = get_time();
+
+	pugi::xml_node excel_row;
+	pugi::xml_node excel_cell;
+	pugi::xml_node excel_val;
+	pugi::xml_node dnode;
+
+	std::stringstream strs;
+	std::string row_id_str;
+
+	// map rows and cells for faster access
+	std::map<std::string, pugi::xml_node> row_map;
+	std::map<std::string, pugi::xml_node> cell_map;
+	get_maps(node, row_map, cell_map, ae, verbose);
+
+	// check that all required cells exist
+	check_table_cells(
+		node,
+		row_map,
+		cell_map,
+		first_row,
+		last_row,
+		first_col,
+		last_col,
+		ae,
+		verbose
+	);
+
+	write_header(node, first_row, first_col, cell_map);
+
+	first_row += 1; // advance header
+
+	// write data
+	const int ampl_ncols = TI->arity + TI->ncols;
+	DbCol *db;
+	std::string iter_col;
+
+	int trow = 0;
+	for (int i = first_row; i <= last_row; i++){
+
+		db = TI->cols;
+		iter_col = first_col;
+
+		for (int j = 0; j < ampl_ncols; j++){
+
+			std::string cell_col = iter_col;
+			std::string cell_row = my_to_string(i);
+			std::string cell_reference = cell_col + cell_row;
+			pugi::xml_node write_cell = cell_map[cell_reference];
+			set_cell_value(db, trow, write_cell);
+			db++;
+			ecm.next(iter_col);
+		}
+		trow += 1;
+	}
+
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	if (verbose > 0){
+		printf("amplxl: write_data_drop_out done in %.3f s.\n", total_time);
+	}
+
+
+	return 0;
+
+
+	/*
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -1483,6 +1576,7 @@ ExcelWriteManager::write_all_data_out(
 
 	}
 	return 0;
+	*/
 };
 
 
@@ -2406,8 +2500,53 @@ ExcelWriteManager::delete_sheet(pugi::xml_node parent, int include_header){
 
 
 int
-ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::string & first_col){
+ExcelWriteManager::write_header(
+	pugi::xml_node parent,
+	int first_row,
+	std::string & first_col,
+	std::map<std::string, pugi::xml_node> & cell_map
+){
 
+	std::string row_id = my_to_string(first_row);
+	std::string iter_col = first_col;
+
+	for (int i = 0; i < TI->arity + TI->ncols; i++){
+
+		std::string wstr = std::string(TI->colnames[i]);
+		int pos = check_shared_strings(wstr);
+
+		std::string shared_string_num = my_to_string(pos);
+
+		std::string cell_adress = iter_col + row_id;
+
+		pugi::xml_node excel_cell = cell_map[cell_adress];
+
+		pugi::xml_node excel_val = excel_cell.child("v");
+		if(!excel_val){
+			excel_val = excel_cell.append_child("v");
+		}
+
+		pugi::xml_attribute attr = excel_cell.attribute("t");
+		if (attr){
+			attr.set_value("s");
+		}
+		else{
+			excel_cell.append_attribute("t") = "s";
+		}
+
+		pugi::xml_node dnode = excel_val.first_child();
+		if (!dnode){
+			excel_val.append_child(pugi::node_pcdata).set_value(shared_string_num.c_str());
+		}
+		else{
+			dnode.set_value(shared_string_num.c_str());
+		}
+
+		ecm.next(iter_col);
+
+	}
+
+	/*
 	// get the header row
 	const char* row_attr = "r";
 
@@ -2462,7 +2601,7 @@ ExcelWriteManager::write_header(pugi::xml_node parent, int first_row, std::strin
 	}
 
 	range_last_col = iter_col;
-
+	*/
 };
 
 void
@@ -2724,6 +2863,18 @@ cell_reference_to_number(std::string & s){
 	}
 	return r;
 };
+
+std::string
+number_to_cell_reference(int n){
+
+	std::string r = "";
+	while (n > 0) {
+		r = (char)(65 + (n - 1) % 26) + r;
+		n = (n - 1) / 26;
+	}
+	return r;
+};
+
 
 double
 clock_to_seconds(std::clock_t start_time, std::clock_t end_time){

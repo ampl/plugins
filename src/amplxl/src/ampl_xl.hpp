@@ -584,7 +584,7 @@ public ExcelManager{
 	**     0 success;
 	** Not checking for errors.
 	*/
-	int write_header(pugi::xml_node parent, int first_row, std::string & first_col);
+	int write_header(pugi::xml_node parent, int first_row, std::string & first_col, std::map<std::string, pugi::xml_node> & cell_map);
 
 
 	void write_arity_cells(pugi::xml_node row_node, int xl_row, int db_row);
@@ -717,6 +717,10 @@ std::string my_to_string(T num){
 
 int
 cell_reference_to_number(std::string & s);
+
+std::string
+number_to_cell_reference(int n);
+
 
 
 double
