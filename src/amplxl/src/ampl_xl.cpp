@@ -89,6 +89,7 @@ ExcelManager::ExcelManager(){
 	verbose = 0;
 	write = std::string("delete");
 	backup = true;
+	is2D = false;
 };
 
 
@@ -115,7 +116,7 @@ ExcelManager::add_info(AmplExports *ae, TableInfo *TI){
 int
 ExcelManager::prepare(){
 
-	// at leat the table handler must be declared
+	// at least the table handler must be declared
 	if (TI->nstrings == 0){
 		std::string err = "amplxl: no table handler declared.\n";
 		generic_error(err);
@@ -130,23 +131,23 @@ ExcelManager::prepare(){
 	}
 
 	excel_path = get_excel_path(TI);
-
 	table_name = TI->tname;
 
-	std::string temp_string;
+	std::string arg_string;
+	std::string comp_string;
 	std::string option_string;
 	int has_alias = 0;
 	int n = 0;
 
 	// check value for inout
 	if ((TI->flags & DBTI_flags_IN) && (TI->flags & DBTI_flags_OUT)){
-		inout = std::string("INOUT");
+		inout = "INOUT";
 	}
 	else if (TI->flags & DBTI_flags_IN){
-		inout = std::string("IN");
+		inout = "IN";
 	}
 	else if (TI->flags & DBTI_flags_OUT){
-		inout = std::string("OUT");
+		inout = "OUT";
 	}
 	else{
 		//unsuported flag
@@ -160,11 +161,15 @@ ExcelManager::prepare(){
 	// first search for verbose only
 	for (int i = 0; i < TI->nstrings; i++){
 
-		temp_string = TI->strings[i];
+		arg_string = TI->strings[i];
+		comp_string = "verbose=";
 
-		if (temp_string.substr(0, 8) == std::string("verbose=")){
+		if (arg_string == "verbose"){
+			verbose = 1;
+		}
+		else if (arg_string.substr(0, comp_string.size()) == comp_string){
 
-			option_string = temp_string.substr(8, temp_string.size() - 8);
+			option_string = arg_string.substr(comp_string.size());
 			std::istringstream iss(option_string);
 			iss >> verbose;
 		}
@@ -182,11 +187,12 @@ ExcelManager::prepare(){
 	// parse remaining args
 	for (int i = 0; i < TI->nstrings; i++){
 
-		temp_string = TI->strings[i];
-		std::string extension = get_file_extension(temp_string);
+		arg_string = TI->strings[i];
+		std::string extension = get_file_extension(arg_string);
+		size_t eq_pos = std::string(TI->strings[i]).find("=");
 
 		// exclude handler
-		if (temp_string == "amplxl"){
+		if (arg_string == "amplxl"){
 			continue;
 		}
 		// exclude oxml file
@@ -194,36 +200,53 @@ ExcelManager::prepare(){
 			continue;
 		}
 		// exclude verbose
-		else if (temp_string.substr(0, 8) == "verbose="){
+		else if (arg_string == "verbose"){
 			continue;
 		}
-		// parse remaining args
-		else if (temp_string.substr(0, 6) == std::string("write=")){
-
-			option_string = temp_string.substr(6, temp_string.size() - 6);
-
-			if (option_string == std::string("delete")){
-				write = std::string("delete");
-			}
-			else if (option_string == std::string("drop")){
-				write = std::string("drop");
-			}
-			else if (verbose > 0){
-				printf("\tignoring write option: %s\n", TI->strings[i]);
-			}
+		// 2D table
+		else if (arg_string == "2D"){
+			is2D = true;
 		}
-		else if (temp_string.substr(0, 7) == std::string("backup=")){
+		// parse args with equal "="
+		else if (eq_pos != std::string::npos){
 
-			option_string = temp_string.substr(7, temp_string.size() - 7);
+			std::string verbose_op = "verbose=";
+			std::string write_op = "write=";
+			std::string back_op = "backup=";
 
-			if (option_string == std::string("true")){
-				backup = true;
+			// ignore verbose
+			if (arg_string.substr(0, verbose_op.size()) == verbose_op){
+				continue;
 			}
-			else if (option_string == std::string("false")){
-				backup = false;
+			// write option
+			else if (arg_string.substr(0, write_op.size()) == write_op){
+
+				option_string = arg_string.substr(write_op.size());
+
+				if (option_string == "delete"){
+					write = "delete";
+				}
+				else if (option_string == "drop"){
+					write = "drop";
+				}
+				else{
+					printf("\tamplxl: ignoring write option: %s\n", TI->strings[i]);
+				}
 			}
-			else if (verbose > 0){
-				printf("\tignoring backup option: %s\n", TI->strings[i]);
+			// backup option
+			else if (arg_string.substr(0, back_op.size()) == back_op){
+
+				option_string = arg_string.substr(back_op.size());
+
+				if (option_string == "true"){
+					backup = true;
+				}
+				else if (option_string == "false"){
+					backup = false;
+				}
+				else{
+					printf("\tamplxl: ignoring backup option: %s\n", TI->strings[i]);
+				}
 			}
 		}
 		else{
@@ -231,20 +254,13 @@ ExcelManager::prepare(){
 			if (has_alias == 0){
 				table_name = TI->strings[i];
 				has_alias = 1;
-				if (verbose > 0){
-					printf("\tusing alias: %s\n", TI->strings[i]);
-				}
+				printf("\tamplxl: using alias: %s\n", TI->strings[i]);
 			}
 			else{
-				if (verbose > 0){
-					printf("\tignoring option: %s\n", TI->strings[i]);
-				}
+				printf("\tamplxl: ignoring option: %s\n", TI->strings[i]);
 			}
 		}
 	}
-
-
-
 
 	// no file declared
 	if (excel_path.empty()){
@@ -253,10 +269,7 @@ ExcelManager::prepare(){
 		if (inout == "OUT"){
 
 			write = "drop";
-
-			if (verbose > 0){
-				printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
-			}
+			printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 
 			int res = 0;
 			excel_path = table_name + ".xlsx";
@@ -291,10 +304,7 @@ ExcelManager::prepare(){
 		if (inout == "OUT"){
 
 			write = "drop";
-
-			if (verbose > 0){
-				printf("\tDeclared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
-			}
+			printf("\tamplxl: declared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 
 			int res = 0;
 			res = build_oxml_file(excel_path, temp_folder);
@@ -333,20 +343,17 @@ ExcelManager::prepare(){
 		}
 	}
 
-
 	if (verbose > 0){
-		printf("\twrite option: %s\n", write.c_str());
-
+		if (inout != "IN" && inout != "INOUT"){
+			printf("\twrite option: %s\n", write.c_str());
+		}
 		if (backup){
-			printf("\tbackup: true\n");
+			printf("\tamplxl: backup: true\n");
 		}
 		else{
-			printf("\tbackup: false\n");
+			printf("\tamplxl: backup: false\n");
 		}
 	}
-
-
-
 
 	return 0;
 };

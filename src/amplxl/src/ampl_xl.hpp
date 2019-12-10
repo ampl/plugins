@@ -172,6 +172,9 @@ class ExcelManager
 	// inout keyword of the table, can be IN, OUT or INOUT
 	std::string inout;
 
+	// if we are dealing with a 2 dimensional table
+	bool is2D;
+
 	// methods
 
 
