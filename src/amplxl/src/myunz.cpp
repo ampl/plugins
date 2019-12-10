@@ -560,3 +560,118 @@ int myunzip(
 	return ret_value;
 };
 
+
+
+int myunzip2(
+	std::string & zipfilename,
+	std::string & filename_to_extract,
+	void*& buf,
+	size_t & sbuf
+){
+
+	//~ std::cout << "myunzip2..." << std::endl;
+
+	std::string tmp_str; // for errors
+
+	int err = UNZ_OK;
+	unzFile uf = NULL;
+
+	// open zip
+#ifdef USEWIN32IOAPI
+	zlib_filefunc64_def ffunc;
+	fill_win32_filefunc64A(&ffunc);
+	uf = unzOpen2_64(zipfilename.c_str(), &ffunc);
+#else
+	uf = unzOpen64(zipfilename.c_str());
+#endif
+
+	// check file was opened
+	if (uf == NULL){
+		tmp_str = "cannot open file";
+		std::cout << tmp_str << std::endl;
+		return 1;
+	}
+
+	// check filename_to_extract exists (and point to it)
+	err = unzLocateFile(uf, filename_to_extract.c_str(), CASESENSITIVITY);
+	if (err != UNZ_OK){
+		tmp_str = "cannot locate file";
+		std::cout << tmp_str << std::endl;
+		return 1;
+	}
+
+	// check file information
+	unz_file_info64 file_info;
+	err = unzGetCurrentFileInfo64(
+		uf,
+		&file_info,
+		&filename_to_extract[0u],
+		sizeof(filename_to_extract.c_str()),
+		NULL,
+		0,
+		NULL,
+		0
+	);
+
+	if (err != UNZ_OK){
+		tmp_str = "cannot get file information";
+		std::cout << tmp_str << std::endl;
+		return err;
+	}
+
+	// check file is not password protected
+	err = unzOpenCurrentFilePassword(uf, NULL);
+	if (err != UNZ_OK){
+		tmp_str = "file is password protected";
+		std::cout << tmp_str << std::endl;
+		return 1;
+	}
+
+	// allocate space to fully extract data
+	uInt size_buf = file_info.uncompressed_size;
+	sbuf = file_info.uncompressed_size;
+	buf = (void*)malloc(size_buf);
+
+	//~ tmp_str = "sizeof buffer: " ;
+	//~ std::cout << tmp_str << size_buf << std::endl;
+
+	// extract to buffer
+	err = unzReadCurrentFile(uf, buf, size_buf);
+	if (err != size_buf){
+		tmp_str = "cannot extract: " ;
+		std::cout << tmp_str << err << std::endl;
+		return 1;
+	}
+
+	//~ //check what was extracted
+	//~ std::cout << "Buffer:" << std::endl;
+	//~ std::cout << (char*)buf << std::endl;
+
+	// close current file
+	err = unzCloseCurrentFile (uf);
+	if (err != UNZ_OK){
+		tmp_str = "cannot close archive";
+		std::cout << tmp_str << std::endl;
+		return 1;
+	}
+
+	// close zip
+	err = unzClose(uf);
+	if (err != UNZ_OK){
+		tmp_str = "cannot close zip";
+		std::cout << tmp_str << std::endl;
+		return 1;
+	}
+
+	//~ std::cout << "myunzip2 done!" << std::endl;
+
+	return 0;
+};
+
+
+
+
+
+
+
+

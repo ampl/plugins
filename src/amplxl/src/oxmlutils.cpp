@@ -87,7 +87,18 @@ join_path(const std::string & temp_folder, const std::string & excel_file, std::
 
 
 int
-build_oxml_file(std::string & oxml, std::string & temp_folder){
+oxml_build_file(std::string & oxml){
+
+	int res = 0;
+	std::string base = "oxml";
+	std::string temp_folder;
+
+	res = get_temp_folder(base, temp_folder);
+
+	if (res){
+		//could not create temp folder
+		return 1;
+	}
 
 	std::vector<std::string> xml_content;
 
@@ -118,7 +129,7 @@ build_oxml_file(std::string & oxml, std::string & temp_folder){
 	update_date_created(current_date, temp_string);
 
 	// zip files
-	int res = zip_xml_files(
+	res = zip_xml_files(
 		oxml,
 		temp_folder,
 		zip_orig,
@@ -135,16 +146,28 @@ build_oxml_file(std::string & oxml, std::string & temp_folder){
 		remove(temp_string.c_str());
 	}
 
+	// delete temp folder
+	res = remove_temp_folder(temp_folder);
+
 	return 0;
 };
 
 
 int
-add_new_sheet_to_oxml(std::string & oxml, std::string & sheet_name, std::string & temp_folder){
+oxml_add_new_sheet(std::string & oxml, std::string & sheet_name){
 
 	int res = 0;
+	std::string base = "oxml";
+	std::string temp_folder;
 
-	int new_sheet_number = get_last_sheet_number(oxml, temp_folder) + 1;
+	res = get_temp_folder(base, temp_folder);
+
+	if (res){
+		//could not create temp folder
+		return 1;
+	}
+
+	int new_sheet_number = get_last_sheet_number(oxml) + 1;
 
 	if (new_sheet_number == -1){
 		return 1;
@@ -156,7 +179,7 @@ add_new_sheet_to_oxml(std::string & oxml, std::string & sheet_name, std::string 
 		return 1;
 	}
 
-	int new_rel_number = get_last_relation_number(oxml, temp_folder) + 1;
+	int new_rel_number = get_last_relation_number(oxml) + 1;
 
 	if (new_rel_number == -1){
 		return 1;
@@ -168,21 +191,34 @@ add_new_sheet_to_oxml(std::string & oxml, std::string & sheet_name, std::string 
 		return 1;
 	}
 
+	// delete temp folder
+	res = remove_temp_folder(temp_folder);
+
 	return 0;
 };
 
 
 int
-add_shared_strings_to_oxml(std::string & oxml, std::string & temp_folder){
+oxml_add_shared_strings(std::string & oxml){
 
 	int res = 0;
+	std::string base = "oxml";
+	std::string temp_folder;
+
+	res = get_temp_folder(base, temp_folder);
+
+	if (res){
+		return 1;
+	}
+
+
 	res = add_shared_strings_file(oxml, temp_folder);
 
 	if (res){
 		return 1;
 	}
 
-	int new_rel_number = get_last_relation_number(oxml, temp_folder) + 1;
+	int new_rel_number = get_last_relation_number(oxml) + 1;
 
 	if (new_rel_number == -1){
 		return 1;
@@ -193,6 +229,9 @@ add_shared_strings_to_oxml(std::string & oxml, std::string & temp_folder){
 	if (res){
 		return 1;
 	}
+
+	// delete temp folder
+	res = remove_temp_folder(temp_folder);
 
 	return 0;
 }
@@ -553,26 +592,29 @@ add_shared_strings_file(std::string & oxml, std::string & temp_folder){
 
 
 int
-get_last_sheet_number(std::string & oxml, std::string & temp_folder){
+get_last_sheet_number(std::string & oxml){
 
 	int res = 0;
 
 	std::string file_in_zip = "[Content_Types].xml";
-	res = myunzip(oxml, file_in_zip, temp_folder);
+
+	void* buf;
+	size_t size_buf;
+
+	res = myunzip2(oxml, file_in_zip, buf, size_buf);
 
 	if (res){
 		return -1;
 	}
-
-	std::string file_in_temp;
-	join_path(temp_folder, file_in_zip, file_in_temp);
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(file_in_temp.c_str());
+	//~ result = doc.load_file(file_in_temp.c_str());
+
+	result = doc.load_buffer_inplace((char*)buf, size_buf);
 
 	if (!result){
 		return -1;
@@ -601,32 +643,34 @@ get_last_sheet_number(std::string & oxml, std::string & temp_folder){
 			}
 		}
 	}
-	remove(file_in_temp.c_str());
+	free(buf);
 
 	return max_sheet_val;
 };
 
 
 int
-get_last_relation_number(std::string & oxml, std::string & temp_folder){
+get_last_relation_number(std::string & oxml){
 
+	int res = 0;
 	std::string file_in_zip = "xl/_rels/workbook.xml.rels";
-	int res = myunzip(oxml, file_in_zip, temp_folder);
+
+	void* buf;
+	size_t size_buf;
+
+	res = myunzip2(oxml, file_in_zip, buf, size_buf);
 
 	if (res){
 		return -1;
 	}
-
-	std::string file_name = "workbook.xml.rels";
-	std::string file_in_temp;
-	join_path(temp_folder, file_name, file_in_temp);
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(file_in_temp.c_str());
+	//~ result = doc.load_file(file_in_temp.c_str());
+	result = doc.load_buffer_inplace((char*)buf, size_buf);
 
 	if (!result){
 		return -1;
@@ -652,7 +696,8 @@ get_last_relation_number(std::string & oxml, std::string & temp_folder){
 			}
 		}
 	}
-	remove(file_in_temp.c_str());
+	//~ remove(file_in_temp.c_str());
+	free(buf);
 
 	return max_rel_val;
 };
@@ -705,26 +750,32 @@ zip_xml_files(
 
 
 int
-has_shared_strings(std::string & oxml_file, std::string & temp_folder){
+has_shared_strings(std::string & oxml_file){
 
 	int res = 0;
 
 	std::string file_in_zip = "[Content_Types].xml";
-	res = myunzip(oxml_file, file_in_zip, temp_folder);
+
+	void* buf;
+	size_t size_buf;
+
+	res = myunzip2(oxml_file, file_in_zip, buf, size_buf);
+	//~ res = myunzip(oxml_file, file_in_zip, temp_folder);
 
 	if (res){
 		return -1;
 	}
 
-	std::string file_in_temp;
-	join_path(temp_folder, file_in_zip, file_in_temp);
+	//~ std::string file_in_temp;
+	//~ join_path(temp_folder, file_in_zip, file_in_temp);
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
 	pugi::xml_node_iterator it;
 
-	result = doc.load_file(file_in_temp.c_str());
+	//~ result = doc.load_file(file_in_temp.c_str());
+	result = doc.load_buffer_inplace((char*)buf, size_buf);
 
 	if (!result){
 		return -1;
@@ -745,9 +796,10 @@ has_shared_strings(std::string & oxml_file, std::string & temp_folder){
 		node = node.next_sibling();
 	};
 
-	std::string fpath;
-	join_path(temp_folder, file_in_zip, fpath);
-	remove(fpath.c_str());
+	//~ std::string fpath;
+	//~ join_path(temp_folder, file_in_zip, fpath);
+	//~ remove(fpath.c_str());
+	free(buf);
 
 	return has_shared_strings;
 };
@@ -765,6 +817,121 @@ my_copy_file(const std::string & source_path, const std::string & dest_path){
 	std::ofstream dest(dest_path.c_str(), std::ios::binary);
 	dest << source.rdbuf();
 };
+
+
+
+
+int
+get_temp_folder(const std::string & base, std::string & temp_folder){
+
+#ifdef _WIN32
+	// get windows temporary folder, example from
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/creating-and-using-a-temporary-file
+
+	DWORD res = 0;
+	TCHAR temp_path[MAX_PATH];
+
+	res = GetTempPath(MAX_PATH, temp_path);
+
+	if (res > MAX_PATH || (res == 0)){
+		return 1;
+	}
+
+	// template for unique filename
+	std::string tplt = base + "-";
+
+	tplt += get_current_date2();
+	tplt += "-";
+
+	DWORD gtc = GetTickCount();
+	DWORD gcpi = GetCurrentProcessId();
+
+	std::stringstream ss;
+	ss << gtc;
+
+	tplt += ss.str();
+	tplt += "-";
+
+	ss.str(std::string());
+	ss.clear();
+	ss << gcpi;
+
+	tplt += ss.str();
+
+	std::string full_path = temp_path + std::string("\\") + tplt;
+
+	res = CreateDirectory(full_path.c_str(), NULL);
+	Sleep(10); // to avoid potential name colisions
+
+	if (res == 0){
+		return 1;
+	}
+
+	temp_folder = full_path;
+
+#else
+
+	std::string tplt = "/tmp/" + base + "XXXXXX";
+	char *dir_name = mkdtemp(&tplt[0u]);
+
+	if (dir_name == NULL){
+		return 1;
+	}
+
+	temp_folder = dir_name;
+	
+#endif
+
+	return 0;
+};
+
+
+int
+remove_temp_folder(const std::string & temp_folder){
+
+#ifdef _WIN32
+
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+
+	std::string help_path = temp_folder;
+	help_path += "\\*";
+
+	hFind = FindFirstFile(&help_path[0], &ffd);
+
+	do {
+		std::string mystr = temp_folder;
+		mystr += "\\";
+		mystr += std::string(ffd.cFileName);
+		int res_del = DeleteFile(&mystr[0]);
+
+		// TODO: report if cannot delete file
+
+	} while (FindNextFile(hFind, &ffd));
+
+	int res_rem = RemoveDirectory(&temp_folder[0u]);
+
+	// TODO: report if cannot delete folder
+
+#else
+	std::string test_string = "/tmp/";
+	if (temp_folder.substr(0, test_string.size()) == test_string){
+
+		std::string my_com = std::string("exec rm -r ") + temp_folder;
+		int res_rem = system(my_com.c_str());
+
+		if (res_rem != 0){
+			//~ printf("amplxl: could not remove temporary folder.\n");
+		}
+	}
+#endif
+
+	return 0;
+};
+
+
+
+
 
 
 

@@ -273,7 +273,7 @@ ExcelManager::prepare(){
 
 			int res = 0;
 			excel_path = table_name + ".xlsx";
-			res = build_oxml_file(excel_path, temp_folder);
+			res = oxml_build_file(excel_path);
 
 			if (res){
 				// Failed to build oxml
@@ -282,7 +282,7 @@ ExcelManager::prepare(){
 				return 1;
 			}
 
-			res = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+			res = oxml_add_new_sheet(excel_path, table_name);
 
 			if (res){
 				// Failed to add new sheet
@@ -307,7 +307,7 @@ ExcelManager::prepare(){
 			printf("\tamplxl: declared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
 
 			int res = 0;
-			res = build_oxml_file(excel_path, temp_folder);
+			res = oxml_build_file(excel_path);
 
 			if (res){
 				// Failed to build oxml
@@ -316,7 +316,7 @@ ExcelManager::prepare(){
 				return 1;
 			}
 
-			res = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+			res = oxml_add_new_sheet(excel_path, table_name);
 
 			if (res){
 				// Failed to add new sheet
@@ -409,7 +409,7 @@ ExcelManager::manage_workbook(){
 		// if inout is OUT we create a new sheet with the table name
 		if (inout == "OUT"){
 
-			result = add_new_sheet_to_oxml(excel_path, table_name, temp_folder);
+			result = oxml_add_new_sheet(excel_path, table_name);
 
 			if (result){
 				// Failed to add new sheet
@@ -484,7 +484,7 @@ ExcelManager::manage_shared_strings(){
 
 	int result = 0;
 
-	result = has_shared_strings(excel_path, temp_folder);
+	result = has_shared_strings(excel_path);
 
 	if (result == 0){
 
@@ -502,7 +502,7 @@ ExcelManager::manage_shared_strings(){
 				printf("amplxl: adding shared strings to file\n");
 			}
 
-			int res = add_shared_strings_to_oxml(excel_path, temp_folder);
+			int res = oxml_add_shared_strings(excel_path);
 
 			if (res){
 				// error adding shared strings

@@ -31,7 +31,7 @@ based in miniunzip.c
 #define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
 #endif
 
-
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -134,6 +134,21 @@ int myunzip(
     const char *filename_to_extract,
     const char *dirname
 );
+
+
+
+int myunzip2(
+	std::string & zipfilename,
+	std::string & filename_to_extract,
+	void*& buf,
+	size_t & size_buf
+);
+
+
+
+
+
+
 
 /*
 int main(

@@ -142,7 +142,7 @@ Returns:
 	1 failure
 */
 int
-add_new_sheet_to_oxml(std::string & oxml_file, std::string & sheet_name, std::string & temp_folder);
+oxml_add_new_sheet(std::string & oxml_file, std::string & sheet_name);
 
 /*
 Adds a shared strings file to an existing oxml file.
@@ -154,7 +154,7 @@ Returns:
 	1 failure
 */
 int
-add_shared_strings_to_oxml(std::string & oxml_file, std::string & temp_folder);
+oxml_add_shared_strings(std::string & oxml_file);
 
 /*
 Adds a sheet with number new_sheet_number to xl/worksheets/ inside the oxml file.
@@ -179,7 +179,7 @@ Returns:
 	-1 failure
 */
 int
-get_last_sheet_number(std::string & oxml_file, std::string & temp_folder);
+get_last_sheet_number(std::string & oxml_file);
 
 /*
 Gets the number of the last relation in xl/_rels/workbook.xml.rels of an oxml file.
@@ -191,7 +191,7 @@ Returns:
 	-1 failure
 */
 int
-get_last_relation_number(std::string & oxml_file, std::string & temp_folder);
+get_last_relation_number(std::string & oxml_file);
 
 /*
 Builds an oxml file from the templates in a Libreoffice xlsx document.
@@ -203,7 +203,7 @@ Returns:
 	1 failure
 */
 int
-build_oxml_file(std::string & oxml_file, std::string & temp_folder);
+oxml_build_file(std::string & oxml_file);
 
 /*
 Updates the relations of an oxml file after adding a new sheet.
@@ -352,7 +352,7 @@ Returns:
 	-1 error
 */
 int
-has_shared_strings(std::string & oxml_file, std::string & temp_folder);
+has_shared_strings(std::string & oxml_file);
 
 /*
 Check if a given filename exists.
@@ -363,5 +363,13 @@ check_file_exists(const std::string & filename);
 
 void
 my_copy_file(const std::string & source_path, const std::string & dest_path);
+
+
+
+int
+get_temp_folder(const std::string & base, std::string & temp_folder);
+
+int
+remove_temp_folder(const std::string & temp_folder);
 
 
