@@ -644,7 +644,12 @@ ExcelReadManager::run(){
 		return DB_Error;
 	}
 
-	result = manage_data();
+	if (is2D){
+		result = manage_data2D();
+	}
+	else{
+		result = manage_data();
+	}
 	if (result){
 		return DB_Error;
 	}
@@ -2988,5 +2993,369 @@ cell_add_basic_attrs(
 	node.append_attribute("r") = cell_ref.c_str();
 	node.append_attribute("t") = "s";
 };
+
+
+int
+ExcelManager::manage_data2D(){
+
+	if (verbose > 1){
+		printf("amplxl: manage data 2D...\n");
+	}
+
+	if (TI->arity != 2){
+		std::string err = "2D table expects arity 2.\n";
+		generic_error(err);
+		return 1;
+	}
+
+	int result = 0;
+
+	// extract sheet with data
+	excel_iner_file = "xl/" + data_sheet;
+	result = myunzip(excel_path, excel_iner_file, temp_folder);
+
+	if (result){
+		// error extracting data
+		cannot_extract_sheet();
+		return 1;
+	}
+
+	// open xml
+	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	join_path(temp_folder, excel_file, final_path);
+
+	pugi::xml_document doc;
+	pugi::xml_node node;
+	pugi::xml_parse_result pugi_result;
+
+	pugi_result = doc.load_file(final_path.c_str());
+
+	if (!pugi_result){
+		cannot_open_sheet();
+		return 1;
+	}
+
+	node = doc.child("worksheet").child("sheetData");
+
+	// get table dimensions
+	int first_row = 1;
+	int last_row = EXCEL_MAX_ROWS;
+	std::string first_col = std::string("A");
+	std::string last_col = EXCEL_MAX_COLS;
+
+	if (has_range){
+		first_row = range_first_row;
+		first_col = range_first_col; 
+		last_col = range_last_col; 
+	}
+
+	if (has_range){
+		if (range_first_row != range_last_row){
+			last_row = range_last_row;
+		}
+		else{
+			last_row = get_last_row_in_table(node, first_row, first_col);
+		}
+	}
+	else{
+		get_last_column_in_table(node, first_row, first_col, last_col);
+		last_row = get_last_row_in_table(node, first_row, first_col);
+	}
+
+	if (verbose > 2){
+		printf("first_row: %d\n", first_row);
+		printf("last_row: %d\n", last_row);
+		printf("first_col: %s\n", first_col.c_str());
+		printf("last_col: %s\n", last_col.c_str());
+	}
+
+	result = parse_data2D(node, first_row, last_row, first_col, last_col);
+
+	if (result){
+		return 1;
+	}
+
+	return 0;
+};
+
+int
+ExcelManager::parse_data2D(pugi::xml_node node, int first_row, int last_row, std::string & first_col, std::string & last_col){
+
+	if (verbose > 2){printf("amplxl: parse_data2D...\n");}
+
+	DbCol * db;
+	double t;
+	char* se;
+
+	// get header row
+	std::string row_id = my_to_string(first_row);
+	pugi::xml_node header_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+
+	if (!header_row){
+		std::string err = "Cannot find header row.\n";
+		generic_error(err);
+		return 1;
+	}
+
+	// get the info of the second indexing set (first row of table)
+	std::vector<std::string> second_set;
+	std::string cell_value;
+	std::string iter_col = first_col;
+
+	while (iter_col != last_col){
+
+		ecm.next(iter_col); // skip first column
+		std::string cell_ref = iter_col + row_id;
+		pugi::xml_node xl_cell = header_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+
+		if (!xl_cell){
+			// could not find cell defined in range ?!
+			cell_value = "";
+		}
+		else{
+			get_cell_val(xl_cell, cell_value);
+		}
+		second_set.push_back(cell_value);
+	}
+
+	if (verbose > 2){
+		printf("second indexing set:\n");
+		print_vector(second_set);
+	}
+
+	// structure to store info of the row we are reading
+	std::vector<std::string> xl_row_info;
+	xl_row_info.resize(second_set.size() + 1);
+
+	std::string cell_ref;
+	pugi::xml_node iter_cell;
+
+	// iterate rows
+	pugi::xml_node iter_row = header_row.next_sibling();
+
+	for (int i = first_row + 1; i <= last_row; i++){
+
+		row_id = my_to_string(i);
+
+		if (iter_row.attribute(row_attr).value() != row_id){
+			iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+		}
+
+		if (!iter_row){
+			// could not find row ?!
+			return 1;
+		}
+
+		// clear xl_row_info
+		for (int j = 0; j < xl_row_info.size(); j++){
+			xl_row_info[j].clear();
+		}
+
+		// iterate columns of row
+		iter_col = first_col;
+		cell_ref = iter_col + row_id;
+		iter_cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+
+		int col = 0;
+		while (true){
+
+			cell_ref = iter_col + row_id;
+			if (iter_cell.attribute(row_attr).value() != cell_ref){
+				iter_cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+			}
+
+			if (!iter_cell){
+				// could not find cell in defined range ?!
+				cell_value = "";
+			}
+			else{
+				get_cell_val(iter_cell, cell_value);
+			}
+
+			xl_row_info[col] = cell_value;
+
+			if (iter_col == last_col){
+				break;
+			}
+			ecm.next(iter_col);
+			iter_cell = iter_cell.next_sibling();
+			col += 1;
+		}
+
+		if (verbose > 2){
+			printf("row info:\n");
+			print_vector(xl_row_info);
+		}
+
+		// pass info of parsed row to ampl
+		for (int j = 0; j < second_set.size(); j++){
+
+			db = TI->cols;
+			// first indexing set element
+			set_dbcol_val(xl_row_info[0], db);
+			db++;
+
+			// second indexing set element
+			set_dbcol_val(second_set[j], db);
+			db++;
+
+			// value
+			set_dbcol_val(xl_row_info[j + 1], db);
+
+			db = TI->cols;
+			if ((*TI->AddRows)(TI, db, 1)){
+				return DB_Error;
+			}
+		}
+		iter_row = iter_row.next_sibling();
+	}
+	if (verbose > 2){printf("amplxl: parse_data2D done!\n");}
+
+	return 0;
+};
+
+
+void ExcelManager::get_cell_val(pugi::xml_node node, std::string & val){
+
+		val = "";
+		val = node.child("v").child_value();
+
+		if (node.attribute("t").value() == std::string("s")){
+			val = shared_strings[std::atoi(val.c_str())];
+		}
+		else if (node.attribute("t").value() == std::string("inlineStr")){
+			val = node.first_child().first_child().child_value();
+		}
+};
+
+void
+ExcelManager::set_dbcol_val(std::string & val, DbCol * db){
+
+	char* se;
+	double t;
+
+	if (val.empty()){
+		db->sval[0] = TI->Missing;
+	}
+	else{
+		// try to convert the value to numeric
+		t = strtod(val.c_str(), &se);
+		if (!*se) {/* valid number */
+			db->sval[0] = 0;
+			db->dval[0] = t;
+			//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
+		}
+		else{
+			db->sval[0] = &val[0u];
+			//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+		}
+	}
+
+};
+
+
+int
+ExcelManager::get_last_column_in_table(
+	const pugi::xml_node node,
+	const int first_row,
+	const std::string & first_col,
+	std::string & last_col
+){
+	if (verbose > 2){printf("amplxl: get_last_column_in_table...\n");}
+
+	std::string row_id = my_to_string(first_row);
+	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+
+	if (!iter_row){
+		std::string err = "get_last_column_in_table: cannot get first row\n";
+		generic_error(err);
+		return 1;
+	}
+
+	std::string iter_col = first_col;
+	std::string cell_ref = iter_col + row_id;
+	pugi::xml_node cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+	std::string value;
+
+	// iterate columns
+	while (true){
+
+		ecm.next(iter_col); // first col might be empty in 2D tables
+		cell_ref = iter_col + row_id;
+
+		if (cell.attribute(row_attr).value() != row_id){
+			cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+		}
+
+		if (!cell){
+			std::string err = "get_last_column_in_table: cannot get cell\n";
+			generic_error(err);
+			return 1;
+		}
+
+		value = cell.child("v").child_value();
+
+		if(value.empty()){
+			std::string err = "get_last_column_in_table: cannot get value\n";
+			generic_error(err);
+
+			return 1;
+		}
+
+		last_col = iter_col;
+		cell = cell.next_sibling();
+	}
+	if (verbose > 2){printf("amplxl: get_last_column_in_table done!\n");}
+
+	return 0;
+};
+
+int
+ExcelManager::get_last_row_in_table(
+	const pugi::xml_node node,
+	const int first_row,
+	const std::string & first_col
+){
+	if (verbose > 2){printf("amplxl: get_last_row_in_table...\n");}
+
+	int iter_row_num = first_row + 1; // first row only has headers
+	int last_row = -1;
+
+	std::string row_id = my_to_string(iter_row_num);
+	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+
+	std::string value;
+	std::string cell_ref;
+	pugi::xml_node cell;
+
+	while(true){
+
+		row_id = my_to_string(iter_row_num);
+
+		if (iter_row.attribute(row_attr).value() != row_id){
+			iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+		}
+
+		if (!iter_row){break;}
+
+		cell_ref = first_col + row_id;
+		cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+
+		if (!cell){break;}
+
+		value = cell.child("v").child_value();
+
+		if(value.empty()){break;}
+
+		last_row = iter_row_num;
+		iter_row_num += 1;
+
+		iter_row = iter_row.next_sibling();
+	}
+	if (verbose > 2){printf("amplxl: get_last_row_in_table done!\n");}
+
+	return last_row;
+};
+
 
 

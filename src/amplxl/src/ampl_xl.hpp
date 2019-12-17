@@ -78,6 +78,9 @@ const std::string EXCEL_MAX_COLS = "XFD";
 const std::string version = "0.1.1";
 
 
+const char* row_attr = "r";
+
+
 
 /* Usually you use c_str() to convert an std::string to a const char*
  *   const char* somechar = somestring.c_str();
@@ -263,11 +266,31 @@ class ExcelManager
 	// extract excel shared strings to shared_strings vector
 	int get_shared_strings();
 
+	int manage_data2D();
+	int parse_data2D(pugi::xml_node node, int first_row, int last_row, std::string & first_col, std::string & last_col);
+
+	void get_cell_val(pugi::xml_node node, std::string & val);
+	void set_dbcol_val(std::string & val, DbCol * db);
+
 	int
 	create_temp_folder();
 
 	int
 	clean_temp_folder();
+
+	int get_last_column_in_table(
+		const pugi::xml_node node,
+		const int first_row,
+		const std::string & first_col,
+		std::string & last_col
+	);
+
+	int get_last_row_in_table(
+		const pugi::xml_node node,
+		const int first_row,
+		const std::string & first_col
+	);
+
 
 	ExcelManager();
 
@@ -748,7 +771,20 @@ void
 cell_add_basic_attrs(pugi::xml_node node, std::string & cell_ref);
 
 
+template <class T>
+void print_vector(std::vector<T> v){
 
+	std::cout << "[";
+	for (int i = 0; i < v.size(); i++){
+		std::cout << v[i];
+		if (i < v.size() - 1){
+			std::cout << ", ";
+		}
+	}
+	std::cout << "]";
+	std::cout << std::endl;
+
+};
 
 
 
