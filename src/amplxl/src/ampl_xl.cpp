@@ -3288,18 +3288,15 @@ ExcelManager::get_last_column_in_table(
 		}
 
 		if (!cell){
-			std::string err = "get_last_column_in_table: cannot get cell\n";
-			generic_error(err);
-			return 1;
+			// no more columns to parse
+			return 0;
 		}
 
 		value = cell.child("v").child_value();
 
 		if(value.empty()){
-			std::string err = "get_last_column_in_table: cannot get value\n";
-			generic_error(err);
-
-			return 1;
+			// cell may have only formating
+			return 0;
 		}
 
 		last_col = iter_col;
