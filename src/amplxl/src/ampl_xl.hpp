@@ -272,6 +272,8 @@ class ExcelManager
 	void get_cell_val(pugi::xml_node node, std::string & val);
 	void set_dbcol_val(std::string & val, DbCol * db);
 
+	int get_table_top_left_coords(pugi::xml_node node, int & first_row, std::string & first_col);
+
 	int
 	create_temp_folder();
 

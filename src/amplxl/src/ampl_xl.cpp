@@ -587,6 +587,9 @@ ExcelReadManager::manage_data(){
 		first_col = range_first_col; 
 		last_col = range_last_col; 
 	}
+	else{
+		result = get_table_top_left_coords(node, first_row, first_col);
+	}
 
 	result = check_columns(node, first_row, first_col, last_col);
 
@@ -3058,8 +3061,20 @@ ExcelManager::manage_data2D(){
 		}
 	}
 	else{
-		get_last_column_in_table(node, first_row, first_col, last_col);
+		result = get_table_top_left_coords(node, first_row, first_col);
+		if (result){
+			return 1;
+		}
+
+		result = get_last_column_in_table(node, first_row, first_col, last_col);
+		if (result){
+			return 1;
+		}
+
 		last_row = get_last_row_in_table(node, first_row, first_col);
+		if (last_row == -1){
+			return 1;
+		}
 	}
 
 	if (verbose > 2){
@@ -3353,6 +3368,119 @@ ExcelManager::get_last_row_in_table(
 
 	return last_row;
 };
+
+
+
+
+int
+ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, std::string & first_col){
+
+	pugi::xml_node iter_row;
+	std::string row_id;
+	bool row_found = false;
+
+	// get first row in xl
+	for (int i = 1; i < EXCEL_MAX_ROWS; i++){
+
+		row_id = my_to_string(i);
+		iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+
+		if (iter_row){
+			row_found = true;
+			first_row = i;
+			break;
+		}
+	}
+
+	if (!row_found){
+		std::string err = "Could not find rows in sheet.\n";
+		generic_error(err);
+		return 1;
+	}
+
+	// get first column
+	pugi::xml_node iter_col;
+	std::string cell_ref;
+	bool col_found = false;
+
+	std::string test_col = "A";
+
+	//~ int count = 0;
+	while (test_col != EXCEL_MAX_COLS){
+
+		cell_ref = test_col + my_to_string(first_row);
+		iter_col = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+
+		if (iter_col){
+			col_found = true;
+			first_col = test_col;
+			break;
+		}
+		ecm.next(test_col);
+	}
+
+	if (!col_found){
+		std::string err = "Could not find columns in sheet.\n";
+		generic_error(err);
+		return 1;
+	}
+
+	// aditional check for 2D tables as the first cell in the upper left corner might be empty
+	if (is2D){
+
+		row_id = my_to_string(first_row + 1);
+		iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
+
+		if (!iter_row){
+			std::string err = "Table has no data.\n";
+			generic_error(err);
+			return 1;
+		}
+
+		test_col = "A";
+		col_found = false;
+
+		while (test_col != EXCEL_MAX_COLS){
+
+			cell_ref = test_col + my_to_string(first_row + 1);
+			iter_col = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
+
+			if (iter_col){
+				col_found = true;;
+				break;
+			}
+			ecm.next(test_col);
+		}
+
+		if (!col_found){
+			std::string err = "Could not find columns in second row.\n";
+			generic_error(err);
+			return 1;
+		}
+
+		if (first_col != test_col){
+
+			if (cell_reference_to_number(test_col) != cell_reference_to_number(first_col) - 1){
+
+				std::string err = "Ambiguos columns in table: " + first_col + " and " + test_col + ".\n";
+				generic_error(err);
+				return 1;
+			}
+			else{
+				first_col = test_col;
+			}
+		}
+	}
+
+	if (verbose > 2){
+		printf("get_table_top_left_coords: %s, %d\n", first_col.c_str(), first_row);
+	}
+
+
+	return 0;
+};
+
+
 
 
 
