@@ -266,7 +266,6 @@ class ExcelManager
 	// extract excel shared strings to shared_strings vector
 	int get_shared_strings();
 
-	int manage_data2D();
 	int parse_data2D(pugi::xml_node node, int first_row, int last_row, std::string & first_col, std::string & last_col);
 
 	void get_cell_val(pugi::xml_node node, std::string & val);
@@ -291,6 +290,44 @@ class ExcelManager
 		const pugi::xml_node node,
 		const int first_row,
 		const std::string & first_col
+	);
+
+
+	void
+	parse_header(
+		const std::string & first_col,
+		const std::string & last_col,
+		int first_row,
+		pugi::xml_node node,
+		std::map<std::string, std::string> & xl_col_map
+	);
+
+
+	int
+	parse_header_2D_reader(
+		const std::string & first_col,
+		const std::string & last_col,
+		int first_row,
+		pugi::xml_node node,
+		std::map<std::string, std::string> & xl_col_map,
+		std::vector<std::string> & header
+	);
+
+
+
+
+	void
+	set_default_2D_col_map(
+		const std::string & first_col,
+		const std::string & last_col,
+		std::map<std::string, std::string> & col_map
+	);
+
+	void
+	set_default_col_map(
+		const std::string & first_col,
+		const std::string & last_col,
+		std::map<std::string, std::string> & col_map
 	);
 
 
@@ -344,6 +381,8 @@ public ExcelManager{
 	** - read the data.
 	*/
 	int manage_data();
+
+	int manage_data2D();
 };
 
 
@@ -387,6 +426,8 @@ public ExcelManager{
 	*/
 	int manage_data();
 
+
+	int manage_data2D();
 
 	/*
 	** Maps shared strings to their index in the shared strings vector.
@@ -616,6 +657,18 @@ public ExcelManager{
 
 
 	void write_arity_cells(pugi::xml_node row_node, int xl_row, int db_row);
+
+
+	int write_data_out_2D(
+		pugi::xml_node node,
+		int first_row,
+		int last_row,
+		std::string &first_col,
+		std::string &last_col
+	);
+
+	int count_2D_rows(std::map<std::vector<std::string>, int> & key_set, int pos);
+
 };
 
 
