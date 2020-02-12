@@ -87,7 +87,7 @@ ExcelManager::ExcelManager(){
 	has_range = false;
 	break_mode = false;
 	verbose = 0;
-	write = std::string("delete");
+	write = "drop";
 	backup = true;
 	is2D = false;
 };
@@ -223,11 +223,11 @@ ExcelManager::prepare(){
 
 				option_string = arg_string.substr(write_op.size());
 
-				if (option_string == "delete"){
-					write = "delete";
-				}
-				else if (option_string == "drop"){
+				if (option_string == "drop"){
 					write = "drop";
+				}
+				else if (option_string == "append"){
+					write = "append";
 				}
 				else{
 					printf("\tamplxl: ignoring write option: %s\n", TI->strings[i]);
@@ -859,6 +859,10 @@ ExcelManager::check_columns(
 	std::map<std::string, std::string> excel_col_map;
 	parse_header(first_col, last_col, first_row, node, excel_col_map);
 
+	if (excel_col_map.size() == 0){
+		return -2;
+	}
+
 	// get the spreadsheet columns for the ampl column names
 	std::string ampl_col_name;
 	const int ampl_ncols = TI->arity + TI->ncols;
@@ -1158,21 +1162,63 @@ ExcelWriteManager::manage_data(){
 
 	node = doc.child("worksheet").child("sheetData");
 
+	//~ int first_row = 1;
+	//~ int last_row = EXCEL_MAX_ROWS;
+	//~ std::string first_col = std::string("A");
+	//~ std::string last_col = EXCEL_MAX_COLS;
+
+
+	//~ if (has_range){
+		//~ first_row = range_first_row;
+		//~ first_col = range_first_col; 
+		//~ last_col = range_last_col;
+	//~ }
+	//~ else{
+		//~ last_col = number_to_cell_reference(TI->arity + TI->ncols);
+	//~ }
+	//~ last_row = first_row + TI->nrows;
+
+	// get table dimensions
 	int first_row = 1;
 	int last_row = EXCEL_MAX_ROWS;
 	std::string first_col = std::string("A");
 	std::string last_col = EXCEL_MAX_COLS;
 
-
 	if (has_range){
 		first_row = range_first_row;
 		first_col = range_first_col; 
-		last_col = range_last_col;
+		last_col = range_last_col; 
+	}
+
+	if (has_range){
+		if (range_first_row != range_last_row){
+			last_row = range_last_row;
+		}
+		else{
+			last_row = get_last_row_in_table(node, first_row, first_col);
+			//~ last_row = first_row + TI->nrows;
+		}
 	}
 	else{
-		last_col = number_to_cell_reference(TI->arity + TI->ncols);
+		result = get_table_top_left_coords(node, first_row, first_col);
+
+		if (result){
+			return 1;
+		}
+
+		result = get_last_column_in_table(node, first_row, first_col, last_col);
+
+		if (first_col == "A" && last_col == EXCEL_MAX_COLS){
+			last_col = number_to_cell_reference(TI->arity + TI->ncols);
+		}
+
+		last_row = get_last_row_in_table(node, first_row, first_col);
+		//~ last_row = first_row + TI->nrows;
+
+
 	}
-	last_row = first_row + TI->nrows;
+
+
 
 	// map shared strings for fast access and get the number of existing strings, since we may add
 	// more strings later and need to update the file in excel
@@ -1181,30 +1227,50 @@ ExcelWriteManager::manage_data(){
 
 	if (inout == "OUT"){
 
-		if (write == "delete"){
+		if (write == "drop"){
 
 			result = check_columns(node, first_row, first_col, last_col);
 
-			if (result != -1){
+			if (result == -2){ // no header declared
+				result = write_all_data_out(node, first_row, last_row, first_col, last_col);
+			}
+			else if (result != -1){ // incomplete header
 				cannot_find_column(result);
 				return 1;
 			}
-
-			first_row += 1; // advance header
-
-			result = write_data_out(node, first_row, last_row, first_col, last_col);
-
+			else{
+				first_row += 1; // advance header
+				result = write_data_out(node, first_row, last_row, first_col, last_col);
+			}
 		}
-		else if (write == "drop"){
+		else if (write == "append"){
 
-			result = write_all_data_out(node, first_row, last_row, first_col, last_col);
+			result = check_columns(node, first_row, first_col, last_col);
+
+			if (result == -2){ // append to non existing table ???
+				std::string err = "Cannot append to non existing table.";
+				generic_error(err);
+				return 1;
+			}
+			else if (result != -1){
+				cannot_find_column(result);
+				return 1;
+			}
+			else{
+				first_row = last_row + 1;
+				last_row = first_row + TI->nrows - 1;
+				result = write_data_out(node, first_row, last_row, first_col, last_col);
+			}
 		}
 	}
 	else if (inout == "INOUT"){
 
 		result = check_columns(node, first_row, first_col, last_col);
 
-		if (result != -1){
+		if (result == -2){ // update non existing table ???
+			return 1;
+		}
+		else if (result != -1){
 			cannot_find_column(result);
 			return 1;
 		}
@@ -3093,9 +3159,10 @@ ExcelManager::get_last_column_in_table(
 	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	if (!iter_row){
-		std::string err = "get_last_column_in_table: cannot get first row\n";
-		generic_error(err);
-		return 1;
+		if (verbose == 73){
+			printf("get_last_column_in_table: cannot get first row\n");
+		}
+		return 0;
 	}
 
 	std::string iter_col = first_col;
@@ -3175,6 +3242,11 @@ ExcelManager::get_last_row_in_table(
 
 		iter_row = iter_row.next_sibling();
 	}
+
+	if (last_row == -1){
+		last_row = first_row + TI->nrows;
+	}
+
 	if (verbose > 2){printf("amplxl: get_last_row_in_table done!\n");}
 
 	return last_row;
@@ -3222,10 +3294,8 @@ ExcelWriteManager::write_data_out_2D(
 		}
 	}
 
-
 	std::string h_set;
 	int h_set_pos = -1;
-
 
 	if (xl_col_map.size() == 0){
 
@@ -3262,17 +3332,9 @@ ExcelWriteManager::write_data_out_2D(
 		// could not find hset
 	}
 
-	std::cout << "h set is: " << h_set << std::endl;
-	std::cout << "h_set_pos is: " << h_set_pos << std::endl;
-
-
 	// only now we can deduce the number of rows of the table
 	std::map<std::vector<std::string>, int> key_set;
 	last_row = first_row + count_2D_rows(key_set, h_set_pos);
-
-
-	std::cout << "number of deduced rows: " << last_row << std::endl;
-
 
 	if (verbose == 73){
 
@@ -3284,8 +3346,6 @@ ExcelWriteManager::write_data_out_2D(
 		inspect_ti(ae, TI);
 		inspect_values(ae, TI);
 	}
-
-
 
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
@@ -3304,9 +3364,6 @@ ExcelWriteManager::write_data_out_2D(
 		ae,
 		verbose
 	);
-
-
-
 
 	// write data
 	const int ampl_ncols = TI->arity + TI->ncols;
@@ -3376,7 +3433,6 @@ ExcelWriteManager::write_data_out_2D(
 		printf("amplxl: write_data_2D done in %.3f s.\n", total_time);
 	}
 
-
 	return 0;
 };
 
@@ -3404,9 +3460,10 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 	}
 
 	if (!row_found){
-		std::string err = "Could not find rows in sheet.\n";
-		generic_error(err);
-		return 1;
+		if (verbose == 73){
+			printf("get_table_top_left_coords : Could not find rows in sheet.\n");
+		}
+		return 0;
 	}
 
 	// get first column
@@ -3595,16 +3652,12 @@ ExcelWriteManager::manage_data2D(){
 			last_row = range_last_row;
 		}
 		else{
-			//~ last_row = get_last_row_in_table(node, first_row, first_col);
-			last_row = first_row + TI->nrows;
+			last_row = get_last_row_in_table(node, first_row, first_col);
+			//~ last_row = first_row + TI->nrows;
 		}
 	}
 	else{
 		result = get_table_top_left_coords(node, first_row, first_col);
-
-		std::cout << "first_row: " << first_row << std::endl;
-		std::cout << "first_col: " << first_col << std::endl;
-
 
 		if (result){
 			return 1;
@@ -3612,16 +3665,12 @@ ExcelWriteManager::manage_data2D(){
 
 		result = get_last_column_in_table(node, first_row, first_col, last_col);
 
-		std::cout << "last_col: " << last_col << std::endl;
-
 		if (result){
 			return 1;
 		}
 
-		//~ last_row = get_last_row_in_table(node, first_row, first_col);
-		last_row = first_row + TI->nrows;
-
-		std::cout << "last_row: " << last_row << std::endl;
+		last_row = get_last_row_in_table(node, first_row, first_col);
+		//~ last_row = first_row + TI->nrows;
 
 		if (last_row == -1){
 			return 1;
@@ -3642,31 +3691,21 @@ ExcelWriteManager::manage_data2D(){
 
 	if (inout == "OUT"){
 
-		if (write == "delete"){
+		if (write == "drop"){
 
 			result = write_data_out_2D(node, first_row, last_row, first_col, last_col);
 
 		}
-		else if (write == "drop"){
-
-			//~ result = write_all_data_out(node, first_row, last_row, first_col, last_col);
+		else if (write == "append"){
+			std::string err = "Mode append not available for 2D tables.";
+			generic_error(err);
 			return 1;
 		}
 	}
 	else if (inout == "INOUT"){
-
+		std::string err = "Mode INOUT not available for 2D tables.";
+		generic_error(err);
 		return 1;
-
-		//~ result = check_columns(node, first_row, first_col, last_col);
-
-		//~ if (result != -1){
-			//~ cannot_find_column(result);
-			//~ return 1;
-		//~ }
-
-		//~ first_row += 1;
-
-		//~ result = write_data_inout(node, first_row, last_row, first_col, last_col);
 	}
 	else{
 		// unsuported write flag
