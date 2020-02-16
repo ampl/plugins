@@ -1,13 +1,13 @@
 #include "ampl_xl.hpp"
 
 
-
 static int
 Read_ampl_xl(AmplExports *ae, TableInfo *TI){
 
 	ExcelReadManager em;
 	em.add_info(ae, TI);
 	return em.run();
+
 };
 
 
@@ -20,7 +20,6 @@ Write_ampl_xl(AmplExports *ae, TableInfo *TI){
 };
 
 
-
 void
 funcadd(AmplExports *ae){
 
@@ -28,7 +27,7 @@ funcadd(AmplExports *ae){
 
 	static char info[] = "amplxl\n"
 	"Table handler for .xlsx and .xlsm files:\n"
-	"one or two strings (an optional 'ampl_xl' and the file name,\n"
+	"one or two strings (an optional 'amplxl' and the file name,\n"
 	"ending in \".xlsx\" or \".xlsm\") expected before \":[...]\".";
 
 	/* Inform AMPL about the .example handlers */
@@ -93,6 +92,38 @@ ExcelManager::ExcelManager(){
 };
 
 
+void
+ExcelManager::log_table_coords(
+	std::string & first_col,
+	std::string & last_col,
+	int first_row,
+	int last_row
+){
+	std::string msg;
+
+	msg = "Estimated table coords: ";
+	msg += first_col;
+	msg += ", ";
+	msg += my_to_string(first_row);
+	msg += ", ";
+	msg += last_col;
+	msg += ", ";
+	msg += my_to_string(last_row);
+	logger.log(msg, LOG_DEBUG);
+};
+
+
+void
+ExcelManager::log_missing_column(int col){
+
+		std::string msg;
+		msg = "Could not find column ";
+		msg += TI->colnames[col];
+		msg += " in spreadsheet table header";
+		logger.log(msg, LOG_ERROR);
+};
+
+
 int
 ExcelManager::add_info(AmplExports *ae, TableInfo *TI){
 
@@ -109,24 +140,35 @@ ExcelManager::add_info(AmplExports *ae, TableInfo *TI){
 		printf("amplxl: could not add table info\n");
 		return 1;
 	}
+	logger.add_info(ae, TI);
+
 	return 0;
 };
+
+
+void
+ExcelManager::set_logger(Logger & logger){
+	logger = logger;
+};
+
 
 
 int
 ExcelManager::prepare(){
 
+	std::string msg;
+
 	// at least the table handler must be declared
 	if (TI->nstrings == 0){
-		std::string err = "amplxl: no table handler declared.\n";
-		generic_error(err);
+		msg = "amplxl: no table handler declared.\n";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	// first string must be the table handler
 	if (std::string(TI->strings[0]) != "amplxl"){
-		std::string err = "amplxl: no table handler declared.\n";
-		generic_error(err);
+		msg = "amplxl: no table handler declared.\n";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -150,8 +192,8 @@ ExcelManager::prepare(){
 		inout = "OUT";
 	}
 	else{
-		//unsuported flag
-		unsuported_flag();
+		msg = "unsuported flag";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -175,14 +217,22 @@ ExcelManager::prepare(){
 		}
 	}
 
+	// set logger level
 	if (verbose > 0){
-		printf("amplxl %s:\n", version.c_str());
-		if (!excel_path.empty()){
-			printf("\tfile: %s\n", excel_path.c_str());
-		}
-		printf("\tinout: %s\n", inout.c_str());
-		printf("\tverbose: %d\n", verbose);
+		logger.set_level(verbose);
 	}
+
+	msg = "amplxl " + version;
+	logger.log(msg, LOG_WARNING);
+
+	if (!excel_path.empty()){
+		msg = std::string("file: ") + excel_path;
+	}
+	msg = std::string("inout: ") + inout;
+	logger.log(msg, LOG_INFO);
+
+	msg = std::string("verbose: ") + my_to_string(verbose);
+	logger.log(msg, LOG_INFO);
 
 	// parse remaining args
 	for (int i = 0; i < TI->nstrings; i++){
@@ -230,7 +280,10 @@ ExcelManager::prepare(){
 					write = "append";
 				}
 				else{
-					printf("\tamplxl: ignoring write option: %s\n", TI->strings[i]);
+					//~ printf("\tamplxl: ignoring write option: %s\n", TI->strings[i]);
+					msg = "ignoring write option: ";
+					msg += TI->strings[i];
+					logger.log(msg, LOG_WARNING);
 				}
 			}
 			// backup option
@@ -245,7 +298,10 @@ ExcelManager::prepare(){
 					backup = false;
 				}
 				else{
-					printf("\tamplxl: ignoring backup option: %s\n", TI->strings[i]);
+					//~ printf("\tamplxl: ignoring backup option: %s\n", TI->strings[i]);
+					msg = "ignoring backup option: ";
+					msg += TI->strings[i];
+					logger.log(msg, LOG_WARNING);
 				}
 			}
 		}
@@ -254,10 +310,16 @@ ExcelManager::prepare(){
 			if (has_alias == 0){
 				table_name = TI->strings[i];
 				has_alias = 1;
-				printf("\tamplxl: using alias: %s\n", TI->strings[i]);
+				//~ printf("\tamplxl: using alias: %s\n", TI->strings[i]);
+				msg = "using alias: ";
+				msg += TI->strings[i];
+				logger.log(msg, LOG_WARNING);
 			}
 			else{
-				printf("\tamplxl: ignoring option: %s\n", TI->strings[i]);
+				//~ printf("\tamplxl: ignoring option: %s\n", TI->strings[i]);
+				msg = "ignoring option: ";
+				msg += TI->strings[i];
+				logger.log(msg, LOG_WARNING);
 			}
 		}
 	}
@@ -269,7 +331,13 @@ ExcelManager::prepare(){
 		if (inout == "OUT"){
 
 			write = "drop";
-			printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			//~ printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+
+			msg = "No file declared. Creating file ";
+			msg += excel_path;
+			msg += " with sheet ";
+			msg += table_name;
+			logger.log(msg, LOG_WARNING);
 
 			int res = 0;
 			excel_path = table_name + ".xlsx";
@@ -277,8 +345,9 @@ ExcelManager::prepare(){
 
 			if (res){
 				// Failed to build oxml
-				std::string err = "amplxl: could not create oxml file.\n";
-				generic_error(err);
+				//~ std::string err = "amplxl: could not create oxml file.\n";
+				msg = "could not create oxml file";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 
@@ -286,14 +355,16 @@ ExcelManager::prepare(){
 
 			if (res){
 				// Failed to add new sheet
-				std::string err = "amplxl: could not add new sheet to oxml file.\n";
-				generic_error(err);
+				//~ std::string err = "amplxl: could not add new sheet to oxml file.\n";
+				msg = "could not add new sheet to oxml file";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 		}
 		// IN or INOUT file must exist beforehand
 		else{
-			cannot_find_file();
+			msg = "Cannot find .xlsx or .xlsm files.";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -304,15 +375,20 @@ ExcelManager::prepare(){
 		if (inout == "OUT"){
 
 			write = "drop";
-			printf("\tamplxl: declared file does not exist. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
+			msg = "Declared file does not exist. Creating file ";
+			msg += excel_path;
+			msg += " with sheet ";
+			msg += table_name;
+			msg += " to write data.";
+			logger.log(msg, LOG_WARNING);
 
 			int res = 0;
 			res = oxml_build_file(excel_path);
 
 			if (res){
 				// Failed to build oxml
-				std::string err = "amplxl: could not create oxml file, please confirm that the folders to the defined file exist.\n";
-				generic_error(err);
+				msg = "Could not create oxml file, please confirm that the folders to the defined file exist.";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 
@@ -320,14 +396,17 @@ ExcelManager::prepare(){
 
 			if (res){
 				// Failed to add new sheet
-				std::string err = "amplxl: could not add new sheet to oxml file.\n";
-				generic_error(err);
+				//~ std::string err = "amplxl: could not add new sheet to oxml file.\n";
+				msg = "amplxl: could not add new sheet to oxml file.";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 		}
 		// IN or INOUT file must exist beforehand
 		else{
-			cannot_find_file();
+			msg = "Could not find file ";
+			msg += excel_path;
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -343,17 +422,18 @@ ExcelManager::prepare(){
 		}
 	}
 
-	if (verbose > 0){
-		if (inout != "IN" && inout != "INOUT"){
-			printf("\twrite option: %s\n", write.c_str());
-		}
-		if (backup){
-			printf("\tamplxl: backup: true\n");
-		}
-		else{
-			printf("\tamplxl: backup: false\n");
-		}
+	if (inout != "IN" && inout != "INOUT"){
+		msg = "write option: ";
+		msg += write;
+		logger.log(msg, LOG_INFO);
 	}
+	if (backup){
+		msg = "backup: true";
+	}
+	else{
+		msg = "backup: false";
+	}
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -361,19 +441,19 @@ ExcelManager::prepare(){
 int
 ExcelManager::manage_workbook(){
 
-	if (verbose > 1){
-		printf("amplxl: manage workbook...\n");
-	}
-
+	std::string msg;
 	int result = 0;
+
+	msg = "Manage workbook...";
+	logger.log(msg, LOG_INFO);
 
 	// extract workbook
 	excel_iner_file = "xl/workbook.xml";
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		// error extracting workbook
-		cannot_extract_workbook();
+		msg = "cannot extract workbook";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -383,7 +463,8 @@ ExcelManager::manage_workbook(){
 	result = parse_workbook();
 
 	if (result){
-		// error parsing workbook
+		msg = "cannot parse workbook";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -396,9 +477,10 @@ ExcelManager::manage_workbook(){
 		result = parse_excel_range();
 
 		if (result){
+			msg = "cannot parse range";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
-
 	}
 
 	//~ sheet_rel = sheet_rel_map[range_sheet];
@@ -412,7 +494,8 @@ ExcelManager::manage_workbook(){
 			result = oxml_add_new_sheet(excel_path, table_name);
 
 			if (result){
-				// Failed to add new sheet
+				msg = "cannot add new sheet";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 
@@ -423,7 +506,8 @@ ExcelManager::manage_workbook(){
 			manage_workbook();
 		}
 		else{
-			cannot_find_table();
+			msg = "could not find table";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -431,9 +515,8 @@ ExcelManager::manage_workbook(){
 		sheet_rel = it->second;
 	}
 
-	if (verbose > 1){
-		printf("amplxl: manage workbook done!\n");
-	}
+	msg = "Manage workbook done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -441,10 +524,10 @@ ExcelManager::manage_workbook(){
 int
 ExcelManager::manage_relations(){
 
-	if (verbose > 1){
-		printf("Manage relations...\n");
-	}
+	std::string msg;
 
+	msg = "Manage relations...";
+	logger.log(msg, LOG_INFO);
 
 	int result = 0;
 
@@ -453,7 +536,8 @@ ExcelManager::manage_relations(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		// error extracting relations
+		msg = "Could not extract relations.";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -463,14 +547,13 @@ ExcelManager::manage_relations(){
 	result = get_excel_sheet(final_path);
 
 	if (result){
-		// error parsing relations
+		msg = "Could not parse relations.";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
-	if (verbose > 1){
-		printf("Manage relations done!\n");
-	}
-
+	msg = "Manage relations done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -478,9 +561,9 @@ ExcelManager::manage_relations(){
 int
 ExcelManager::manage_shared_strings(){
 
-	if (verbose > 1){
-		printf("amplxl: manage shared strings...\n");
-	}
+	std::string msg;
+	msg = "Manage shared strings...";
+	logger.log(msg, LOG_INFO);
 
 	int result = 0;
 
@@ -488,30 +571,29 @@ ExcelManager::manage_shared_strings(){
 
 	if (result == 0){
 
-		if (verbose > 0){
-			printf("amplxl: File has no shared strings table.\n");
-		}
+		msg = "File has no shared strings table";
+		logger.log(msg, LOG_INFO);
 
 		// reading a file without shared strings, probably all are inline
 		if (inout == "IN"){
 			return 0;
 		}
 		else{
-
-			if (verbose > 0){
-				printf("amplxl: adding shared strings to file\n");
-			}
+			msg = "Adding shared strings to file";
+			logger.log(msg, LOG_INFO);
 
 			int res = oxml_add_shared_strings(excel_path);
 
 			if (res){
-				// error adding shared strings
+				msg = "Could not add shared strings to file";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 		}
 	}
 	else if (result == -1){
-		// error scaning for shared strings
+		msg = "Could not scan shared strings";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -520,7 +602,8 @@ ExcelManager::manage_shared_strings(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		cannot_extract_ss();
+		msg = "Could not extract shared strings";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -530,10 +613,13 @@ ExcelManager::manage_shared_strings(){
 	result = get_shared_strings();
 
 	if (result){
-		// error parsing shared strings
-		cannot_open_ss();
+		msg = "Could not parse shared strings";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
+
+	msg = "Manage shared strings done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -541,9 +627,10 @@ ExcelManager::manage_shared_strings(){
 int
 ExcelReadManager::manage_data(){
 
-	if (verbose > 1){
-		printf("amplxl: manage data...\n");
-	}
+	std::string msg;
+
+	msg = "Manage data...";
+	logger.log(msg, LOG_INFO);
 
 	int result = 0;
 
@@ -552,8 +639,8 @@ ExcelReadManager::manage_data(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		// error extracting data
-		cannot_extract_sheet();
+		msg = "Could not extract sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -571,7 +658,8 @@ ExcelReadManager::manage_data(){
 	pugi_result = doc.load_file(final_path.c_str());
 
 	if (!pugi_result){
-		cannot_open_sheet();
+		msg = "Could not load sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -593,9 +681,13 @@ ExcelReadManager::manage_data(){
 
 	result = check_columns(node, first_row, first_col, last_col);
 
-	if (result != -1){
-		// error with column result
-		cannot_find_column(result);
+	if (result == -2){
+		msg = "Could not parse header";
+		logger.log(msg, LOG_ERROR);
+		return 1;
+	}
+	else if (result != -1){
+		log_missing_column(result);
 		return 1;
 	}
 
@@ -606,13 +698,19 @@ ExcelReadManager::manage_data(){
 			last_row = range_last_row;
 		}
 	}
+	log_table_coords(first_col, last_col, first_row, last_row);
 
 	first_row += 1;
 	result = parse_data(node, first_row, last_row, first_col, last_col);
 
 	if (result){
+		msg = "Could not parse data";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
+
+	msg = "Manage data done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -621,6 +719,7 @@ int
 ExcelReadManager::run(){
 
 	int result = 0;
+	std::string msg;
 
 	result = create_temp_folder();
 	if (result){
@@ -658,13 +757,14 @@ ExcelReadManager::run(){
 	}
 
 	result = clean_temp_folder();
-	//~ if (result){
-		//~ return DB_Error;
-	//~ }
-
-	if (verbose > 0){
-		printf("amplxl: all done!\n");
+	if (result){
+		msg = "Could not clean temp folder";
+		logger.log(msg, LOG_INFO);
 	}
+
+	msg = "amplxl: all done!";
+	logger.log(msg, LOG_WARNING);
+
 	return DB_Done;
 };
 
@@ -672,6 +772,7 @@ int
 ExcelWriteManager::run(){
 
 	int result = 0;
+	std::string msg;
 
 	result = create_temp_folder();
 	if (result){
@@ -709,13 +810,14 @@ ExcelWriteManager::run(){
 	}
 
 	result = clean_temp_folder();
-	//~ if (result){
-		//~ return DB_Error;
-	//~ }
-
-	if (verbose > 0){
-		printf("amplxl: all done!\n");
+	if (result){
+		msg = "Could not clean temp folder";
+		logger.log(msg, LOG_INFO);
 	}
+
+	msg = "amplxl: all done!";
+	logger.log(msg, LOG_WARNING);
+
 	return DB_Done;
 };
 
@@ -772,6 +874,8 @@ join_path(
 int
 ExcelManager::parse_workbook(){
 
+	std::string msg;
+
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
@@ -780,7 +884,8 @@ ExcelManager::parse_workbook(){
 	result = doc.load_file(final_path.c_str());
 
 	if (!result){
-		cannot_open_workbook();
+		msg = "Could not load workbook";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -809,6 +914,8 @@ ExcelManager::parse_workbook(){
 int
 ExcelManager::parse_excel_range(){
 
+	std::string msg;
+
 	char* to_split = &excel_range[0u];
 	char* pch;
 
@@ -820,11 +927,12 @@ ExcelManager::parse_excel_range(){
 		pch = strtok(NULL, "!$:;");
 	}
 
-
 	if (split.size() != 5){
 		// range should have 5 elements
 		//Error could not parse range
-		cannot_parse_range();
+		msg = "Could not parse range ";
+		msg += excel_range;
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -837,12 +945,13 @@ ExcelManager::parse_excel_range(){
 	}
 	catch(int e){
 		// could not convert one of the elements
-		cannot_parse_range();
+		msg = "Could not convert range ";
+		msg += excel_range;
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	unquote_string(range_sheet);
-
 
 	return 0;
 };
@@ -888,6 +997,8 @@ ExcelManager::check_columns(
 int
 ExcelManager::get_excel_sheet(std::string &path){
 
+	std::string msg;
+
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
@@ -896,6 +1007,8 @@ ExcelManager::get_excel_sheet(std::string &path){
 	result = doc.load_file(path.c_str());
 
 	if (!result){
+		msg = "Could not load sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -918,6 +1031,8 @@ ExcelManager::get_excel_sheet(std::string &path){
 int
 ExcelManager::get_shared_strings(){
 
+	std::string msg;
+
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
@@ -926,6 +1041,8 @@ ExcelManager::get_shared_strings(){
 	result = doc.load_file(final_path.c_str());
 
 	if (!result){
+		msg = "Could not load shared strings";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -986,6 +1103,13 @@ ExcelManager::parse_data(
 	const std::string first_col,
 	const std::string last_col
 ){
+	std::string msg;
+
+	msg = "Parse data...";
+	logger.log(msg, LOG_INFO);
+
+	std::clock_t start_time = get_time();
+
 	int ampl_ncols = TI->ncols + TI->arity;
 	DbCol *db;
 
@@ -1104,6 +1228,12 @@ ExcelManager::parse_data(
 
 	}
 
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Parse data done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
+
 	return 0;
 };
 
@@ -1122,9 +1252,10 @@ ExcelWriteManager::get_sstrings_map(){
 int
 ExcelWriteManager::manage_data(){
 
-	if (verbose > 1){
-		printf("amplxl: manage data...\n");
-	}
+	std::string msg;
+
+	msg = "Manage data...";
+	logger.log(msg, LOG_INFO);
 
 	int result = 0;
 
@@ -1134,7 +1265,8 @@ ExcelWriteManager::manage_data(){
 
 	if (result){
 		// error extracting data
-		cannot_extract_sheet();
+		msg = "Could not extract sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -1155,8 +1287,8 @@ ExcelWriteManager::manage_data(){
 
 
 	if (!pugi_result){
-		// could not load xml
-		cannot_open_sheet();
+		msg = "Could not load sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -1214,11 +1346,8 @@ ExcelWriteManager::manage_data(){
 
 		last_row = get_last_row_in_table(node, first_row, first_col);
 		//~ last_row = first_row + TI->nrows;
-
-
 	}
-
-
+	log_table_coords(first_col, last_col, first_row, last_row);
 
 	// map shared strings for fast access and get the number of existing strings, since we may add
 	// more strings later and need to update the file in excel
@@ -1235,7 +1364,7 @@ ExcelWriteManager::manage_data(){
 				result = write_all_data_out(node, first_row, last_row, first_col, last_col);
 			}
 			else if (result != -1){ // incomplete header
-				cannot_find_column(result);
+				log_missing_column(result);
 				return 1;
 			}
 			else{
@@ -1248,12 +1377,12 @@ ExcelWriteManager::manage_data(){
 			result = check_columns(node, first_row, first_col, last_col);
 
 			if (result == -2){ // append to non existing table ???
-				std::string err = "Cannot append to non existing table.";
-				generic_error(err);
+				msg = "Cannot append to non existing table.";
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 			else if (result != -1){
-				cannot_find_column(result);
+				log_missing_column(result);
 				return 1;
 			}
 			else{
@@ -1268,10 +1397,12 @@ ExcelWriteManager::manage_data(){
 		result = check_columns(node, first_row, first_col, last_col);
 
 		if (result == -2){ // update non existing table ???
+			msg = "Table does not exist.";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 		else if (result != -1){
-			cannot_find_column(result);
+			log_missing_column(result);
 			return 1;
 		}
 
@@ -1281,11 +1412,15 @@ ExcelWriteManager::manage_data(){
 	}
 	else{
 		// unsuported write flag
-		unsuported_flag();
+		msg = "unsuported write flag ";
+		msg += write;
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	if (result){
+		msg = "Could not write data";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -1298,26 +1433,11 @@ ExcelWriteManager::manage_data(){
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
-	//~ if (verbose == 73){
-
-		//~ std::cout << "excel_path: " << excel_path << std::endl;
-		//~ std::cout << "excel_iner_file: " << excel_iner_file << std::endl;
-		//~ std::cout << "final_path: " << final_path << std::endl;
-	//~ }
-
 	doc.save_file(final_path.c_str());
 
 	changed_files.push_back(excel_iner_file);
 
-	//~ result = myzip(&excel_path[0u], &excel_iner_file[0u], &final_path[0u]);
-	//~ if (result){
-		//~ cannot_update_sheet();
-		//~ return 1;
-	//~ }
-
-
 	// update shared strings xml
-
 	if (shared_strings.size() > n_sstrings){
 
 		excel_iner_file = "xl/sharedStrings.xml";
@@ -1325,7 +1445,8 @@ ExcelWriteManager::manage_data(){
 
 		result = update_shared_strings(n_sstrings);
 		if (result){
-			cannot_update_ss();
+			msg = "Could not update shared strings";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -1349,7 +1470,8 @@ ExcelWriteManager::manage_data(){
 
 	result = myzip(xl_copy_path, excel_iner_file, final_path);
 	if (result){
-		cannot_update_sheet();
+		msg = "Could not add sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -1362,7 +1484,8 @@ ExcelWriteManager::manage_data(){
 
 		result = myzip(xl_copy_path, excel_iner_file, final_path);
 		if (result){
-			cannot_update_sheet();
+			msg = "Could not add shared strings";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -1376,6 +1499,9 @@ ExcelWriteManager::manage_data(){
 
 	// remove
 	result = remove(xl_copy_path.c_str());
+
+	msg = "Manage data done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -1411,11 +1537,11 @@ ExcelWriteManager::write_data_out(
 	std::string &first_col,
 	std::string &last_col
 ){
+	std::string msg;
 
-	if (verbose > 0){
-		//~ std::cout << "check_table_cells...\n";
-		printf("amplxl: write_data_out...\n");
-	}
+	msg = "Write data out...";
+	logger.log(msg, LOG_INFO);
+
 	std::clock_t start_time = get_time();
 
 	pugi::xml_node excel_row;
@@ -1429,7 +1555,7 @@ ExcelWriteManager::write_data_out(
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
 	std::map<std::string, pugi::xml_node> cell_map;
-	get_maps(node, row_map, cell_map, ae, verbose);
+	get_maps(node, row_map, cell_map, logger);
 
 	// check that all required cells exist
 	check_table_cells(
@@ -1440,8 +1566,7 @@ ExcelWriteManager::write_data_out(
 		last_row,
 		first_col,
 		last_col,
-		ae,
-		verbose
+		logger
 	);
 
 	// write data
@@ -1468,10 +1593,8 @@ ExcelWriteManager::write_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	if (verbose > 0){
-		printf("amplxl: write_data_out done in %.3f s.\n", total_time);
-	}
-
+	msg = std::string("Write data out done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -1485,13 +1608,10 @@ ExcelWriteManager::write_all_data_out(
 	std::string &first_col,
 	std::string &last_col
 ){
+	std::string msg;
 
-	if (verbose > 0){
-		//~ std::cout << "check_table_cells...\n";
-		printf("amplxl: write_data_drop_out...\n");
-	}
-	//~ printf("amplxl: %d, %d, %s, %s.\n", first_row, last_row, first_col.c_str(), last_col.c_str());
-
+	msg = "Write data out...";
+	logger.log(msg, LOG_INFO);
 
 	std::clock_t start_time = get_time();
 
@@ -1506,7 +1626,7 @@ ExcelWriteManager::write_all_data_out(
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
 	std::map<std::string, pugi::xml_node> cell_map;
-	get_maps(node, row_map, cell_map, ae, verbose);
+	get_maps(node, row_map, cell_map, logger);
 
 	// check that all required cells exist
 	check_table_cells(
@@ -1517,8 +1637,7 @@ ExcelWriteManager::write_all_data_out(
 		last_row,
 		first_col,
 		last_col,
-		ae,
-		verbose
+		logger
 	);
 
 	write_header(node, first_row, first_col, cell_map);
@@ -1552,9 +1671,8 @@ ExcelWriteManager::write_all_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	if (verbose > 0){
-		printf("amplxl: write_data_drop_out done in %.3f s.\n", total_time);
-	}
+	msg = std::string("Write data out done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
 
 
 	return 0;
@@ -1611,6 +1729,8 @@ ExcelWriteManager::write_all_data_out(
 int
 ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 
+	std::string msg;
+
 	for (int i = 0; i < excel_keys.size(); i++){
 		excel_keys[i].clear();
 	}
@@ -1624,7 +1744,8 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 
 		if (!excel_cell){
 			// could not find key
-			cannot_find_keys();
+			msg = "Could not get spreadsheet keys from row";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 
@@ -1641,7 +1762,8 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 		}
 		else{
 			// no value found
-			cannot_find_keys();
+			msg = "Could not get spreadsheet keys";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -1695,6 +1817,13 @@ ExcelWriteManager::write_data_inout(
 	std::string &first_col,
 	std::string &last_col
 ){
+	std::string msg;
+
+	msg = "Write data inout...";
+	logger.log(msg, LOG_INFO);
+
+	std::clock_t start_time = get_time();
+
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -1773,6 +1902,11 @@ ExcelWriteManager::write_data_inout(
 		copy_info(row_to_write, atoi(row_to_write.attribute("r").value()), i);
 	}
 
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Write data inout done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -2139,130 +2273,6 @@ ExcelWriteManager::set_cell_value(
 		data_node.set_value(temp_str.c_str());
 	}
 };
-
-void
-ExcelManager::generic_error(std::string & err)
-{
-	sprintf(TI->Errmsg = (char*)TM(strlen(err.c_str())), "%s", err.c_str());
-};
-
-
-void
-ExcelManager::cannot_find_file()
-{
-	sprintf(TI->Errmsg = (char*)TM(33),
-		"Cannot find .xlsx or .xlsm files.");
-};
-void
-ExcelManager::cannot_create_temp()
-{
-	sprintf(TI->Errmsg = (char*)TM(31),
-		"Cannot create temporary folder.");
-};
-
-
-void
-ExcelManager::cannot_extract_workbook(){
-	sprintf(TI->Errmsg = (char*)TM(24),
-		"Cannot extract workbook.");
-};
-
-
-void
-ExcelManager::cannot_open_workbook(){
-	sprintf(TI->Errmsg = (char*)TM(21),
-		"Cannot open workbook.");
-};
-
-
-void
-ExcelManager::cannot_parse_range(){
-
-	sprintf(TI->Errmsg = (char*)TM(excel_range.size() + 26),
-		"Cannot parse range \"%s\".", excel_range.c_str());
-};
-
-
-void
-ExcelManager::cannot_find_table(){
-	sprintf(TI->Errmsg = (char*)TM(table_name.size() + 25),
-		"Cannot find table \"%s\".", table_name.c_str());
-};
-
-
-void
-ExcelManager::cannot_extract_ss(){
-	sprintf(TI->Errmsg = (char*)TM(21),
-		"Cannot extract shared strings.");
-};
-
-void
-ExcelManager::cannot_open_ss(){
-	sprintf(TI->Errmsg = (char*)TM(21),
-		"Cannot open shared strings.");
-};
-
-
-
-
-void
-ExcelManager::cannot_extract_sheet(){
-	sprintf(TI->Errmsg = (char*)TM(21),
-		"Cannot extract sheet.");
-
-};
-
-void
-ExcelManager::cannot_open_sheet(){
-	sprintf(TI->Errmsg = (char*)TM(21),
-		"Cannot open sheet.");
-
-};
-
-
-void
-ExcelManager::cannot_find_column(int col){
-
-	sprintf(TI->Errmsg = (char*)TM(strlen(TI->colnames[col]) + 26),
-		"Cannot find column \"%s\".", TI->colnames[col]);
-
-
-};
-
-
-void
-ExcelManager::cannot_find_keys(){
-	sprintf(TI->Errmsg = (char*)TM(17),
-		"Cannot find keys.");
-
-};
-
-
-void
-ExcelManager::cannot_update_ss(){
-	sprintf(TI->Errmsg = (char*)TM(29),
-		"Cannot update shared strings.");
-
-};
-
-
-
-void
-ExcelManager::cannot_update_sheet(){
-	sprintf(TI->Errmsg = (char*)TM(20),
-		"Cannot update sheet.");
-};
-
-
-
-void
-ExcelManager::unsuported_flag(){
-	sprintf(TI->Errmsg = (char*)TM(19),
-		"Cannot eval option.");
-};
-
-
-
 
 #ifdef _WIN32
 void mymkstemp(std::string& tmpl, int pos){
@@ -2637,14 +2647,12 @@ get_maps(
 	pugi::xml_node parent,
 	std::map<std::string, pugi::xml_node> & row_map,
 	std::map<std::string, pugi::xml_node> & cell_map,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 ){
+	std::string msg;
+	msg = "Get maps...";
+	logger.log(msg, LOG_DEBUG);
 
-	if (verbose > 0){
-		//~ std::cout << "get_maps...\n";
-		printf("amplxl: get_maps...\n");
-	}
 	std::clock_t start_time = get_time();
 
 	pugi::xml_node row_node = parent.first_child();
@@ -2668,10 +2676,8 @@ get_maps(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	if (verbose > 0){
-		//~ std::cout << "get_maps done in " << total_time << "s." << std::endl;
-		printf("amplxl: get_maps done in %.3f s.\n", total_time);
-	}
+	msg = std::string("Get maps done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_DEBUG);
 };
 
 
@@ -2684,13 +2690,12 @@ check_table_cells(
 	int last_row,
 	std::string & first_col,
 	std::string & last_col,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 ){
-	if (verbose > 0){
-		//~ std::cout << "check_table_cells...\n";
-		printf("amplxl: check_table_cells...\n");
-	}
+	std::string msg;
+	msg = "Check table cells...";
+	logger.log(msg, LOG_DEBUG);
+
 	std::clock_t start_time = get_time();
 
 
@@ -2747,7 +2752,7 @@ check_table_cells(
 		row_map[row_num] = anchor;
 	}
 	// garantee that the row has all the required cells
-	add_missing_cells(anchor, first_row, col_range, cell_map, ae, verbose);
+	add_missing_cells(anchor, first_row, col_range, cell_map, logger);
 
 	// now that we have the first row we know that the following rows are contiguous
 	// so we just iterate and add rows as needed
@@ -2760,7 +2765,7 @@ check_table_cells(
 		if (next_row_num_str == next_row.attribute("r").value()){
 			//we have a match, just advance
 			anchor = next_row;
-			add_missing_cells(anchor, i, col_range, cell_map, ae, verbose);
+			add_missing_cells(anchor, i, col_range, cell_map, logger);
 		}
 		else{
 			// no match, add the new cell
@@ -2775,10 +2780,8 @@ check_table_cells(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	if (verbose > 0){
-		//~ std::cout << "check_table_cells done in " << total_time << "s." << std::endl;
-		printf("amplxl: check_table_cells done in %.3f s.\n", total_time);
-	}
+	msg = std::string("Check table cells done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_DEBUG);
 
 };
 
@@ -2789,13 +2792,13 @@ add_missing_cells(
 	int row_num,
 	std::vector<std::string> & col_range,
 	std::map<std::string, pugi::xml_node> & cell_map,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 ){
-	if (verbose > 1){
-		//~ std::cout << "add_missing_cells..." << std::endl;
-		printf("amplxl: add_missing_cells...\n");
-	}
+	std::string msg;
+	msg = "Add missing cells...";
+	logger.log(msg, LOG_DEBUG);
+
+	std::clock_t start_time = get_time();
 
 	// get the first cell (anchor) of the column range we are checking
 	std::string cell_ref = col_range[0] + my_to_string(row_num);
@@ -2875,10 +2878,12 @@ add_missing_cells(
 			cell_map[new_cell_ref] = anchor;
 		}
 	}
-	if (verbose > 1){
-		//~ std::cout << "add_missing_cells done." << std::endl;
-		printf("amplxl: add_missing_cells done.\n");
-	}
+
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Add missing cells done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_DEBUG);
 };
 
 
@@ -3014,15 +3019,9 @@ cell_add_basic_attrs(
 int
 ExcelReadManager::manage_data2D(){
 
-	if (verbose > 1){
-		printf("amplxl: manage data 2D...\n");
-	}
-
-	//~ if (TI->arity != 2){
-		//~ std::string err = "2D table expects arity 2.\n";
-		//~ generic_error(err);
-		//~ return 1;
-	//~ }
+	std::string msg;
+	msg = "Manage data 2D...";
+	logger.log(msg, LOG_DEBUG);
 
 	int result = 0;
 
@@ -3032,7 +3031,8 @@ ExcelReadManager::manage_data2D(){
 
 	if (result){
 		// error extracting data
-		cannot_extract_sheet();
+		msg = "Could not extract sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -3047,7 +3047,8 @@ ExcelReadManager::manage_data2D(){
 	pugi_result = doc.load_file(final_path.c_str());
 
 	if (!pugi_result){
-		cannot_open_sheet();
+		msg = "Could not load sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -3076,32 +3077,30 @@ ExcelReadManager::manage_data2D(){
 	else{
 		result = get_table_top_left_coords(node, first_row, first_col);
 		if (result){
+			msg = "Could not get table top left coords";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 
 		result = get_last_column_in_table(node, first_row, first_col, last_col);
 		if (result){
+			msg = "Could not get last column in table";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
-
 		last_row = get_last_row_in_table(node, first_row, first_col);
-		if (last_row == -1){
-			return 1;
-		}
 	}
 
-	if (verbose > 2){
-		printf("first_row: %d\n", first_row);
-		printf("last_row: %d\n", last_row);
-		printf("first_col: %s\n", first_col.c_str());
-		printf("last_col: %s\n", last_col.c_str());
-	}
+	log_table_coords(first_col, last_col, first_row, last_row);
 
 	result = parse_data2D(node, first_row, last_row, first_col, last_col);
 
 	if (result){
 		return 1;
 	}
+
+	msg = "Manage data 2D done!";
+	logger.log(msg, LOG_DEBUG);
 
 	return 0;
 };
@@ -3206,8 +3205,6 @@ ExcelManager::get_last_row_in_table(
 	const int first_row,
 	const std::string & first_col
 ){
-	if (verbose > 2){printf("amplxl: get_last_row_in_table...\n");}
-
 	int iter_row_num = first_row + 1; // first row only has headers
 	int last_row = -1;
 
@@ -3246,8 +3243,6 @@ ExcelManager::get_last_row_in_table(
 	if (last_row == -1){
 		last_row = first_row + TI->nrows;
 	}
-
-	if (verbose > 2){printf("amplxl: get_last_row_in_table done!\n");}
 
 	return last_row;
 };
@@ -3336,21 +3331,12 @@ ExcelWriteManager::write_data_out_2D(
 	std::map<std::vector<std::string>, int> key_set;
 	last_row = first_row + count_2D_rows(key_set, h_set_pos);
 
-	if (verbose == 73){
-
-		std::cout << "first row: " << first_row << std::endl;
-		std::cout << "last row: " << last_row << std::endl;
-		std::cout << "first col: " << first_col << std::endl;
-		std::cout << "last col: " << last_col << std::endl;
-
-		inspect_ti(ae, TI);
-		inspect_values(ae, TI);
-	}
+	log_table_coords(first_col, last_col, first_row, last_row);
 
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
 	std::map<std::string, pugi::xml_node> cell_map;
-	get_maps(node, row_map, cell_map, ae, verbose);
+	get_maps(node, row_map, cell_map, logger);
 
 	// check that all required cells exist
 	check_table_cells(
@@ -3361,8 +3347,7 @@ ExcelWriteManager::write_data_out_2D(
 		last_row,
 		first_col,
 		last_col,
-		ae,
-		verbose
+		logger
 	);
 
 	// write data
@@ -3442,6 +3427,8 @@ ExcelWriteManager::write_data_out_2D(
 int
 ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, std::string & first_col){
 
+	std::string msg;
+
 	pugi::xml_node iter_row;
 	std::string row_id;
 	bool row_found = false;
@@ -3460,9 +3447,8 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 	}
 
 	if (!row_found){
-		if (verbose == 73){
-			printf("get_table_top_left_coords : Could not find rows in sheet.\n");
-		}
+		msg = "get_table_top_left_coords : Could not find rows in sheet";
+		logger.log(msg, LOG_DEBUG);
 		return 0;
 	}
 
@@ -3487,15 +3473,13 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 	}
 
 	if (!col_found){
-		std::string err = "Could not find columns in sheet.\n";
-		generic_error(err);
+		msg = "Could not find columns in sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
-	if (verbose > 2){
-		printf("get_table_top_left_coords: %s, %d\n", first_col.c_str(), first_row);
-	}
-
+	msg = "Get_table_top_left_coords: ", first_col + ", " + my_to_string(first_row);
+	logger.log(msg, LOG_DEBUG);
 
 	return 0;
 };
@@ -3595,9 +3579,10 @@ ExcelManager::parse_header(
 int
 ExcelWriteManager::manage_data2D(){
 
-	if (verbose > 1){
-		printf("amplxl: ExcelWriteManager::manage_data2D...\n");
-	}
+	std::string msg;
+
+	msg = "Manage data 2D...";
+	logger.log(msg, LOG_INFO);
 
 	int result = 0;
 
@@ -3606,8 +3591,8 @@ ExcelWriteManager::manage_data2D(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		// error extracting data
-		cannot_extract_sheet();
+		msg = "Could not extract sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -3626,10 +3611,10 @@ ExcelWriteManager::manage_data2D(){
 
 	pugi_result = doc.load_file(final_path.c_str());
 
-
 	if (!pugi_result){
 		// could not load xml
-		cannot_open_sheet();
+		msg = "Could not load sheet";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -3677,13 +3662,6 @@ ExcelWriteManager::manage_data2D(){
 		}
 	}
 
-	if (verbose > 2){
-		printf("first_row: %d\n", first_row);
-		printf("last_row: %d\n", last_row);
-		printf("first_col: %s\n", first_col.c_str());
-		printf("last_col: %s\n", last_col.c_str());
-	}
-
 	// map shared strings for fast access and get the number of existing strings, since we may add
 	// more strings later and need to update the file in excel
 	get_sstrings_map();
@@ -3694,32 +3672,32 @@ ExcelWriteManager::manage_data2D(){
 		if (write == "drop"){
 
 			result = write_data_out_2D(node, first_row, last_row, first_col, last_col);
-
 		}
 		else if (write == "append"){
-			std::string err = "Mode append not available for 2D tables.";
-			generic_error(err);
+			msg = "Mode append not available for 2D tables.";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
 	else if (inout == "INOUT"){
-		std::string err = "Mode INOUT not available for 2D tables.";
-		generic_error(err);
+		msg = "Mode INOUT not available for 2D tables.";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 	else{
-		// unsuported write flag
-		unsuported_flag();
+		msg = "unsuported write flag";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	if (result){
+		msg = "Could not write 2D data";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	// vector with the names of the files we need to update in the original spreadsheet
 	std::vector<std::string> changed_files;
-
 
 	// update sheet xml
 	excel_iner_file = "xl/" + data_sheet;
@@ -3753,7 +3731,8 @@ ExcelWriteManager::manage_data2D(){
 
 		result = update_shared_strings(n_sstrings);
 		if (result){
-			cannot_update_ss();
+			msg = "Could not update shared strings";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -3777,7 +3756,8 @@ ExcelWriteManager::manage_data2D(){
 
 	result = myzip(xl_copy_path, excel_iner_file, final_path);
 	if (result){
-		cannot_update_sheet();
+		msg = "Could not add sheet to oxml";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -3790,7 +3770,8 @@ ExcelWriteManager::manage_data2D(){
 
 		result = myzip(xl_copy_path, excel_iner_file, final_path);
 		if (result){
-			cannot_update_sheet();
+			msg = "Could not add shared strings to oxml";
+			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
@@ -3804,6 +3785,9 @@ ExcelWriteManager::manage_data2D(){
 
 	// remove
 	result = remove(xl_copy_path.c_str());
+
+	msg = "Manage data 2D done!";
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
@@ -3827,28 +3811,23 @@ int ExcelWriteManager::count_2D_rows(std::map<std::vector<std::string>, int> & k
 			ampl_keys[j] = ampl_col_value;
 		}
 
-		std::cout << i << std::endl;
-		print_vector(ampl_keys);
-
-
 		if (key_set.find(ampl_keys) == key_set.end()){
 
 			key_set[ampl_keys] = nrows;
 			nrows += 1;
-
 		}
 	}
 
-	// check map
-	std::map<std::vector<std::string>, int>::iterator it;
+	//~ // check map
+	//~ std::map<std::vector<std::string>, int>::iterator it;
 
-	for (it = key_set.begin(); it != key_set.end(); it++){
+	//~ for (it = key_set.begin(); it != key_set.end(); it++){
 
-		print_vector(it->first);
+		//~ print_vector(it->first);
 
-		std::cout <<  it->second   // string's value 
-			<< std::endl ;
-	}
+		//~ std::cout <<  it->second   // string's value 
+			//~ << std::endl ;
+	//~ }
 	return nrows;
 };
 
@@ -3922,6 +3901,10 @@ ExcelManager::parse_header_2D_reader(
 	std::vector<std::string> & header
 
 ){
+	std::string msg;
+	msg = "parse_header_2D_reader...";
+	logger.log(msg, LOG_DEBUG);
+
 	std::string iter_col;
 	std::string cell_adress;
 	std::string xl_col_name;
@@ -3955,10 +3938,8 @@ ExcelManager::parse_header_2D_reader(
 			header.push_back(xl_col_name);
 			nempty = 0;
 
-			if (verbose == 73){
-				printf("Found column %s\n", xl_col_name.c_str());
-			}
-
+			msg = "Found column header " + xl_col_name;
+			logger.log(msg, LOG_DEBUG);
 		}
 		else{
 			header.push_back("");
@@ -3966,21 +3947,22 @@ ExcelManager::parse_header_2D_reader(
 		}
 
 		if (nempty == max_empty){
-			if (verbose > 2){
-				printf("Cannot find more columns, search done.\n");
-			}
+			msg = "Cannot find more columns, search done.";
+			logger.log(msg, LOG_DEBUG);
 			break;
 		}
 
 		if (iter_col == last_col){
-			if (verbose > 2){
-				printf("Last column reached, search done.\n");
-			}
+			msg = "Last column reached, search done";
+			logger.log(msg, LOG_DEBUG);
 			break;
 		}
-
 		ecm.next(iter_col);
 	}
+
+	msg = "parse_header_2D_reader done!";
+	logger.log(msg, LOG_DEBUG);
+
 	return 0;
 };
 
@@ -3999,8 +3981,12 @@ ExcelManager::parse_data2D(
 	std::string & first_col,
 	std::string & last_col
 ){
+	std::string msg;
 
-	if (verbose > 2){printf("amplxl: parse_data2D...\n");}
+	msg = "Parse data 2D...";
+	logger.log(msg, LOG_INFO);
+
+	std::clock_t start_time = get_time();
 
 	// get information from table header
 	std::map<std::string, std::string> xl_col_map;
@@ -4008,9 +3994,9 @@ ExcelManager::parse_data2D(
 	int res = parse_header_2D_reader(first_col, last_col, first_row, node, xl_col_map, header);
 
 	if (res){
-		// no header found
-		std::string err_msg = "Cannot find header in 2D table.";
-		generic_error(err_msg);
+		// no header found?
+		msg = "Cannot find header in 2D table";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -4032,13 +4018,10 @@ ExcelManager::parse_data2D(
 		if (xl_col_map.find(ampl_col_name) == xl_col_map.end()){
 
 			if (found){
-				// more than 1 column not mapped ?
-				printf("Found more than one candidate for key row in 2D table. At least %s and %s are not found."
-					, h_set.c_str(), ampl_col_name.c_str());
-
-				std::string err_msg = "Found more than one candidate for key row in 2D table. At least "
+				// more than 1 column not mapped
+				msg = "Found more than one candidate for key row in 2D table. At least "
 					+ h_set + " and " + ampl_col_name + " are not found.";
-				generic_error(err_msg);
+				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
 			h_set_pos = i;
@@ -4049,8 +4032,8 @@ ExcelManager::parse_data2D(
 
 	if (h_set_pos == -1){
 		// cannot find h_set
-		std::string err_msg = "Cannot find key row in 2D table.";
-		generic_error(err_msg);
+		msg = "Cannot find key row in 2D table.";
+		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
@@ -4082,7 +4065,7 @@ ExcelManager::parse_data2D(
 		}
 	}
 
-	if (verbose > 2){
+	if (verbose == 73){
 		printf("xl_to_ampl_cols: ");
 		print_vector(xl_to_ampl_cols);
 		printf("arity cols: ");
@@ -4116,8 +4099,8 @@ ExcelManager::parse_data2D(
 
 		if (!iter_row){
 			// could not find row ?!, should never enter here
-			std::string err_msg = "Cannot find row " + row_id + " in table.";
-			generic_error(err_msg);
+			msg = "Cannot find row " + row_id + " in table.";
+			logger.log(msg, LOG_ERROR);
 		return 1;
 		}
 
@@ -4191,10 +4174,52 @@ ExcelManager::parse_data2D(
 		iter_row = iter_row.next_sibling();
 	}
 
-	if (verbose > 2){printf("amplxl: parse_data2D done!\n");}
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Parse data 2D done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
 
 	return 0;
 };
+
+Logger::Logger(){
+	level = 0;
+	path = "";
+};
+
+void
+Logger::add_info(AmplExports *ae, TableInfo *TI){
+
+	this->ae = ae;
+	this->TI = TI;
+};
+
+void
+Logger::set_level(int level){
+
+	this->level = level;
+};
+
+
+void
+Logger::log(std::string & msg, int code){
+
+	messages.push_back(msg);
+	codes.push_back(code);
+
+	// pass error to AMPL
+	if (code == 0){
+		sprintf(TI->Errmsg = (char*)TM(strlen(msg.c_str())), "%s", msg.c_str());
+	}
+	// print message acording to level
+	else if (code <= level){
+		printf("%s\n", msg.c_str());
+	}
+};
+
+
+
 
 
 

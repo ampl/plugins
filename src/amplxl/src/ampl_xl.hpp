@@ -79,7 +79,7 @@ const std::string version = "0.1.1";
 
 
 const char* row_attr = "r";
-
+const int N_DEC_DIG = 3; // number of decimal digits to present in printed cpu times
 
 
 /* Usually you use c_str() to convert an std::string to a const char*
@@ -93,6 +93,39 @@ const char* row_attr = "r";
 // Base functions to read and write data to AMPL
 static int Read_ampl_xl(AmplExports *ae, TableInfo *TI);
 static int Write_ampl_xl(AmplExports *ae, TableInfo *TI);
+
+
+
+
+enum LOG_LEVELS{
+
+	LOG_ERROR = 0,
+	LOG_WARNING = 1,
+	LOG_INFO = 2,
+	LOG_DEBUG = 3,
+};
+
+class Logger
+{
+	public:
+
+	AmplExports *ae; //for AMPL printf
+	TableInfo *TI; // for AMPL error message
+	int level; // level to print info
+	std::vector<std::string> messages; 
+	std::vector<int> codes;
+	std::string path; // to write log?
+
+
+	Logger();
+	void add_info(AmplExports *ae, TableInfo *TI);
+	void set_level(int level);
+	void log(std::string & msg, int code);
+};
+
+
+
+
 
 /*
 ** Auxiliary class to iterate columns of a spreadsheet.
@@ -159,6 +192,9 @@ class ExcelManager
 
 	// to generate the sucesive columns in an excel sheet
 	ExcelColumnManager ecm;
+
+	// for errors and message printing to users 
+	Logger logger;
 
 	// weather to break on first blank line or not
 	bool break_mode;
@@ -330,29 +366,23 @@ class ExcelManager
 		std::map<std::string, std::string> & col_map
 	);
 
+	void set_logger(Logger & logger);
 
 	ExcelManager();
 
 	// parses the arguments given in AMPLs TI (table info) structure
 	int prepare();
 
-	//error messages
-	void generic_error(std::string & err);
-	void cannot_find_file();
-	void cannot_create_temp();
-	void cannot_extract_workbook();
-	void cannot_open_workbook();
-	void cannot_parse_range();
-	void cannot_find_table();
-	void cannot_extract_ss();
-	void cannot_open_ss();
-	void cannot_extract_sheet();
-	void cannot_open_sheet();
-	void cannot_find_column(int col);
-	void cannot_find_keys();
-	void cannot_update_ss();
-	void cannot_update_sheet();
-	void unsuported_flag();
+	// common log messages
+	void log_table_coords(
+		std::string & first_col,
+		std::string & last_col,
+		int first_row,
+		int last_row
+	);
+
+	void log_missing_column(int col);
+
 };
 
 
@@ -758,8 +788,7 @@ get_maps(
 	pugi::xml_node parent,
 	std::map<std::string, pugi::xml_node> & row_map,
 	std::map<std::string, pugi::xml_node> & cell_map,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 );
 
 
@@ -772,8 +801,7 @@ check_table_cells(
 	int last_row,
 	std::string & first_col,
 	std::string & last_col,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 );
 
 void
@@ -782,8 +810,7 @@ add_missing_cells(
 	int row_num,
 	std::vector<std::string> & col_range,
 	std::map<std::string, pugi::xml_node> & cell_map,
-	AmplExports *ae,
-	int verbose
+	Logger & logger
 );
 
 
@@ -791,10 +818,17 @@ add_missing_cells(
 template <class T>
 std::string my_to_string(T num){
 	std::stringstream strs;
-	strs << std::scientific << std::setprecision(std::numeric_limits<T>::digits10+1) << num;	
+	strs << std::scientific << std::setprecision(std::numeric_limits<T>::digits10+1) << num;
 	return strs.str();
 };
 
+/* convert numeric to string with ndecdig decimal digits*/
+template <class T>
+std::string my_to_string2(T num, int ndecdig){
+	std::stringstream strs;
+	strs << std::fixed << std::setprecision(ndecdig) << num;
+	return strs.str();
+};
 
 int
 cell_reference_to_number(std::string & s);
@@ -840,6 +874,14 @@ void print_vector(std::vector<T> v){
 	std::cout << std::endl;
 
 };
+
+
+
+
+
+
+
+
 
 
 
