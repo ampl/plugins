@@ -51,6 +51,8 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "myzip.hpp"
 #include "copyzip.hpp"
 #include "oxmlutils.hpp"
+#include "logger.hpp"
+#include "utils.hpp"
 
 
 // headers from AMPL
@@ -93,38 +95,6 @@ const int N_DEC_DIG = 3; // number of decimal digits to present in printed cpu t
 // Base functions to read and write data to AMPL
 static int Read_ampl_xl(AmplExports *ae, TableInfo *TI);
 static int Write_ampl_xl(AmplExports *ae, TableInfo *TI);
-
-
-
-
-enum LOG_LEVELS{
-
-	LOG_ERROR = 0,
-	LOG_WARNING = 1,
-	LOG_INFO = 2,
-	LOG_DEBUG = 3,
-};
-
-class Logger
-{
-	public:
-
-	AmplExports *ae; //for AMPL printf
-	TableInfo *TI; // for AMPL error message
-	int level; // level to print info
-	std::vector<std::string> messages; 
-	std::vector<int> codes;
-	std::string path; // to write log?
-
-
-	Logger();
-	void add_info(AmplExports *ae, TableInfo *TI);
-	void set_level(int level);
-	void log(std::string & msg, int code);
-};
-
-
-
 
 
 /*
@@ -813,22 +783,6 @@ add_missing_cells(
 	Logger & logger
 );
 
-
-
-template <class T>
-std::string my_to_string(T num){
-	std::stringstream strs;
-	strs << std::scientific << std::setprecision(std::numeric_limits<T>::digits10+1) << num;
-	return strs.str();
-};
-
-/* convert numeric to string with ndecdig decimal digits*/
-template <class T>
-std::string my_to_string2(T num, int ndecdig){
-	std::stringstream strs;
-	strs << std::fixed << std::setprecision(ndecdig) << num;
-	return strs.str();
-};
 
 int
 cell_reference_to_number(std::string & s);
