@@ -736,6 +736,12 @@ zip_xml_files(
 		return 1;
 	}
 
+	res = zipClose(dzip, NULL);
+	if (res != ZIP_OK){
+		// could not close zip file
+		return 1;
+	}
+
 	for (int i = 0; i < zip_orig.size(); i++){
 		std::string full_orig;
 		join_path(temp_path, zip_orig[i], full_orig);
