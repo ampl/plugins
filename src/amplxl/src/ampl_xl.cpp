@@ -1231,7 +1231,7 @@ ExcelManager::parse_data(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Parse data done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Parse data done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -1593,7 +1593,7 @@ ExcelWriteManager::write_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data out done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Write data out done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -1671,7 +1671,7 @@ ExcelWriteManager::write_all_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data out done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Write data out done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 
@@ -1905,7 +1905,7 @@ ExcelWriteManager::write_data_inout(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data inout done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Write data inout done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -2329,6 +2329,7 @@ ExcelWriteManager::delete_data(pugi::xml_node parent){
 	else{
 		delete_sheet(parent, include_header);
 	}
+	return 0;
 };
 
 int
@@ -2413,7 +2414,7 @@ ExcelWriteManager::delete_range(pugi::xml_node parent, int include_header){
 	if (verbose > 1){
 		printf("Delete range done.");
 	}
-
+	return 0;
 };
 
 
@@ -2494,6 +2495,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 	}
 	range_last_row = last_row;
 	delete_range(parent, include_header);
+	return 0;
 };
 
 
@@ -2534,6 +2536,7 @@ ExcelWriteManager::delete_sheet(pugi::xml_node parent, int include_header){
 			child = next_child;
 		}
 	}
+	return 0;
 };
 
 
@@ -2640,6 +2643,7 @@ ExcelWriteManager::write_header(
 
 	range_last_col = iter_col;
 	*/
+	return 0;
 };
 
 void
@@ -2676,7 +2680,7 @@ get_maps(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Get maps done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Get maps done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
 };
 
@@ -2780,9 +2784,9 @@ check_table_cells(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Check table cells done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Check table cells done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
-
+	return 0;
 };
 
 
@@ -2882,7 +2886,7 @@ add_missing_cells(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Add missing cells done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Add missing cells done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
 };
 
@@ -4177,7 +4181,7 @@ ExcelManager::parse_data2D(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Parse data 2D done in ") +  my_to_string2(total_time, N_DEC_DIG) + std::string(" seconds");
+	msg = std::string("Parse data 2D done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;

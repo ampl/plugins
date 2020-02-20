@@ -35,5 +35,5 @@ class Logger
 	Logger();
 	void add_info(AmplExports *ae, TableInfo *TI);
 	void set_level(int level);
-	void log(std::string & msg, int code);
+	void log(const std::string & msg, int code);
 };

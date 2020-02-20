@@ -81,7 +81,7 @@ const std::string version = "0.1.1";
 
 
 const char* row_attr = "r";
-const int N_DEC_DIG = 3; // number of decimal digits to present in printed cpu times
+const int CPUTIMES_NDIGITS = 3; // number of decimal digits to present in printed cpu times
 
 
 /* Usually you use c_str() to convert an std::string to a const char*
