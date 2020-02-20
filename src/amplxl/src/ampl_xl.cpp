@@ -327,6 +327,11 @@ ExcelManager::prepare(){
 	// no file declared
 	if (excel_path.empty()){
 
+		//if no file declared write as an out table
+		if (inout == "INOUT"){
+			inout = "OUT";
+		}
+
 		// we create a file with the table name or potential (alias)
 		if (inout == "OUT"){
 
@@ -361,7 +366,7 @@ ExcelManager::prepare(){
 				return 1;
 			}
 		}
-		// IN or INOUT file must exist beforehand
+		// IN file must exist beforehand
 		else{
 			msg = "Cannot find .xlsx or .xlsm files.";
 			logger.log(msg, LOG_ERROR);
@@ -370,6 +375,11 @@ ExcelManager::prepare(){
 	}
 	// file declared but does not exist
 	else if(!check_file_exists(excel_path)){
+
+		//if no file declared write as an out table
+		if (inout == "INOUT"){
+			inout = "OUT";
+		}
 
 		// we create the non existing file with the declared name
 		if (inout == "OUT"){
@@ -402,7 +412,7 @@ ExcelManager::prepare(){
 				return 1;
 			}
 		}
-		// IN or INOUT file must exist beforehand
+		// IN file must exist beforehand
 		else{
 			msg = "Could not find file ";
 			msg += excel_path;
