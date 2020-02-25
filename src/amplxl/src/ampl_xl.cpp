@@ -104,11 +104,11 @@ ExcelManager::log_table_coords(
 	msg = "Estimated table coords: ";
 	msg += first_col;
 	msg += ", ";
-	msg += my_to_string(first_row);
+	msg += numeric_to_string(first_row);
 	msg += ", ";
 	msg += last_col;
 	msg += ", ";
-	msg += my_to_string(last_row);
+	msg += numeric_to_string(last_row);
 	logger.log(msg, LOG_DEBUG);
 };
 
@@ -231,7 +231,7 @@ ExcelManager::prepare(){
 	msg = std::string("inout: ") + inout;
 	logger.log(msg, LOG_INFO);
 
-	msg = std::string("verbose: ") + my_to_string(verbose);
+	msg = std::string("verbose: ") + numeric_to_string(verbose);
 	logger.log(msg, LOG_INFO);
 
 	// parse remaining args
@@ -326,55 +326,11 @@ ExcelManager::prepare(){
 
 	// no file declared
 	if (excel_path.empty()){
-
-		//if no file declared write as an out table
-		if (inout == "INOUT"){
-			inout = "OUT";
-		}
-
-		// we create a file with the table name or potential (alias)
-		if (inout == "OUT"){
-
-			write = "drop";
-			//~ printf("\tNo file declared. Creating file %s with sheet %s to write data.\n", excel_path.c_str(), table_name.c_str());
-
-			msg = "No file declared. Creating file ";
-			msg += excel_path;
-			msg += " with sheet ";
-			msg += table_name;
-			logger.log(msg, LOG_WARNING);
-
-			int res = 0;
-			excel_path = table_name + ".xlsx";
-			res = oxml_build_file(excel_path);
-
-			if (res){
-				// Failed to build oxml
-				//~ std::string err = "amplxl: could not create oxml file.\n";
-				msg = "could not create oxml file";
-				logger.log(msg, LOG_ERROR);
-				return 1;
-			}
-
-			res = oxml_add_new_sheet(excel_path, table_name);
-
-			if (res){
-				// Failed to add new sheet
-				//~ std::string err = "amplxl: could not add new sheet to oxml file.\n";
-				msg = "could not add new sheet to oxml file";
-				logger.log(msg, LOG_ERROR);
-				return 1;
-			}
-		}
-		// IN file must exist beforehand
-		else{
-			msg = "Cannot find .xlsx or .xlsm files.";
-			logger.log(msg, LOG_ERROR);
-			return 1;
-		}
+		excel_path = table_name + ".xlsx";
 	}
-	// file declared but does not exist
-	else if(!check_file_exists(excel_path)){
+
+	// check file already exists
+	if(!check_file_exists(excel_path)){
 
 		//if no file declared write as an out table
 		if (inout == "INOUT"){
@@ -499,7 +455,7 @@ ExcelManager::manage_workbook(){
 	if (it == sheet_rel_map.end()){
 		// cannot find table
 		// if inout is OUT we create a new sheet with the table name
-		if (inout == "OUT"){
+		if (inout == "OUT" || inout == "INOUT"){
 
 			result = oxml_add_new_sheet(excel_path, table_name);
 
@@ -508,6 +464,9 @@ ExcelManager::manage_workbook(){
 				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
+
+			// new sheet, we write everything
+			inout = "OUT";
 
 			// remove current workbook file
 			remove(final_path.c_str());
@@ -675,20 +634,21 @@ ExcelReadManager::manage_data(){
 
 	node = doc.child("worksheet").child("sheetData");
 
+	// estimate coordinates of table
 	int first_row = 1;
 	int last_row = EXCEL_MAX_ROWS;
-	std::string first_col = std::string("A");
-	std::string last_col = EXCEL_MAX_COLS;
+	std::string first_col = "A";
+	std::string last_col = "A";
 
 	if (has_range){
 		first_row = range_first_row;
-		first_col = range_first_col; 
-		last_col = range_last_col; 
+		first_col = range_first_col;
 	}
 	else{
 		result = get_table_top_left_coords(node, first_row, first_col);
 	}
 
+	// check the headers of the table and adjust last_col
 	result = check_columns(node, first_row, first_col, last_col);
 
 	if (result == -2){
@@ -972,7 +932,7 @@ ExcelManager::check_columns(
 	const pugi::xml_node &node,
 	const int first_row,
 	const std::string &first_col,
-	const std::string &last_col
+	std::string &last_col
 ){
 	// get the columns names in the row
 	std::map<std::string, std::string> excel_col_map;
@@ -997,11 +957,42 @@ ExcelManager::check_columns(
 			ampl_to_excel_cols[i] = it->second;
 		}
 		else{
-			return i;
+			// if reading missing column generates error
+			if (inout == "IN"){
+				return i;
+			}
+			// otherwise add column to table
+			ecm.next(last_col);
+			ampl_to_excel_cols[i] = last_col;
+			add_missing_column(node, ampl_col_name, first_row, last_col);
 		}
 	}
 	return -1;
 };
+
+
+
+int
+ExcelManager::add_missing_column(
+	pugi::xml_node node,
+	const std::string & col_name,
+	int row,
+	std::string & col
+){
+	pugi::xml_node xl_row = node.find_child_by_attribute(row_attr, numeric_to_string(row).c_str());
+	pugi::xml_node xl_cell = get_xl_cell(xl_row, row, col);
+
+	if (!xl_cell){
+		xl_cell = row_insert_cell(xl_row, row, col);
+	}
+
+	set_cell_string_value(xl_cell, col_name, row, col);
+
+	return 0;
+};
+
+
+
 
 
 int
@@ -1241,7 +1232,7 @@ ExcelManager::parse_data(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Parse data done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Parse data done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -1250,7 +1241,7 @@ ExcelManager::parse_data(
 
 
 void
-ExcelWriteManager::get_sstrings_map(){
+ExcelManager::get_sstrings_map(){
 
 	for (int i=0; i< shared_strings.size(); i++){
 		sstrings_map[shared_strings[i]] = i;
@@ -1407,7 +1398,7 @@ ExcelWriteManager::manage_data(){
 		result = check_columns(node, first_row, first_col, last_col);
 
 		if (result == -2){ // update non existing table ???
-			msg = "Table does not exist.";
+			msg = "Table does not exist. " + table_name;
 			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
@@ -1591,7 +1582,7 @@ ExcelWriteManager::write_data_out(
 		for (int j = 0; j < ampl_ncols; j++){
 
 			std::string cell_col = ampl_to_excel_cols[j];
-			std::string cell_row = my_to_string(i);
+			std::string cell_row = numeric_to_string(i);
 			std::string cell_reference = cell_col + cell_row;
 			pugi::xml_node write_cell = cell_map[cell_reference];
 			set_cell_value(db, trow, write_cell);
@@ -1603,7 +1594,7 @@ ExcelWriteManager::write_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data out done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Write data out done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -1668,7 +1659,7 @@ ExcelWriteManager::write_all_data_out(
 		for (int j = 0; j < ampl_ncols; j++){
 
 			std::string cell_col = iter_col;
-			std::string cell_row = my_to_string(i);
+			std::string cell_row = numeric_to_string(i);
 			std::string cell_reference = cell_col + cell_row;
 			pugi::xml_node write_cell = cell_map[cell_reference];
 			set_cell_value(db, trow, write_cell);
@@ -1681,7 +1672,7 @@ ExcelWriteManager::write_all_data_out(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data out done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Write data out done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 
@@ -1761,11 +1752,35 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 
 		std::string value = excel_cell.child("v").child_value();
 
-		//~ std::cout << "string value: " << value << std::endl;
-
 		if (excel_cell.attribute("t").value() == std::string("s")){
 			value = shared_strings[std::atoi(value.c_str())];
 		}
+		else{
+			// if the value is numeric its string representation might be different from amplxl
+			// default(scientific) so we turn it to number and back to string for it to have the
+			// same representation in the keys of a map.
+			// Otherwise we could interpret same numbers as different and add unwanted
+			// entries to inout tables
+
+			char* se;
+			double t;
+
+			t = strtod(value.c_str(), &se);
+			if (!*se) {/* valid number */
+				value = numeric_to_scientific(t);
+			}
+			else{
+				// could not convert number to numeric value
+				msg = "Could not convert " + value + " to numeric";
+				logger.log(msg, LOG_ERROR);
+				return 1;
+			}
+
+		}
+
+
+
+		//~ std::cout << "string value: " << value << std::endl;
 
 		if (value.length() > 0){
 			excel_keys[i] = value;
@@ -1778,13 +1793,16 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 		}
 	}
 
-	if (verbose == 73){
-		printf("excel_keys = [");
-		for (int i = 0; i < nkeys; i++){
-			printf("%s, ", excel_keys[i].c_str());
-		}
-		printf("]\n");
-	}
+	//~ if (verbose == 73){
+		//~ printf("excel_keys = [");
+		//~ for (int i = 0; i < nkeys; i++){
+			//~ printf("%s, ", excel_keys[i].c_str());
+		//~ }
+		//~ printf("]\n");
+	//~ }
+
+
+	//~ print_vector(excel_keys);
 
 	return 0;
 };
@@ -1808,9 +1826,7 @@ ExcelWriteManager::get_ampl_keys(int line){
 			ampl_keys[i] = std::string(db->sval[line]);
 		}
 		else{
-			std::stringstream strs;
-			strs << db->dval[line];
-			ampl_keys[i] = strs.str();
+			ampl_keys[i] = numeric_to_scientific(db->dval[line]);
 		}
 		db++;
 	}
@@ -1857,9 +1873,11 @@ ExcelWriteManager::write_data_inout(
 	excel_row = get_excel_row(node, first_row);
 	pugi::xml_node pg_table_last_row = excel_row;
 
+	//~ std::cout << "get excel keys" << std::endl;
+
 	for (int i = first_row; i <= EXCEL_MAX_ROWS; i++){
 
-		row_id_str = my_to_string(i);
+		row_id_str = numeric_to_string(i);
 
 		if (excel_row.attribute(row_attr).value() != row_id_str){
 			excel_row = get_excel_row(node, i);
@@ -1872,12 +1890,16 @@ ExcelWriteManager::write_data_inout(
 			break;
 		}
 
+		//~ print_vector(excel_keys);
+
 		xl_key_map[excel_keys] = excel_row;
 		xl_table_last_row = i;
 		pg_table_last_row = excel_row;
 
 		excel_row = excel_row.next_sibling();
 	}
+
+	//~ std::cout << std::endl;
 
 	// iterate AMPL table and write data to spreadsheet
 	for (int i = 0; i < TI->nrows; i++){
@@ -1889,6 +1911,11 @@ ExcelWriteManager::write_data_inout(
 
 		std::map<std::vector<std::string>, pugi::xml_node>::iterator it = xl_key_map.find(ampl_keys);
 		if (it == xl_key_map.end()){
+
+			//~ std::cout << "could not find keys" << std::endl;
+			//~ print_vector(ampl_keys);
+			//~ return 1;
+
 			// row is not mapped, append to table
 			xl_table_last_row += 1;
 
@@ -1897,7 +1924,7 @@ ExcelWriteManager::write_data_inout(
 
 			if (!row_to_write){
 				row_to_write = node.insert_child_after("row", pg_table_last_row);
-				row_to_write.append_attribute("r") = my_to_string(xl_table_last_row).c_str();
+				row_to_write.append_attribute("r") = numeric_to_string(xl_table_last_row).c_str();
 				pg_table_last_row = row_to_write;
 			}
 
@@ -1915,7 +1942,7 @@ ExcelWriteManager::write_data_inout(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Write data inout done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Write data inout done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;
@@ -1969,6 +1996,11 @@ ExcelWriteManager::write_arity_cells(pugi::xml_node row_node, int xl_row, int db
 
 		std::string xl_col = ampl_to_excel_cols[i];
 		pugi::xml_node xl_cell = get_xl_cell(row_node, xl_row, xl_col);
+
+		if (!xl_cell){
+			xl_cell = row_insert_cell(row_node, xl_row, xl_col);
+		}
+
 		set_cell_value(db, db_row, xl_cell);
 		db++;
 	}
@@ -2036,7 +2068,7 @@ get_xl_cell(pugi::xml_node parent, int row, std::string &col){
 
 
 int
-ExcelWriteManager::check_shared_strings(std::string s){
+ExcelManager::check_shared_strings(const std::string & s){
 
 	std::map<std::string,int>::iterator it = sstrings_map.find(s);
 	if (it == sstrings_map.end()){
@@ -2245,11 +2277,21 @@ ExcelWriteManager::set_cell_value(
 	if (db->sval && db->sval[db_row]){
 
 		int sstring_pos = check_shared_strings(std::string(db->sval[db_row]));
-		temp_str = my_to_string(sstring_pos);
+		temp_str = numeric_to_string(sstring_pos);
 		is_str = true;
 	}
 	else{
-		temp_str = my_to_string(db->dval[db_row]);
+
+		//~ bool is_int = double_is_int(db->dval[db_row]);
+
+		//~ if (is_int){
+			// write in scientific
+			temp_str = numeric_to_scientific(db->dval[db_row]);
+		//~ }
+		//~ else{
+			//~ // write in decimal
+			//~ temp_str = numeric_to_fixed(db->dval[db_row], 17);
+		//~ }
 	}
 
 	// check cell data type ("t" attribute)
@@ -2283,6 +2325,51 @@ ExcelWriteManager::set_cell_value(
 		data_node.set_value(temp_str.c_str());
 	}
 };
+
+
+
+void
+ExcelManager::set_cell_string_value(
+	pugi::xml_node xl_cell,
+	const std::string wstr,
+	int row,
+	const std::string col
+
+){
+	int pos = check_shared_strings(wstr);
+	std::string shared_string_num = numeric_to_string(pos);
+	std::string cell_adress = col + numeric_to_string(row);
+
+	pugi::xml_node xl_val = xl_cell.child("v");
+	if(!xl_val){
+		xl_val = xl_cell.append_child("v");
+	}
+
+	pugi::xml_attribute attr = xl_cell.attribute("t");
+	if (attr){
+		attr.set_value("s");
+	}
+	else{
+		xl_cell.append_attribute("t") = "s";
+	}
+
+	pugi::xml_node dnode = xl_val.first_child();
+	if (!dnode){
+		xl_val.append_child(pugi::node_pcdata).set_value(shared_string_num.c_str());
+	}
+	else{
+		dnode.set_value(shared_string_num.c_str());
+	}
+};
+
+
+
+
+
+
+
+
+
 
 #ifdef _WIN32
 void mymkstemp(std::string& tmpl, int pos){
@@ -2558,7 +2645,7 @@ ExcelWriteManager::write_header(
 	std::map<std::string, pugi::xml_node> & cell_map
 ){
 
-	std::string row_id = my_to_string(first_row);
+	std::string row_id = numeric_to_string(first_row);
 	std::string iter_col = first_col;
 
 	for (int i = 0; i < TI->arity + TI->ncols; i++){
@@ -2566,7 +2653,7 @@ ExcelWriteManager::write_header(
 		std::string wstr = std::string(TI->colnames[i]);
 		int pos = check_shared_strings(wstr);
 
-		std::string shared_string_num = my_to_string(pos);
+		std::string shared_string_num = numeric_to_string(pos);
 
 		std::string cell_adress = iter_col + row_id;
 
@@ -2690,7 +2777,7 @@ get_maps(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Get maps done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Get maps done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
 };
 
@@ -2719,7 +2806,7 @@ check_table_cells(
 	fill_range(col_range, first_col, last_col);
 
 	// check if the first row of the table already exists
-	pugi::xml_node anchor = row_map[my_to_string(first_row)];
+	pugi::xml_node anchor = row_map[numeric_to_string(first_row)];
 
 	if (!anchor){
 		// row does not exist, get the first existing row in the sheet
@@ -2761,7 +2848,7 @@ check_table_cells(
 				}
 			}
 		}
-		std::string row_num = my_to_string(first_row);
+		std::string row_num = numeric_to_string(first_row);
 		anchor.append_attribute("r") = row_num.c_str();
 		row_map[row_num] = anchor;
 	}
@@ -2773,7 +2860,7 @@ check_table_cells(
 
 	for (int i = first_row + 1; i <= last_row; i++){
 
-		std::string next_row_num_str = my_to_string(i);
+		std::string next_row_num_str = numeric_to_string(i);
 		pugi::xml_node next_row = anchor.next_sibling();
 
 		if (next_row_num_str == next_row.attribute("r").value()){
@@ -2794,7 +2881,7 @@ check_table_cells(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Check table cells done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Check table cells done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
 	return 0;
 };
@@ -2815,7 +2902,7 @@ add_missing_cells(
 	std::clock_t start_time = get_time();
 
 	// get the first cell (anchor) of the column range we are checking
-	std::string cell_ref = col_range[0] + my_to_string(row_num);
+	std::string cell_ref = col_range[0] + numeric_to_string(row_num);
 	pugi::xml_node anchor = cell_map[cell_ref];
 
 	std::string temp_str;
@@ -2875,7 +2962,7 @@ add_missing_cells(
 	// so we just iterate and add cells as required
 	for (int i = 1; i < col_range.size(); i++){
 
-		std::string new_cell_ref = col_range[i] + my_to_string(row_num);
+		std::string new_cell_ref = col_range[i] + numeric_to_string(row_num);
 		pugi::xml_node next_cell = anchor.next_sibling();
 
 		if (new_cell_ref == next_cell.attribute("r").value()){
@@ -2896,7 +2983,7 @@ add_missing_cells(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Add missing cells done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Add missing cells done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_DEBUG);
 };
 
@@ -2953,7 +3040,7 @@ fill_range(std::vector<std::string> & col_range, std::string & first_col, std::s
 void
 add_range_cells(pugi::xml_node row, int row_num, std::vector<std::string> & col_range, std::map<std::string, pugi::xml_node> & cell_map){
 
-	std::string row_num_str = my_to_string(row_num);
+	std::string row_num_str = numeric_to_string(row_num);
 
 	for (int i = 0; i < col_range.size(); i++){
 
@@ -2977,7 +3064,7 @@ row_insert_cell(
 	int row_num,
 	std::string & cell_col
 ){
-	std::string cell_ref = cell_col + my_to_string(row_num);
+	std::string cell_ref = cell_col + numeric_to_string(row_num);
 	pugi::xml_node cell_iter_node = row_node.first_child();
 	pugi::xml_node cell_node;
 
@@ -3168,7 +3255,7 @@ ExcelManager::get_last_column_in_table(
 ){
 	if (verbose > 2){printf("amplxl: get_last_column_in_table...\n");}
 
-	std::string row_id = my_to_string(first_row);
+	std::string row_id = numeric_to_string(first_row);
 	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	if (!iter_row){
@@ -3222,7 +3309,7 @@ ExcelManager::get_last_row_in_table(
 	int iter_row_num = first_row + 1; // first row only has headers
 	int last_row = -1;
 
-	std::string row_id = my_to_string(iter_row_num);
+	std::string row_id = numeric_to_string(iter_row_num);
 	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	std::string value;
@@ -3231,7 +3318,7 @@ ExcelManager::get_last_row_in_table(
 
 	while(true){
 
-		row_id = my_to_string(iter_row_num);
+		row_id = numeric_to_string(iter_row_num);
 
 		if (iter_row.attribute(row_attr).value() != row_id){
 			iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
@@ -3412,7 +3499,7 @@ ExcelWriteManager::write_data_out_2D(
 			//~ std::cout << "cell_col: " << cell_col << std::endl;
 
 			//~ std::string cell_col = ampl_to_excel_cols[j];
-			std::string cell_row = my_to_string(first_row + 1 + key_set[ampl_keys]);
+			std::string cell_row = numeric_to_string(first_row + 1 + key_set[ampl_keys]);
 			std::string cell_reference = cell_col + cell_row;
 
 			//~ std::cout << "cell_ref: " << cell_reference << std::endl;
@@ -3450,7 +3537,7 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 	// get first row in xl
 	for (int i = 1; i < EXCEL_MAX_ROWS; i++){
 
-		row_id = my_to_string(i);
+		row_id = numeric_to_string(i);
 		iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 		if (iter_row){
@@ -3475,7 +3562,7 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 
 	while (test_col != EXCEL_MAX_COLS){
 
-		cell_ref = test_col + my_to_string(first_row);
+		cell_ref = test_col + numeric_to_string(first_row);
 		iter_col = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
 
 		if (iter_col){
@@ -3492,7 +3579,7 @@ ExcelManager::get_table_top_left_coords(pugi::xml_node node, int & first_row, st
 		return 1;
 	}
 
-	msg = "Get_table_top_left_coords: ", first_col + ", " + my_to_string(first_row);
+	msg = "Get_table_top_left_coords: ", first_col + ", " + numeric_to_string(first_row);
 	logger.log(msg, LOG_DEBUG);
 
 	return 0;
@@ -3522,7 +3609,7 @@ void
 ExcelManager::parse_header(
 
 	const std::string & first_col,
-	const std::string & last_col,
+	std::string & last_col,
 	int first_row,
 	pugi::xml_node node,
 	std::map<std::string, std::string> & xl_col_map
@@ -3534,12 +3621,12 @@ ExcelManager::parse_header(
 
 	pugi::xml_node xl_cell;
 
-	int nempty = 0; // number of empty columns parsed
-	const int max_empty = 100; // maximum number of empty columns allowed
-	bool found = false;
+	//~ int nempty = 0; // number of empty columns parsed
+	//~ const int max_empty = 100; // maximum number of empty columns allowed
+	//~ bool found = false;
 
 	// get first row
-	std::string row_id = my_to_string(first_row);
+	std::string row_id = numeric_to_string(first_row);
 	pugi::xml_node xl_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	iter_col = first_col;
@@ -3557,8 +3644,9 @@ ExcelManager::parse_header(
 		}
 
 		if (!xl_col_name.empty()){
+			last_col = iter_col;
 			xl_col_map[xl_col_name] = iter_col;
-			nempty = 0;
+			//~ nempty = 0;
 
 			if (verbose == 73){
 				printf("Found column %s\n", xl_col_name.c_str());
@@ -3566,17 +3654,18 @@ ExcelManager::parse_header(
 
 		}
 		else{
-			nempty += 1;
-		}
-
-		if (nempty == max_empty){
-			if (verbose > 2){
-				printf("Cannot find more columns, search done.\n");
-			}
+			//~ nempty += 1;
 			break;
 		}
 
-		if (iter_col == last_col){
+		//~ if (nempty == max_empty){
+			//~ if (verbose > 2){
+				//~ printf("Cannot find more columns, search done.\n");
+			//~ }
+			//~ break;
+		//~ }
+
+		if (iter_col == EXCEL_MAX_COLS){
 			if (verbose > 2){
 				printf("Last column reached, search done.\n");
 			}
@@ -3873,7 +3962,7 @@ set_default_2D_col_map(
 			ampl_val = TI->cols[key_row_pos].sval[i];
 		}
 		else{
-			ampl_val = my_to_string(TI->cols[key_row_pos].dval[i]);
+			ampl_val = numeric_to_string(TI->cols[key_row_pos].dval[i]);
 		}
 
 		// check if element is already mapped
@@ -3930,7 +4019,7 @@ ExcelManager::parse_header_2D_reader(
 	bool found = false;
 
 	// get first row
-	std::string row_id = my_to_string(first_row);
+	std::string row_id = numeric_to_string(first_row);
 	pugi::xml_node xl_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	iter_col = first_col;
@@ -4099,12 +4188,12 @@ ExcelManager::parse_data2D(
 	pugi::xml_node iter_cell;
 
 	// get the first row with data from the table
-	std::string row_id = my_to_string(first_row + 1);
+	std::string row_id = numeric_to_string(first_row + 1);
 	pugi::xml_node iter_row = node.find_child_by_attribute(row_attr, row_id.c_str());
 
 	for (int i = first_row + 1; i <= last_row; i++){
 
-		row_id = my_to_string(i);
+		row_id = numeric_to_string(i);
 
 		// check if rows are in sequence
 		if (iter_row.attribute(row_attr).value() != row_id){
@@ -4191,7 +4280,7 @@ ExcelManager::parse_data2D(
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
-	msg = std::string("Parse data 2D done in ") +  my_to_string2(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	msg = std::string("Parse data 2D done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
 	logger.log(msg, LOG_INFO);
 
 	return 0;

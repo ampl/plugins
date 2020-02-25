@@ -60,9 +60,9 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "arith.h"	/* for Arith_Kind_ASL and Long */
 
 
-#ifdef strtod
-#undef strtod
-#endif
+//~ #ifdef strtod
+//~ #undef strtod
+//~ #endif
 
 
 #ifdef sprintf
@@ -184,6 +184,13 @@ class ExcelManager
 	// if we are dealing with a 2 dimensional table
 	bool is2D;
 
+	// map of a shared string to its position in the shared_strings array
+	std::map<std::string, int> sstrings_map;
+
+
+
+
+
 	// methods
 
 
@@ -263,7 +270,7 @@ class ExcelManager
 		const pugi::xml_node &node,
 		const int first_row,
 		const std::string &first_col,
-		const std::string &last_col
+		std::string &last_col
 	);
 
 	// gets the name of the excel sheet with the information to extract
@@ -302,7 +309,7 @@ class ExcelManager
 	void
 	parse_header(
 		const std::string & first_col,
-		const std::string & last_col,
+		std::string & last_col,
 		int first_row,
 		pugi::xml_node node,
 		std::map<std::string, std::string> & xl_col_map
@@ -342,6 +349,42 @@ class ExcelManager
 
 	// parses the arguments given in AMPLs TI (table info) structure
 	int prepare();
+
+	int
+	add_missing_column(
+		pugi::xml_node node,
+		const std::string & col_name,
+		int row,
+		std::string & col
+	);
+
+	void
+	set_cell_string_value(
+		pugi::xml_node cell,
+		const std::string wstr,
+		int row,
+		const std::string col
+
+	);
+
+
+	/*
+	** Checks if a given string already exists in the shared strings map. If the string does not
+	*  exist, it is added to the map sstrings_map and to the shared_strings vector.  
+	** Parameters:
+	** - s the string we want to check;
+	** Returns:
+	** - the index of string s in the shared_strings vector;
+	*/
+	int check_shared_strings(const std::string & s);
+
+
+	/*
+	** Maps shared strings to their index in the shared strings vector.
+	*/
+	void get_sstrings_map();
+
+
 
 	// common log messages
 	void log_table_coords(
@@ -394,9 +437,6 @@ public ExcelManager{
 
 	public:
 
-	// map of a shared string to its position in the shared_strings array
-	std::map<std::string, int> sstrings_map;
-
 	// vectors to store the arity strings (in case INOUT)
 	std::vector<std::string> excel_keys;
 	std::vector<std::string> ampl_keys;
@@ -428,11 +468,6 @@ public ExcelManager{
 
 
 	int manage_data2D();
-
-	/*
-	** Maps shared strings to their index in the shared strings vector.
-	*/
-	void get_sstrings_map();
 
 
 	/*
@@ -512,18 +547,6 @@ public ExcelManager{
 		int db_row,
 		pugi::xml_node xl_cell
 	);
-
-
-	/*
-	** Checks if a given string already exists in the shared strings map. If the string does not
-	*  exist, it is added to the map sstrings_map and to the shared_strings vector.  
-	** Parameters:
-	** - s the string we want to check;
-	** Returns:
-	** - the index of string s in the shared_strings vector;
-	*/
-	int check_shared_strings(std::string s);
-
 
 	/*
 	** Updates the shared strings XML in the current temp folder.
@@ -668,7 +691,6 @@ public ExcelManager{
 	);
 
 	int count_2D_rows(std::map<std::vector<std::string>, int> & key_set, int pos);
-
 };
 
 
