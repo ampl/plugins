@@ -60,14 +60,7 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "arith.h"	/* for Arith_Kind_ASL and Long */
 
 
-//~ #ifdef strtod
-//~ #undef strtod
-//~ #endif
 
-
-#ifdef sprintf
-#undef sprintf
-#endif
 
 
 // auxiliary macro to allocate memory in AMPLs internal structures
@@ -386,10 +379,13 @@ class ExcelManager
 
 
 
+	std::string numeric_to_scientific(real num);
+
+
 	// common log messages
 	void log_table_coords(
-		std::string & first_col,
-		std::string & last_col,
+		const std::string & first_col,
+		const std::string & last_col,
 		int first_row,
 		int last_row
 	);

@@ -92,10 +92,29 @@ ExcelManager::ExcelManager(){
 };
 
 
+std::string
+ExcelManager::numeric_to_scientific(real num){
+	// We need 2 extra significant digit to interchange values between AMPL and amplxl without 
+	// losing precision. For example, with only digits10 + 1, for the number 1/21 we get in ampl
+	// 0.047619047619047616
+	// after writing to a spreadsheet and reading back again with amplxl we get
+	// 0.04761904761904762
+	// We are using sprintf with g format because Excel seems to reject anything with trailling
+	// zeros issuing the message "We found a problem with some content in "*.xlsx". Do you want us 
+	// to try to recover as much as we can? If you trust the source of this workbook, click yes".
+	// This method is not implemented as an independent function because it needs AmplExports to use
+	// AMPL's custom sprintf.
+	char buf[100];
+	int precision = std::numeric_limits<real>::digits10 + 2;
+	sprintf(buf, "%.*g", precision, num);
+	return std::string(buf);
+};
+
+
 void
 ExcelManager::log_table_coords(
-	std::string & first_col,
-	std::string & last_col,
+	const std::string & first_col,
+	const std::string & last_col,
 	int first_row,
 	int last_row
 ){
