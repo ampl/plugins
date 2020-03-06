@@ -2,48 +2,35 @@
 
 int
 copy_uchanged_files(
-	std::string& zip_string,
-	std::string& zip_copy_string,
+	std::string& zip_orig,
+	std::string& zip_dest,
 	std::vector<std::string>& removed_files)
 {
 	int res;
-	const char* zip_name = &zip_string[0u];
-	const char* tmp_name = &zip_copy_string[0u];
-
-	//~ std::cout << "zip string: " << zip_string << std::endl;
-	//~ std::cout << "zip copy string: " << zip_copy_string << std::endl;
-
-	//~ for (int i=0; i<removed_files.size(); i++){
-
-		//~ std::cout << "zip remove: " << removed_files[i] << std::endl;
-	//~ }
-
-
 
 	// open source and destination files
-
 # ifdef USEWIN32IOAPI
 	zlib_filefunc64_def ffunc;
 	fill_win32_filefunc64A(&ffunc);
-	zipFile szip = unzOpen2_64(zip_name, &ffunc);
+	zipFile szip = unzOpen2_64(zip_orig.c_str(), &ffunc);
 # else
-	zipFile szip = unzOpen64(zip_name);
+	zipFile szip = unzOpen64(zip_orig.c_str());
 # endif
 
 	if (szip == NULL){
-		//~ free(tmp_name);
+		// could not open source zip
 		return -1;
 	}
 
 # ifdef USEWIN32IOAPI
-	zipFile dzip = zipOpen2_64(tmp_name, APPEND_STATUS_CREATE, NULL, &ffunc);
+	zipFile dzip = zipOpen2_64(zip_dest.c_str(), APPEND_STATUS_CREATE, NULL, &ffunc);
 # else
-	zipFile dzip = zipOpen64(tmp_name, APPEND_STATUS_CREATE);
+	zipFile dzip = zipOpen64(zip_dest.c_str(), APPEND_STATUS_CREATE);
 # endif
 
 	if (dzip == NULL){
+		// could not open destin zip
 		unzClose(szip);
-		//~ free(tmp_name);
 		return -1;
 	}
 
@@ -51,9 +38,9 @@ copy_uchanged_files(
 	unz_global_info glob_info;
 	res = unzGetGlobalInfo(szip, &glob_info);
 	if (res != UNZ_OK){
+		// could not get global info from source zip
 		zipClose(dzip, NULL);
 		unzClose(szip);
-		//~ free(tmp_name);
 		return -1;
 	}
 
@@ -63,9 +50,9 @@ copy_uchanged_files(
 		glob_comment = (char*)malloc(glob_info.size_comment + 1);
 
 		if ((glob_comment == NULL) && (glob_info.size_comment != 0)){
+			// could not alloc glob_comment
 			zipClose(dzip, NULL);
 			unzClose(szip);
-			//~ free(tmp_name);
 			return -1;
 		}
 
@@ -76,17 +63,18 @@ copy_uchanged_files(
 		);
 
 		if ((unsigned int)res != glob_info.size_comment){
+			// could not get glob_comment
 			zipClose(dzip, NULL);
 			unzClose(szip);
 			free(glob_comment);
-			//~ free(tmp_name);
 			return -1;
 		}
 	}
 
-	// copying files
+	// copy files
 	int n_files = 0;
 
+	// iterate files in zip
 	int rv = unzGoToFirstFile(szip);
 	while (rv == UNZ_OK)
 	{
@@ -105,30 +93,15 @@ copy_uchanged_files(
 			0
 		);
 
-		//~ std::cout << szip << std::endl;
-		//~ std::cout << unzfi << std::endl;
-		//~ std::cout << dos_fn << std::endl;
-		//~ std::cout << " " << std::endl;
-
-
-
 		if (res != UNZ_OK){
 			break;
 		}
 
-		//~ char fn[MAX_PATH];
-		//~ OemToChar(dos_fn, fn); // <<<<<<<<<///////////////
-
-		//~ // if not need delete this file
-		//~ if (stricmp(fn, del_file) == 0) // lowercase comparison
-			//~ some_was_del = true;
-
-
+		// check if it is one the files to remove
 		bool found = false;
-
 		for (int i = 0; i < removed_files.size(); i++){
 
-			if (removed_files[i] == std::string(dos_fn)){
+			if (removed_files[i] == dos_fn){
 				found = true;
 				break;
 			}
@@ -136,19 +109,29 @@ copy_uchanged_files(
 
 		if (!found){
 
-			//~ std::cout << std::string(dos_fn) << " found..." << std::endl;
+			// file was not found, copy to destin zip
 
-			char* extrafield = (char*)malloc(unzfi.size_file_extra);
+			char* extrafield = NULL;
+			if (unzfi.size_file_extra > 0){
+				extrafield = (char*)malloc(unzfi.size_file_extra);
 
-			if ((extrafield == NULL) && (unzfi.size_file_extra != 0)){
-				break;
+				// check allocation
+				if (extrafield == NULL){
+					// could not allocate extrafield
+					break;
+				}
 			}
 
-			char* commentary = (char*)malloc(unzfi.size_file_comment);
+			char* commentary = NULL;
+			if (unzfi.size_file_comment > 0){
+				commentary = (char*)malloc(unzfi.size_file_comment);
 
-			if ((commentary == NULL) && (unzfi.size_file_comment != 0)){
-				free(extrafield);
-				break;
+				// check allocation
+				if (commentary == NULL){
+					// could not allocate commentary
+					free(extrafield);
+					break;
+				}
 			}
 
 			res = unzGetCurrentFileInfo64(
@@ -163,6 +146,7 @@ copy_uchanged_files(
 			);
 
 			if (res != UNZ_OK){
+				// could not get file info
 				free(extrafield);
 				free(commentary);
 				break;
@@ -175,6 +159,7 @@ copy_uchanged_files(
 			res = unzOpenCurrentFile2(szip, &method, &level, 1);
 
 			if (res != UNZ_OK){
+				// could not open file
 				free(extrafield);
 				free(commentary);
 				break;
@@ -183,21 +168,29 @@ copy_uchanged_files(
 			int size_local_extra = unzGetLocalExtrafield(szip, NULL, 0);
 
 			if (size_local_extra < 0){
+				// invalid size_local_extra
 				free(extrafield);
 				free(commentary);
 				break;
 			}
-			void* local_extra = malloc(size_local_extra);
 
-			if ((local_extra == NULL) && (size_local_extra != 0)){
-				free(extrafield);
-				free(commentary);
-				break;
+			void* local_extra = NULL;
+			if (size_local_extra > 0){
+				local_extra = malloc(size_local_extra);
+
+				// check allocation
+				if (local_extra == NULL){
+					// could not allocate local_extra
+					free(extrafield);
+					free(commentary);
+					break;
+				}
 			}
 
 			res = unzGetLocalExtrafield(szip, local_extra, size_local_extra);
 
 			if (res < 0){
+				// could not get local extrafield
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -205,19 +198,25 @@ copy_uchanged_files(
 			}
 
 			// this malloc may fail if file very large
-			void* buf = malloc(unzfi.compressed_size);
+			void* buf = NULL;
+			if (unzfi.compressed_size > 0){
+				buf = malloc(unzfi.compressed_size);
 
-			if ((buf == NULL) && (unzfi.compressed_size != 0)){
-				free(extrafield);
-				free(commentary);
-				free(local_extra);
-				break;
+				// check allocation
+				if (buf == NULL){
+					// could not allocate buffer
+					free(extrafield);
+					free(commentary);
+					free(local_extra);
+					break;
+				}
 			}
 
 			// read file
 			int sz = unzReadCurrentFile(szip, buf, unzfi.compressed_size);
 
 			if ((unsigned int)sz != unzfi.compressed_size){
+				// size read and size info mismatch
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -233,6 +232,21 @@ copy_uchanged_files(
 			zfi.external_fa = unzfi.external_fa;
 
 			int zip64 = isLargeFile(dos_fn);
+
+//~ std::cout << std::endl;
+//~ std::cout << "dzip\t" << dzip << std::endl;
+//~ std::cout << "dos_fn\t" << dos_fn << std::endl;
+//~ std::cout << "zfi\t" << &zfi << std::endl;
+//~ std::cout << "local_extra\t" << (char*)local_extra << std::endl;
+//~ std::cout << "size_local_extra\t" << size_local_extra << std::endl;
+//~ std::cout << "extrafield\t" << extrafield << std::endl;
+//~ std::cout << "unzfi.size_file_extra\t" << unzfi.size_file_extra << std::endl;
+//~ std::cout << "commentary\t" << commentary << std::endl;
+//~ std::cout << "method\t" << method << std::endl;
+//~ std::cout << "level\t" << level << std::endl;
+//~ std::cout << "1\t" << 1 << std::endl;
+//~ std::cout << "zip64\t" << zip64 << std::endl;
+//~ std::cout << std::endl;
 
 			res = zipOpenNewFileInZip2_64(
 				dzip,
@@ -250,6 +264,7 @@ copy_uchanged_files(
 			);
 
 			if (res !=UNZ_OK){
+				// could not open file in dest zip
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -261,6 +276,7 @@ copy_uchanged_files(
 			res = zipWriteInFileInZip(dzip, buf, unzfi.compressed_size);
 
 			if (res != UNZ_OK){
+				// could not write file in dest zip
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -275,6 +291,7 @@ copy_uchanged_files(
 			);
 
 			if (res != UNZ_OK){
+				// could not close file
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -285,6 +302,7 @@ copy_uchanged_files(
 			res = unzCloseCurrentFile(szip);
 
 			if (res == UNZ_CRCERROR){
+				// could not close file in source zip
 				free(extrafield);
 				free(commentary);
 				free(local_extra);
@@ -292,6 +310,7 @@ copy_uchanged_files(
 				break;
 			}
 
+			// everything went well
 			free(commentary);
 			free(buf);
 			free(extrafield);
@@ -307,47 +326,13 @@ copy_uchanged_files(
 	unzClose(szip);
 
 	free(glob_comment);
-	
 
 	// if fail
 	if (rv != UNZ_END_OF_LIST_OF_FILE)
 	{
-		remove(tmp_name);
-		//~ free(tmp_name);
+		remove(zip_dest.c_str());
 		return -1;
 	}
 
-	//~ remove(zip_name);
-	//~ if (rename(tmp_name, zip_name) != 0)
-	//~ {
-		//~ free(tmp_name);
-		//~ return -1;
-	//~ }
-
-	//~ free(tmp_name);
 	return 0;
 };
-
-//~ int main(){
-
-	//~ std::string zip_name = std::string("/home/nsantos/Documents/ampl/to_kill/t6.xlsx");
-	//~ std::string zip_copy_name = std::string("/home/nsantos/Documents/ampl/temp/xlcopy.tmp");
-
-	//~ std::vector<std::string> to_remove;
-
-	//~ to_remove.push_back("xl/sharedStrings.xml");
-
-
-	//~ std::cout << zip_name << std::endl;
-
-
-
-	//~ copy_uchanged_files(zip_name, zip_copy_name, to_remove);
-
-	//~ return 0;
-//~ };
-
-//g++ -I../zlib-1.2.11 -std=c++03 -g -c  myunz.cpp unzip.c ioapi.c myzip.cpp zip.c temp.cpp
-//g++ -o cenas myunz.o unzip.o ioapi.o myzip.o zip.o temp.o -Wl,--whole-archive ../zlib-1.2.11/libz.a -Wl,--no-whole-archive
-
-
