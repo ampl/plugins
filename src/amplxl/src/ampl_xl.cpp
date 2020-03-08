@@ -181,14 +181,14 @@ ExcelManager::prepare(){
 	if (TI->nstrings == 0){
 		msg = "amplxl: no table handler declared.\n";
 		logger.log(msg, LOG_ERROR);
-		return 1;
+		return DB_Refuse;
 	}
 
 	// first string must be the table handler
 	if (std::string(TI->strings[0]) != "amplxl"){
 		msg = "amplxl: no table handler declared.\n";
 		logger.log(msg, LOG_ERROR);
-		return 1;
+		return DB_Refuse;
 	}
 
 	excel_path = get_excel_path(TI);
@@ -717,7 +717,7 @@ ExcelReadManager::run(){
 
 	result = prepare();
 	if (result){
-		return DB_Error;
+		return result;
 	}
 
 	result = manage_workbook();
@@ -770,7 +770,7 @@ ExcelWriteManager::run(){
 
 	result = prepare();
 	if (result){
-		return DB_Error;
+		return result;
 	}
 
 	result = manage_workbook();
