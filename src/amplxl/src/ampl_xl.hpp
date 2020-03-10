@@ -674,6 +674,14 @@ public ExcelManager{
 	*/
 	int write_header(pugi::xml_node parent, int first_row, std::string & first_col, std::map<std::string, pugi::xml_node> & cell_map);
 
+	int
+	write_header_2D(
+		pugi::xml_node parent,
+		int first_row,
+		std::string & first_col,
+		std::map<std::string, pugi::xml_node> & cell_map,
+		std::map<std::string, std::string> & xl_col_map
+	);
 
 	void write_arity_cells(pugi::xml_node row_node, int xl_row, int db_row);
 

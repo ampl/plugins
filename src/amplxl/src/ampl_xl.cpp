@@ -2762,6 +2762,79 @@ ExcelWriteManager::write_header(
 	return 0;
 };
 
+
+
+
+int
+ExcelWriteManager::write_header_2D(
+	pugi::xml_node parent,
+	int first_row,
+	std::string & first_col,
+	std::map<std::string, pugi::xml_node> & cell_map,
+	std::map<std::string, std::string> & xl_col_map
+){
+
+	std::string row_id = numeric_to_string(first_row);
+	std::string iter_col = first_col;
+	std::string ampl_header;
+
+	// write the first arity - 1 column names
+	for (int i = 0; i < TI->arity - 1; i++){
+
+		ampl_header = TI->colnames[i];
+		std::string cell_adress = iter_col + row_id;
+		pugi::xml_node xl_cell = cell_map[cell_adress];
+		set_cell_string_value(xl_cell, ampl_header, first_row, iter_col);
+		xl_col_map[ampl_header] = iter_col;
+		ecm.next(iter_col);
+	}
+
+	// write the elements of the last arity in the header
+	DbCol* db = &TI->cols[TI->arity - 1];
+	for (int i = 0; i < TI->nrows; i++){
+
+		std::string cell_adress = iter_col + row_id;
+		pugi::xml_node xl_cell = cell_map[cell_adress];
+
+		if (db->sval && db->sval[i]){
+			ampl_header = db->sval[i];
+		}
+		else{
+			ampl_header = numeric_to_scientific(db->dval[i]);
+		}
+		// skip repetitions
+		if (xl_col_map.find(ampl_header) == xl_col_map.end()){
+			xl_col_map[ampl_header] = iter_col;
+			set_cell_value(db, i, xl_cell);
+			ecm.next(iter_col);
+		}
+
+	}
+
+
+	return 0;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void
 get_maps(
 	pugi::xml_node parent,
@@ -3387,6 +3460,8 @@ ExcelWriteManager::write_data_out_2D(
 	}
 	std::clock_t start_time = get_time();
 
+	std::string msg;
+
 	pugi::xml_node excel_row;
 	pugi::xml_node excel_cell;
 	pugi::xml_node excel_val;
@@ -3396,27 +3471,16 @@ ExcelWriteManager::write_data_out_2D(
 	std::map<std::string, std::string> xl_col_map;
 	parse_header(first_col, last_col, first_row, node, xl_col_map);
 
-	if (verbose == 73){
-		// check map
-		std::map<std::string, std::string>::iterator it;
-
-		for (it = xl_col_map.begin(); it != xl_col_map.end(); it++){
-
-			std::cout << it->first  // string (key)
-				<< ':'
-				<< it->second   // string's value 
-				<< std::endl ;
-		}
-	}
-
 	std::string h_set;
 	int h_set_pos = -1;
+	bool has_header = true;
 
 	if (xl_col_map.size() == 0){
 
 		// no header provided
 		h_set_pos = TI->arity - 1;
 		h_set = TI->colnames[h_set_pos];
+		has_header = false;
 	}
 	else{
 		// one of the columns will not appear in xl_col_map
@@ -3447,9 +3511,22 @@ ExcelWriteManager::write_data_out_2D(
 		// could not find hset
 	}
 
+	msg = "hset: " + h_set + ", " + numeric_to_string(h_set_pos);
+	logger.log(msg, LOG_DEBUG);
+
+
 	// only now we can deduce the number of rows of the table
 	std::map<std::vector<std::string>, int> key_set;
-	last_row = first_row + count_2D_rows(key_set, h_set_pos);
+	int n_recalc_rows = count_2D_rows(key_set, h_set_pos); // warning this is doing more than counting the rows
+	last_row = first_row + n_recalc_rows;
+
+	if (!has_header){
+		// need to recalculate last column
+		int n_recalc_cols = (TI->ncols * TI->nrows)/n_recalc_rows;
+		int first_col_num = cell_reference_to_number(first_col);
+		int last_col_num = first_col_num + n_recalc_cols;
+		last_col = number_to_cell_reference(last_col_num);
+	}
 
 	log_table_coords(first_col, last_col, first_row, last_row);
 
@@ -3470,6 +3547,26 @@ ExcelWriteManager::write_data_out_2D(
 		logger
 	);
 
+	// write default header if none was given
+	if (!has_header){
+		write_header_2D(node, first_row, first_col, cell_map, xl_col_map);
+	}
+
+
+	if (verbose == 73){
+		// check map
+		std::map<std::string, std::string>::iterator it;
+
+		for (it = xl_col_map.begin(); it != xl_col_map.end(); it++){
+
+			std::cout << it->first  // string (key)
+				<< ':'
+				<< it->second   // string's value 
+				<< std::endl ;
+		}
+	}
+
+
 	// write data
 	const int ampl_ncols = TI->arity + TI->ncols;
 	DbCol *db;
@@ -3486,25 +3583,40 @@ ExcelWriteManager::write_data_out_2D(
 	//~ while (1){
 	for (int k = 0; k < TI->nrows; k++){
 
+		std::cout << "k: " << k << std::endl;
+
 		for (int i = 0; i < TI->arity; i++){
 
 			if (i == h_set_pos){continue;}
 
-			//~ ampl_col_name = TI->colnames[i];
-			ampl_col_name = TI->cols[i].sval[ampl_row];
+			if (TI->cols[i].sval && TI->cols[i].sval[ampl_row]){
+				ampl_col_name = TI->cols[i].sval[ampl_row];
+			}
+			else{
+				ampl_col_name = numeric_to_string(TI->cols[i].dval[ampl_row]);
+			}
 			ampl_keys[i] = ampl_col_name;
 		}
+
+		print_vector(ampl_keys);
 
 		db = TI->cols;
 
 		for (int i = 0; i < ampl_ncols; i++){
+
+			std::cout << "i: " << i << std::endl;
 
 			if (i == h_set_pos){
 				continue;
 			}
 			else if (i == ampl_ncols - 1){
 
-				xl_col_name = TI->cols[h_set_pos].sval[ampl_row];
+				if (TI->cols[h_set_pos].sval && TI->cols[h_set_pos].sval[ampl_row]){
+					xl_col_name = TI->cols[h_set_pos].sval[ampl_row];
+				}
+				else{
+					xl_col_name = numeric_to_string(TI->cols[h_set_pos].dval[ampl_row]);
+				}
 				auxdb = &TI->cols[ampl_ncols - 1];
 			}
 			else{
@@ -3515,16 +3627,27 @@ ExcelWriteManager::write_data_out_2D(
 
 			std::string cell_col = xl_col_map[xl_col_name];
 
-			//~ std::cout << "cell_col: " << cell_col << std::endl;
+			std::cout << "xl_col_name: " << xl_col_name << std::endl;
+			std::cout << "cell_col: " << cell_col << std::endl;
 
 			//~ std::string cell_col = ampl_to_excel_cols[j];
 			std::string cell_row = numeric_to_string(first_row + 1 + key_set[ampl_keys]);
 			std::string cell_reference = cell_col + cell_row;
 
-			//~ std::cout << "cell_ref: " << cell_reference << std::endl;
+			std::cout << "cell_ref: " << cell_reference << std::endl;
 
 			pugi::xml_node write_cell = cell_map[cell_reference];
+
+			if (!write_cell){
+				msg = "Could not find cell " + cell_reference;
+				logger.log(msg, LOG_DEBUG);
+				return 1;
+			}
+
 			set_cell_value(auxdb, ampl_row, write_cell);
+
+			std::cout << "write done" << std::endl;
+
 			db++;
 		}
 
@@ -3929,7 +4052,12 @@ int ExcelWriteManager::count_2D_rows(std::map<std::vector<std::string>, int> & k
 
 			if (j == pos){continue;}
 
-			ampl_col_value = TI->cols[j].sval[i];
+			if (TI->cols[j].sval && TI->cols[j].sval[i]){
+				ampl_col_value = TI->cols[j].sval[i];
+			}
+			else{
+				ampl_col_value = numeric_to_string(TI->cols[j].dval[i]);
+			}
 			ampl_keys[j] = ampl_col_value;
 		}
 
