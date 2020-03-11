@@ -3925,9 +3925,15 @@ ExcelWriteManager::manage_data2D(){
 		}
 	}
 	else if (inout == "INOUT"){
-		msg = "Mode INOUT not available for 2D tables.";
-		logger.log(msg, LOG_ERROR);
-		return 1;
+		if (write == "drop"){
+
+			result = write_data_inout_2D(node, first_row, last_row, first_col, last_col);
+		}
+		else if (write == "append"){
+			msg = "Mode append not available for 2D tables.";
+			logger.log(msg, LOG_ERROR);
+			return 1;
+		}
 	}
 	else{
 		msg = "unsuported write flag";
@@ -4432,3 +4438,330 @@ ExcelManager::parse_data2D(
 
 	return 0;
 };
+
+
+int
+ExcelWriteManager::write_data_inout_2D(
+	pugi::xml_node node,
+	int first_row,
+	int last_row,
+	std::string &first_col,
+	std::string &last_col
+){
+
+	if (verbose > 0){
+		printf("amplxl: write_data_INOUT_2D...\n");
+	}
+	std::clock_t start_time = get_time();
+
+	std::string msg;
+
+	pugi::xml_node excel_row;
+	pugi::xml_node excel_cell;
+	pugi::xml_node excel_val;
+	pugi::xml_node dnode;
+
+	// parse header info
+	std::map<std::string, std::string> xl_col_map;
+	parse_header(first_col, last_col, first_row, node, xl_col_map);
+
+	std::string h_set;
+	int h_set_pos = -1;
+
+	if (xl_col_map.size() == 0){
+		// no header provided write OUT table
+		return write_data_out_2D(node, first_row, last_row, first_col, last_col);
+	}
+	// one of the columns will not appear in xl_col_map
+	// this column elements will appear in the header
+
+	std::string ampl_col_name;
+	std::string ampl_col_value;
+	bool found = false;
+
+	for (int i = 0; i < TI->arity; i++){
+
+		ampl_col_name = TI->colnames[i];
+
+		if (xl_col_map.find(ampl_col_name) == xl_col_map.end()){
+
+			if (found){
+				// more than one column not mapped
+			}
+
+			found = true;
+			h_set = ampl_col_name;
+			h_set_pos = i;
+		}
+	}
+
+	if (h_set_pos == -1){
+		// could not find hset
+	}
+
+	msg = "hset: " + h_set + ", " + numeric_to_string(h_set_pos);
+	logger.log(msg, LOG_DEBUG);
+
+	ampl_to_excel_cols.resize(TI->arity + TI->ncols);
+	for (int i = 0; i < TI->arity + TI->ncols; i++){
+
+		if (i == h_set_pos){continue;}
+		ampl_to_excel_cols[i] = xl_col_map[TI->colnames[i]];
+	}
+
+
+	int nkeys = TI->arity - 1; // we exclude the column that will be used as header
+
+	// map rows and cells for faster access
+	std::map<std::string, pugi::xml_node> row_map;
+	std::map<std::string, pugi::xml_node> cell_map;
+	get_maps(node, row_map, cell_map, logger);
+
+	// check that all required cells exist
+	check_table_cells(
+		node,
+		row_map,
+		cell_map,
+		first_row,
+		last_row,
+		first_col,
+		last_col,
+		logger
+	);
+
+	excel_keys.resize(nkeys);
+	ampl_keys.resize(nkeys);
+
+	// map xl rows according to arity keys and get last row of xl table
+	// mapping only stops when we cannot find keys (assume blank row)
+	std::map<std::vector<std::string>, pugi::xml_node> xl_key_map;
+	std::map<std::vector<std::string>, int> xl_row_map;
+	int xl_table_last_row = first_row;
+	excel_row = get_excel_row(node, first_row);
+	pugi::xml_node pg_table_last_row = excel_row;
+
+	//~ std::cout << "get excel keys" << std::endl;
+
+	std::string row_id_str;
+
+	for (int i = first_row; i <= EXCEL_MAX_ROWS; i++){
+
+		row_id_str = numeric_to_string(i);
+
+		if (excel_row.attribute(row_attr).value() != row_id_str){
+			excel_row = get_excel_row(node, i);
+		}
+
+		int res = get_excel_keys_2D(excel_row, i, h_set_pos);
+
+		if (res){
+			// we could not find all the keys, assume end of table
+			break;
+		}
+
+		print_vector(excel_keys);
+
+		xl_key_map[excel_keys] = excel_row;
+		xl_row_map[excel_keys] = i;
+		xl_table_last_row = i;
+		pg_table_last_row = excel_row;
+
+		excel_row = excel_row.next_sibling();
+	}
+
+
+	// iterate AMPL table and write data to spreadsheet
+	for (int i = 0; i < TI->nrows; i++){
+
+		get_ampl_keys_2D(i, h_set_pos);
+
+		// get the corresponding row in xl table
+		pugi::xml_node row_to_write;
+
+		std::map<std::vector<std::string>, pugi::xml_node>::iterator it = xl_key_map.find(ampl_keys);
+		if (it == xl_key_map.end()){
+
+			std::cout << "could not find keys" << std::endl;
+			print_vector(ampl_keys);
+			return 1;
+
+			// row is not mapped, append to table
+			xl_table_last_row += 1;
+
+			// check row already exists
+			row_to_write = get_excel_row(node, xl_table_last_row);
+
+			if (!row_to_write){
+				row_to_write = node.insert_child_after("row", pg_table_last_row);
+				row_to_write.append_attribute("r") = numeric_to_string(xl_table_last_row).c_str();
+				pg_table_last_row = row_to_write;
+			}
+
+			// write cells of arity columns as the new/append row does not have it
+			write_arity_cells(row_to_write, xl_table_last_row, i);
+		}
+		else{
+			DbCol* db = &TI->cols[h_set_pos];
+
+			std::string col_to_write;
+			if (db->sval && db->sval[i]){
+				col_to_write = db->sval[i];
+			}
+			else{
+				col_to_write = numeric_to_string(db->dval[i]);
+			}
+
+			std::string row_ref = numeric_to_string(xl_row_map[ampl_keys]);
+			std::string col_ref = xl_col_map[col_to_write];
+			std::string cell_ref = col_ref + row_ref;
+
+			msg = "cell to write inout: " + cell_ref;
+			logger.log(msg, LOG_DEBUG);
+
+			db = &TI->cols[TI->arity]; // the column with the value to write is the last one in the table
+			pugi::xml_node xl_cell = cell_map[cell_ref];
+			set_cell_value(db, i, xl_cell);
+		}
+
+		// write info
+		copy_info(row_to_write, atoi(row_to_write.attribute("r").value()), i);
+	}
+
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Write data inout done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" seconds");
+	logger.log(msg, LOG_INFO);
+
+	return 0;
+};
+
+
+
+int
+ExcelWriteManager::get_excel_keys_2D(
+	pugi::xml_node excel_row,
+	int row,
+	int h_set_pos
+){
+
+	std::string msg;
+
+	for (int i = 0; i < excel_keys.size(); i++){
+		excel_keys[i].clear();
+	}
+
+	int nkeys = TI->arity - 1;
+
+	int pos = 0;
+	for (int i = 0; i < nkeys; i++){
+
+		// skip column that will be used as header row
+		if (i == h_set_pos){
+			continue;
+		}
+
+		std::string scol = ampl_to_excel_cols[i];
+		pugi::xml_node excel_cell = get_xl_cell(excel_row, row, scol);
+
+		if (!excel_cell){
+			// could not find key
+			msg = "Could not get spreadsheet keys from row";
+			logger.log(msg, LOG_ERROR);
+			return 1;
+		}
+
+		std::string value = excel_cell.child("v").child_value();
+
+		if (excel_cell.attribute("t").value() == std::string("s")){
+			value = shared_strings[std::atoi(value.c_str())];
+		}
+		else{
+			// if the value is numeric its string representation might be different from amplxl
+			// default(scientific) so we turn it to number and back to string for it to have the
+			// same representation in the keys of a map.
+			// Otherwise we could interpret same numbers as different and add unwanted
+			// entries to inout tables
+
+			char* se;
+			double t;
+
+			t = strtod(value.c_str(), &se);
+			if (!*se) {/* valid number */
+				value = numeric_to_scientific(t);
+			}
+			else{
+				// could not convert number to numeric value
+				msg = "Could not convert " + value + " to numeric";
+				logger.log(msg, LOG_ERROR);
+				return 1;
+			}
+
+		}
+
+
+
+		//~ std::cout << "string value: " << value << std::endl;
+
+		if (value.length() > 0){
+			excel_keys[pos] = value;
+			pos += 1;
+		}
+		else{
+			// no value found
+			msg = "Could not get spreadsheet keys";
+			logger.log(msg, LOG_ERROR);
+			return 1;
+		}
+	}
+
+	//~ if (verbose == 73){
+		//~ printf("excel_keys = [");
+		//~ for (int i = 0; i < nkeys; i++){
+			//~ printf("%s, ", excel_keys[i].c_str());
+		//~ }
+		//~ printf("]\n");
+	//~ }
+
+
+	//~ print_vector(excel_keys);
+
+	return 0;
+
+
+
+};
+
+
+int
+ExcelWriteManager::get_ampl_keys_2D(int line, int h_set){
+
+	DbCol *db;
+
+	for (int i = 0; i < ampl_keys.size(); i++){
+		ampl_keys[i].clear();
+	}
+
+	int nkeys = TI->arity;
+	db = TI->cols;
+
+	int pos = 0;
+	for (int i = 0; i < nkeys; i++){
+
+		if (i == h_set){continue;}
+
+		if (db->sval && db->sval[line]){
+			ampl_keys[pos] = std::string(db->sval[line]);
+		}
+		else{
+			ampl_keys[pos] = numeric_to_scientific(db->dval[line]);
+		}
+		db++;
+		pos += 1;
+	}
+	return 0;
+};
+
+
+
+

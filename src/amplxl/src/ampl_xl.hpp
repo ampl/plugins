@@ -694,6 +694,22 @@ public ExcelManager{
 		std::string &last_col
 	);
 
+	int write_data_inout_2D(
+		pugi::xml_node node,
+		int first_row,
+		int last_row,
+		std::string &first_col,
+		std::string &last_col
+	);
+
+	int get_excel_keys_2D(
+		pugi::xml_node excel_row,
+		int row,
+		int h_set_pos
+	);
+
+	int get_ampl_keys_2D(int line, int h_set);
+
 	int count_2D_rows(std::map<std::vector<std::string>, int> & key_set, int pos);
 };
 
