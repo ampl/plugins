@@ -1135,6 +1135,7 @@ ExcelManager::parse_data(
 
 	std::string iter_col = first_col;
 	std::vector<std::string> temp_strings(ampl_ncols);
+	std::vector<int> is_string(ampl_ncols);
 
 	pugi::xml_node excel_cell;
 	pugi::xml_node row_child;
@@ -1175,6 +1176,7 @@ ExcelManager::parse_data(
 
 		for (int j = 0; j < temp_strings.size(); j++){
 			temp_strings[j].clear();
+			is_string[j] = 0;
 		}
 
 		bool has_content = false;
@@ -1199,9 +1201,11 @@ ExcelManager::parse_data(
 
 				if (excel_cell.attribute("t").value() == std::string("s")){
 					value = shared_strings[std::atoi(value.c_str())];
+					is_string[j] = 1;
 				}
 				else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
 					value = excel_cell.first_child().first_child().child_value();
+					is_string[j] = 1;
 				}
 
 				if (value.length() > 0){
@@ -1224,16 +1228,21 @@ ExcelManager::parse_data(
 				db->sval[0] = TI->Missing;
 			}
 			else{
-				//dont trust excel, always try to convert the value
-				t = strtod(temp_strings[j].c_str(), &se);
-				if (!*se) {/* valid number */
-					db->sval[0] = 0;
-					db->dval[0] = t;
-					//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
+				if (is_string[j]){
+					db->sval[0] = &temp_strings[j][0u];
 				}
 				else{
-					db->sval[0] = &temp_strings[j][0u];
-					//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+					//dont trust excel, always try to convert the value
+					t = strtod(temp_strings[j].c_str(), &se);
+					if (!*se) {/* valid number */
+						db->sval[0] = 0;
+						db->dval[0] = t;
+						//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
+					}
+					else{
+						db->sval[0] = &temp_strings[j][0u];
+						//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+					}
 				}
 			}
 			db++;
@@ -3522,7 +3531,8 @@ ExcelWriteManager::write_data_out_2D(
 
 	if (!has_header){
 		// need to recalculate last column
-		int n_recalc_cols = (TI->ncols * TI->nrows)/n_recalc_rows;
+		int card_h_set = TI->nrows / n_recalc_rows;
+		int n_recalc_cols = TI->arity - 1 + card_h_set;
 		int first_col_num = cell_reference_to_number(first_col);
 		int last_col_num = first_col_num + n_recalc_cols;
 		last_col = number_to_cell_reference(last_col_num);
