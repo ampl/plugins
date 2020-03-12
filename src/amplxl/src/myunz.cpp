@@ -606,7 +606,7 @@ int myunzip2(
 		uf,
 		&file_info,
 		&filename_to_extract[0u],
-		sizeof(filename_to_extract.c_str()),
+		filename_to_extract.size(),
 		NULL,
 		0,
 		NULL,
