@@ -3534,8 +3534,21 @@ ExcelWriteManager::write_data_out_2D(
 		int card_h_set = TI->nrows / n_recalc_rows;
 		int n_recalc_cols = TI->arity - 1 + card_h_set;
 		int first_col_num = cell_reference_to_number(first_col);
-		int last_col_num = first_col_num + n_recalc_cols;
+		int last_col_num = first_col_num + n_recalc_cols - 1;
 		last_col = number_to_cell_reference(last_col_num);
+
+		//~ msg = "card_h_set: " + numeric_to_string(card_h_set);
+		//~ logger.log(msg, LOG_DEBUG);
+		//~ msg = "n_recalc_cols: " + numeric_to_string(n_recalc_cols);
+		//~ logger.log(msg, LOG_DEBUG);
+		//~ msg = "first_col_num: " + numeric_to_string(first_col_num);
+		//~ logger.log(msg, LOG_DEBUG);
+		//~ msg = "last_col_num: " + numeric_to_string(last_col_num);
+		//~ logger.log(msg, LOG_DEBUG);
+		//~ msg = "first_col: " + numeric_to_string(first_col);
+		//~ logger.log(msg, LOG_DEBUG);
+		//~ msg = "last_col: " + numeric_to_string(last_col);
+		//~ logger.log(msg, LOG_DEBUG);
 	}
 
 	log_table_coords(first_col, last_col, first_row, last_row);
@@ -3587,13 +3600,12 @@ ExcelWriteManager::write_data_out_2D(
 	int xl_row = first_row + 1;
 
 	std::vector<std::string> ampl_keys(TI->arity);
-
 	std::string ampl_col_name;
 
 	//~ while (1){
 	for (int k = 0; k < TI->nrows; k++){
 
-		std::cout << "k: " << k << std::endl;
+		//~ std::cout << "k: " << k << std::endl;
 
 		for (int i = 0; i < TI->arity; i++){
 
@@ -3608,13 +3620,13 @@ ExcelWriteManager::write_data_out_2D(
 			ampl_keys[i] = ampl_col_name;
 		}
 
-		print_vector(ampl_keys);
+		//~ print_vector(ampl_keys);
 
 		db = TI->cols;
 
 		for (int i = 0; i < ampl_ncols; i++){
 
-			std::cout << "i: " << i << std::endl;
+			//~ std::cout << "i: " << i << std::endl;
 
 			if (i == h_set_pos){
 				continue;
@@ -3637,14 +3649,14 @@ ExcelWriteManager::write_data_out_2D(
 
 			std::string cell_col = xl_col_map[xl_col_name];
 
-			std::cout << "xl_col_name: " << xl_col_name << std::endl;
-			std::cout << "cell_col: " << cell_col << std::endl;
+			//~ std::cout << "xl_col_name: " << xl_col_name << std::endl;
+			//~ std::cout << "cell_col: " << cell_col << std::endl;
 
 			//~ std::string cell_col = ampl_to_excel_cols[j];
 			std::string cell_row = numeric_to_string(first_row + 1 + key_set[ampl_keys]);
 			std::string cell_reference = cell_col + cell_row;
 
-			std::cout << "cell_ref: " << cell_reference << std::endl;
+			//~ std::cout << "cell_ref: " << cell_reference << std::endl;
 
 			pugi::xml_node write_cell = cell_map[cell_reference];
 
@@ -3656,7 +3668,7 @@ ExcelWriteManager::write_data_out_2D(
 
 			set_cell_value(auxdb, ampl_row, write_cell);
 
-			std::cout << "write done" << std::endl;
+			//~ std::cout << "write done" << std::endl;
 
 			db++;
 		}
@@ -4519,8 +4531,7 @@ ExcelWriteManager::write_data_inout_2D(
 		ampl_to_excel_cols[i] = xl_col_map[TI->colnames[i]];
 	}
 
-
-	int nkeys = TI->arity - 1; // we exclude the column that will be used as header
+	int nkeys = TI->arity;
 
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
@@ -4554,7 +4565,7 @@ ExcelWriteManager::write_data_inout_2D(
 
 	std::string row_id_str;
 
-	for (int i = first_row; i <= EXCEL_MAX_ROWS; i++){
+	for (int i = first_row + 1; i <= EXCEL_MAX_ROWS; i++){
 
 		row_id_str = numeric_to_string(i);
 
@@ -4569,7 +4580,8 @@ ExcelWriteManager::write_data_inout_2D(
 			break;
 		}
 
-		print_vector(excel_keys);
+		//~ std::cout << "xl_keys" << std::endl;
+		//~ print_vector(excel_keys);
 
 		xl_key_map[excel_keys] = excel_row;
 		xl_row_map[excel_keys] = i;
@@ -4584,6 +4596,9 @@ ExcelWriteManager::write_data_inout_2D(
 	for (int i = 0; i < TI->nrows; i++){
 
 		get_ampl_keys_2D(i, h_set_pos);
+
+		//~ std::cout << "ampl_keys" << std::endl;
+		//~ print_vector(ampl_keys);
 
 		// get the corresponding row in xl table
 		pugi::xml_node row_to_write;
@@ -4661,7 +4676,7 @@ ExcelWriteManager::get_excel_keys_2D(
 		excel_keys[i].clear();
 	}
 
-	int nkeys = TI->arity - 1;
+	int nkeys = TI->arity;
 
 	int pos = 0;
 	for (int i = 0; i < nkeys; i++){
@@ -4758,7 +4773,10 @@ ExcelWriteManager::get_ampl_keys_2D(int line, int h_set){
 	int pos = 0;
 	for (int i = 0; i < nkeys; i++){
 
-		if (i == h_set){continue;}
+		if (i == h_set){
+			db++;
+			continue;
+		}
 
 		if (db->sval && db->sval[line]){
 			ampl_keys[pos] = std::string(db->sval[line]);
