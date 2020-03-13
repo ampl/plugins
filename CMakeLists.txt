@@ -20,7 +20,8 @@ include(CPack)
 include(CTest)
 enable_testing()
 
-set(AMPL_LIBRARY_DIR .)
+#set(AMPL_LIBRARY_DIR .)
 
+add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
 

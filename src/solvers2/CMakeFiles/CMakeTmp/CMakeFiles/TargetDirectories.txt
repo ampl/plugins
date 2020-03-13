@@ -1,3 +1,0 @@
-/home/fdabrandao/AMPL/github/tables/solvers2/CMakeFiles/CMakeTmp/CMakeFiles/rebuild_cache.dir
-/home/fdabrandao/AMPL/github/tables/solvers2/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_fecc7.dir
-/home/fdabrandao/AMPL/github/tables/solvers2/CMakeFiles/CMakeTmp/CMakeFiles/edit_cache.dir
