@@ -275,7 +275,7 @@ class ExcelManager
 	int parse_data2D(pugi::xml_node node, int first_row, int last_row, std::string & first_col, std::string & last_col);
 
 	void get_cell_val(pugi::xml_node node, std::string & val);
-	void set_dbcol_val(std::string & val, DbCol * db);
+	void set_dbcol_val(std::string & val, DbCol * db, int is_string);
 
 	int get_table_top_left_coords(pugi::xml_node node, int & first_row, std::string & first_col);
 
@@ -316,7 +316,8 @@ class ExcelManager
 		int first_row,
 		pugi::xml_node node,
 		std::map<std::string, std::string> & xl_col_map,
-		std::vector<std::string> & header
+		std::vector<std::string> & header,
+		std::vector<int> & is_header_string
 	);
 
 

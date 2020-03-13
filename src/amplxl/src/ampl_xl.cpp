@@ -1250,6 +1250,8 @@ ExcelManager::parse_data(
 
 		db = TI->cols;
 		if ((*TI->AddRows)(TI, db, 1)){
+			msg = "Error with AddRows";
+			logger.log(msg, LOG_DEBUG);
 			return DB_Error;
 		}
 
@@ -1796,6 +1798,8 @@ ExcelWriteManager::get_excel_keys(pugi::xml_node excel_row, int row){
 			t = strtod(value.c_str(), &se);
 			if (!*se) {/* valid number */
 				value = numeric_to_scientific(t);
+				// add prefix to avoid clash with strings with the same numeric value
+				value = "ampl-numeric-" + value;
 			}
 			else{
 				// could not convert number to numeric value
@@ -1854,7 +1858,10 @@ ExcelWriteManager::get_ampl_keys(int line){
 			ampl_keys[i] = std::string(db->sval[line]);
 		}
 		else{
-			ampl_keys[i] = numeric_to_scientific(db->dval[line]);
+			std::string value = numeric_to_scientific(db->dval[line]);
+			// add prefix to avoid clash with strings with the same numeric value
+			value = "ampl-numeric-" + value;
+			ampl_keys[i] = value;
 		}
 		db++;
 	}
@@ -2809,7 +2816,7 @@ ExcelWriteManager::write_header_2D(
 			ampl_header = db->sval[i];
 		}
 		else{
-			ampl_header = numeric_to_scientific(db->dval[i]);
+			ampl_header = "ampl-numeric-" + numeric_to_scientific(db->dval[i]);
 		}
 		// skip repetitions
 		if (xl_col_map.find(ampl_header) == xl_col_map.end()){
@@ -3322,7 +3329,7 @@ void ExcelManager::get_cell_val(pugi::xml_node node, std::string & val){
 };
 
 void
-ExcelManager::set_dbcol_val(std::string & val, DbCol * db){
+ExcelManager::set_dbcol_val(std::string & val, DbCol * db, int is_string){
 
 	char* se;
 	double t;
@@ -3331,19 +3338,23 @@ ExcelManager::set_dbcol_val(std::string & val, DbCol * db){
 		db->sval[0] = TI->Missing;
 	}
 	else{
-		// try to convert the value to numeric
-		t = strtod(val.c_str(), &se);
-		if (!*se) {/* valid number */
-			db->sval[0] = 0;
-			db->dval[0] = t;
-			//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
+		if (is_string){
+			db->sval[0] = &val[0u];
 		}
 		else{
-			db->sval[0] = &val[0u];
-			//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+			// try to convert the value to numeric
+			t = strtod(val.c_str(), &se);
+			if (!*se) {/* valid number */
+				db->sval[0] = 0;
+				db->dval[0] = t;
+				//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
+			}
+			else{
+				db->sval[0] = &val[0u];
+				//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+			}
 		}
 	}
-
 };
 
 
@@ -3615,7 +3626,7 @@ ExcelWriteManager::write_data_out_2D(
 				ampl_col_name = TI->cols[i].sval[ampl_row];
 			}
 			else{
-				ampl_col_name = numeric_to_string(TI->cols[i].dval[ampl_row]);
+				ampl_col_name = "ampl-numeric-" + numeric_to_string(TI->cols[i].dval[ampl_row]);
 			}
 			ampl_keys[i] = ampl_col_name;
 		}
@@ -3637,7 +3648,7 @@ ExcelWriteManager::write_data_out_2D(
 					xl_col_name = TI->cols[h_set_pos].sval[ampl_row];
 				}
 				else{
-					xl_col_name = numeric_to_string(TI->cols[h_set_pos].dval[ampl_row]);
+					xl_col_name = "ampl-numeric-" + numeric_to_string(TI->cols[h_set_pos].dval[ampl_row]);
 				}
 				auxdb = &TI->cols[ampl_ncols - 1];
 			}
@@ -3796,19 +3807,25 @@ ExcelManager::parse_header(
 	iter_col = first_col;
 	while(1){
 
+		bool is_numeric = true;
 		cell_adress = iter_col + row_id;
 		xl_cell = xl_row.find_child_by_attribute(row_attr, cell_adress.c_str());
 		xl_col_name = xl_cell.child("v").child_value();
 
 		if (xl_cell.attribute("t").value() == std::string("s")){
 			xl_col_name = shared_strings[std::atoi(xl_col_name.c_str())];
+			is_numeric = false;
 		}
 		else if (xl_cell.attribute("t").value() == std::string("inlineStr")){
 			xl_col_name = xl_cell.child("v").first_child().child_value();
+			is_numeric = false;
 		}
 
 		if (!xl_col_name.empty()){
 			last_col = iter_col;
+			if (is_numeric){
+				xl_col_name = "ampl-numeric-" + xl_col_name;
+			}
 			xl_col_map[xl_col_name] = iter_col;
 			//~ nempty = 0;
 
@@ -4084,7 +4101,7 @@ int ExcelWriteManager::count_2D_rows(std::map<std::vector<std::string>, int> & k
 				ampl_col_value = TI->cols[j].sval[i];
 			}
 			else{
-				ampl_col_value = numeric_to_string(TI->cols[j].dval[i]);
+				ampl_col_value = "ampl-numeric-" + numeric_to_string(TI->cols[j].dval[i]);
 			}
 			ampl_keys[j] = ampl_col_value;
 		}
@@ -4176,7 +4193,8 @@ ExcelManager::parse_header_2D_reader(
 	int first_row,
 	pugi::xml_node node,
 	std::map<std::string, std::string> & xl_col_map,
-	std::vector<std::string> & header
+	std::vector<std::string> & header,
+	std::vector<int> & is_header_string
 
 ){
 	std::string msg;
@@ -4202,13 +4220,17 @@ ExcelManager::parse_header_2D_reader(
 
 		cell_adress = iter_col + row_id;
 		xl_cell = xl_row.find_child_by_attribute(row_attr, cell_adress.c_str());
+
+		int is_string = 0;
 		xl_col_name = xl_cell.child("v").child_value();
 
 		if (xl_cell.attribute("t").value() == std::string("s")){
 			xl_col_name = shared_strings[std::atoi(xl_col_name.c_str())];
+			is_string = 1;
 		}
 		else if (xl_cell.attribute("t").value() == std::string("inlineStr")){
 			xl_col_name = xl_cell.child("v").first_child().child_value();
+			is_string = 1;
 		}
 
 		if (!xl_col_name.empty()){
@@ -4223,6 +4245,8 @@ ExcelManager::parse_header_2D_reader(
 			header.push_back("");
 			nempty += 1;
 		}
+
+		is_header_string.push_back(is_string);
 
 		if (nempty == max_empty){
 			msg = "Cannot find more columns, search done.";
@@ -4269,7 +4293,8 @@ ExcelManager::parse_data2D(
 	// get information from table header
 	std::map<std::string, std::string> xl_col_map;
 	std::vector<std::string> header;
-	int res = parse_header_2D_reader(first_col, last_col, first_row, node, xl_col_map, header);
+	std::vector<int> is_header_string;
+	int res = parse_header_2D_reader(first_col, last_col, first_row, node, xl_col_map, header, is_header_string);
 
 	if (res){
 		// no header found?
@@ -4356,6 +4381,10 @@ ExcelManager::parse_data2D(
 	std::vector<std::string> xl_row_info;
 	xl_row_info.resize(xl_col_map.size());
 
+	// check if value was read from numeric or string
+	std::vector<int> is_string;
+	is_string.resize(xl_col_map.size());
+
 	// iterate rows
 	std::string cell_ref;
 	std::string iter_col;
@@ -4390,6 +4419,7 @@ ExcelManager::parse_data2D(
 		// delete info in row
 		for (int j = 0; j < xl_row_info.size(); j++){
 			xl_row_info[j].clear();
+			is_string[j] = 0;
 		}
 
 		// populate row with data from spreadsheet
@@ -4401,15 +4431,28 @@ ExcelManager::parse_data2D(
 				iter_cell = iter_row.find_child_by_attribute(row_attr, cell_ref.c_str());
 			}
 
+			int is_string_cell = 0;
 			if (!iter_cell){
 				// could not find cell in defined range ?!
 				cell_value = "";
 			}
 			else{
-				get_cell_val(iter_cell, cell_value);
+				//~ get_cell_val(iter_cell, cell_value);
+				cell_value = "";
+				cell_value = iter_cell.child("v").child_value();
+
+				if (iter_cell.attribute("t").value() == std::string("s")){
+					cell_value = shared_strings[std::atoi(cell_value.c_str())];
+					is_string_cell = 1;
+				}
+				else if (iter_cell.attribute("t").value() == std::string("inlineStr")){
+					cell_value = node.first_child().first_child().child_value();
+					is_string_cell = 1;
+				}
 			}
 
 			xl_row_info[col] = cell_value;
+			is_string[col] = is_string_cell;
 
 			if (iter_col == last_col){
 				break;
@@ -4430,14 +4473,14 @@ ExcelManager::parse_data2D(
 		int pos = 0;
 		for (int j = 0; j < arity_cols.size(); j++){
 			pos = arity_cols[j];
-			set_dbcol_val(xl_row_info[pos], &TI->cols[xl_to_ampl_cols[pos]]);
+			set_dbcol_val(xl_row_info[pos], &TI->cols[xl_to_ampl_cols[pos]], is_string[pos]);
 		}
 
 		// for each element in value_cols we add a row to the ampl table
 		for (int j = 0; j < value_cols.size(); j++){
 			pos = value_cols[j];
-			set_dbcol_val(header[pos], &TI->cols[h_set_pos]);
-			set_dbcol_val(xl_row_info[pos], &TI->cols[TI->arity]);
+			set_dbcol_val(header[pos], &TI->cols[h_set_pos], is_header_string[pos]);
+			set_dbcol_val(xl_row_info[pos], &TI->cols[TI->arity], is_string[pos]);
 
 			if (verbose == 73){
 				std::cout << "header: " << header[pos] << std::endl;
@@ -4446,6 +4489,8 @@ ExcelManager::parse_data2D(
 
 			DbCol *db = TI->cols;
 			if ((*TI->AddRows)(TI, db, 1)){
+				msg = "Error with AddRows";
+				logger.log(msg, LOG_DEBUG);
 				return DB_Error;
 			}
 		}
@@ -4580,8 +4625,8 @@ ExcelWriteManager::write_data_inout_2D(
 			break;
 		}
 
-		//~ std::cout << "xl_keys" << std::endl;
-		//~ print_vector(excel_keys);
+		std::cout << "xl_keys" << std::endl;
+		print_vector(excel_keys);
 
 		xl_key_map[excel_keys] = excel_row;
 		xl_row_map[excel_keys] = i;
@@ -4597,8 +4642,8 @@ ExcelWriteManager::write_data_inout_2D(
 
 		get_ampl_keys_2D(i, h_set_pos);
 
-		//~ std::cout << "ampl_keys" << std::endl;
-		//~ print_vector(ampl_keys);
+		std::cout << "ampl_keys" << std::endl;
+		print_vector(ampl_keys);
 
 		// get the corresponding row in xl table
 		pugi::xml_node row_to_write;
@@ -4714,6 +4759,8 @@ ExcelWriteManager::get_excel_keys_2D(
 			t = strtod(value.c_str(), &se);
 			if (!*se) {/* valid number */
 				value = numeric_to_scientific(t);
+				// add prefix to avoid clash with strings with the same numeric value
+				value = "ampl-numeric-" + value;
 			}
 			else{
 				// could not convert number to numeric value
@@ -4782,7 +4829,10 @@ ExcelWriteManager::get_ampl_keys_2D(int line, int h_set){
 			ampl_keys[pos] = std::string(db->sval[line]);
 		}
 		else{
-			ampl_keys[pos] = numeric_to_scientific(db->dval[line]);
+			std::string value = numeric_to_scientific(db->dval[line]);
+			// add prefix to avoid clash with strings with the same numeric value
+			value = "ampl-numeric-" + value;
+			ampl_keys[pos] = value;
 		}
 		db++;
 		pos += 1;
