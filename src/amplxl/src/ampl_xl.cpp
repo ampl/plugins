@@ -883,6 +883,9 @@ ExcelManager::parse_workbook(){
 
 	for (it = node.begin(); it != node.end(); ++it){
 
+		msg = std::string("definedName: ") + it->attribute("name").value();
+		logger.log(msg, LOG_DEBUG);
+
 		if (it->attribute("name").value() == table_name){
 			excel_range = it->child_value();
 		}
@@ -897,6 +900,10 @@ ExcelManager::parse_workbook(){
 		std::string r_id = it->attribute("r:id").value();
 		sheet_rel_map[name] = r_id;
 	}
+
+	msg = "xl range: " + excel_range;
+	logger.log(msg, LOG_DEBUG);
+
 	return 0;
 };
 
@@ -912,31 +919,37 @@ ExcelManager::parse_excel_range(){
 
 	while(pch != NULL){
 		split.push_back(pch);
-		//~ std::cout << "pch: " << pch << std::endl;
 		pch = strtok(NULL, "!$:;");
 	}
 
-	if (split.size() != 5){
-		// range should have 5 elements
-		//Error could not parse range
-		msg = "Could not parse range ";
-		msg += excel_range;
-		logger.log(msg, LOG_ERROR);
-		return 1;
-	}
-
 	try{
-		range_sheet = std::string(split[0]);
-		range_first_col = std::string(split[1]);
-		range_last_col = std::string(split[3]);
-		range_first_row = atoi(split[2]);
-		range_last_row = atoi(split[4]);
+		if (split.size() == 3){
+			range_sheet = std::string(split[0]);
+			range_first_col = std::string(split[1]);
+			range_last_col = std::string(split[1]);
+			range_first_row = atoi(split[2]);
+			range_last_row = atoi(split[2]);
+		}
+		else if (split.size() == 5){
+			range_sheet = std::string(split[0]);
+			range_first_col = std::string(split[1]);
+			range_last_col = std::string(split[3]);
+			range_first_row = atoi(split[2]);
+			range_last_row = atoi(split[4]);
+		}
+		else{
+			// range should have 3 or 5 elements
+			msg = "Could not parse range ";
+			msg += excel_range;
+			logger.log(msg, LOG_DEBUG);
+			return 1;
+		}
 	}
 	catch(int e){
 		// could not convert one of the elements
 		msg = "Could not convert range ";
 		msg += excel_range;
-		logger.log(msg, LOG_ERROR);
+		logger.log(msg, LOG_DEBUG);
 		return 1;
 	}
 
