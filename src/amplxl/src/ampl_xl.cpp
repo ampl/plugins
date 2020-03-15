@@ -4220,8 +4220,6 @@ ExcelManager::parse_header_2D_reader(
 
 	pugi::xml_node xl_cell;
 
-	int nempty = 0; // number of empty columns parsed
-	const int max_empty = 100; // maximum number of empty columns allowed
 	bool found = false;
 
 	// get first row
@@ -4249,23 +4247,15 @@ ExcelManager::parse_header_2D_reader(
 		if (!xl_col_name.empty()){
 			xl_col_map[xl_col_name] = iter_col;
 			header.push_back(xl_col_name);
-			nempty = 0;
 
 			msg = "Found column header " + xl_col_name;
 			logger.log(msg, LOG_DEBUG);
 		}
 		else{
-			header.push_back("");
-			nempty += 1;
+			break;
 		}
 
 		is_header_string.push_back(is_string);
-
-		if (nempty == max_empty){
-			msg = "Cannot find more columns, search done.";
-			logger.log(msg, LOG_DEBUG);
-			break;
-		}
 
 		if (iter_col == last_col){
 			msg = "Last column reached, search done";
@@ -4280,12 +4270,6 @@ ExcelManager::parse_header_2D_reader(
 
 	return 0;
 };
-
-
-
-
-
-
 
 
 int
