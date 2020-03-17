@@ -1416,27 +1416,27 @@ ExcelWriteManager::manage_data(){
 
 	if (inout == "OUT"){
 
-		// At this point we have an estimate of the table dimensions.
-		// However, due to the dynamic nature of data, this estimate may not be correct.
-		// We compare dimensions and increase/reduce the number of rows accordingly
-
-		int n_xl_rows = last_row - first_row; // still including the header so we dont need the +1
-		int n_diff_rows = abs(TI->nrows - n_xl_rows);
-
-		if (n_xl_rows > TI->nrows){
-			// need to shrink
-			delete_range_values(node, last_row - n_diff_rows + 1, last_row, first_col, last_col);
-			log_last_row_change(last_row, last_row - n_diff_rows);
-			last_row -= n_diff_rows;
-		}
-		else if (n_xl_rows < TI->nrows){
-			// increase number of rows
-			log_last_row_change(last_row, last_row + n_diff_rows);
-
-			last_row += n_diff_rows;
-		}
-
 		if (write == "drop"){
+
+			// At this point we have an estimate of the table dimensions.
+			// However, due to the dynamic nature of data, this estimate may not be correct.
+			// We compare dimensions and increase/reduce the number of rows accordingly
+
+			int n_xl_rows = last_row - first_row; // still including the header so we dont need the +1
+			int n_diff_rows = abs(TI->nrows - n_xl_rows);
+
+			if (n_xl_rows > TI->nrows){
+				// need to shrink
+				delete_range_values(node, last_row - n_diff_rows + 1, last_row, first_col, last_col);
+				log_last_row_change(last_row, last_row - n_diff_rows);
+				last_row -= n_diff_rows;
+			}
+			else if (n_xl_rows < TI->nrows){
+				// increase number of rows
+				log_last_row_change(last_row, last_row + n_diff_rows);
+
+				last_row += n_diff_rows;
+			}
 
 			result = check_columns(node, first_row, first_col, last_col);
 
