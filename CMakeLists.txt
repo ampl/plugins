@@ -6,6 +6,19 @@ else()
   cmake_policy(VERSION 3.11)
 endif()
 
+# Use static MSVC runtime.
+# This should be done before the project command.
+function (override var file)
+  if (EXISTS "${file}")
+    set(${var} ${file} PARENT_SCOPE)
+  endif ()
+endfunction ()
+override(CMAKE_USER_MAKE_RULES_OVERRIDE
+  ${CMAKE_SOURCE_DIR}/cmake/c_flag_overrides.cmake)
+override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
+  ${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
+
+
 project(TABLES VERSION 0.0.1 LANGUAGES CXX C)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -20,7 +33,7 @@ include(CPack)
 include(CTest)
 enable_testing()
 
-set(AMPL_LIBRARY_DIR .)
-
+add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
+add_subdirectory(test/tables)
 
