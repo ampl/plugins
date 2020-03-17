@@ -393,6 +393,9 @@ class ExcelManager
 
 	void log_missing_column(int col);
 
+	void
+	log_last_row_change(int initial_row, int updated_row);
+
 };
 
 
@@ -712,6 +715,16 @@ public ExcelManager{
 	int get_ampl_keys_2D(int line, int h_set);
 
 	int count_2D_rows(std::map<std::vector<std::string>, int> & key_set, int pos);
+
+	void delete_range_values(
+		pugi::xml_node parent,
+		int first_row,
+		int last_row,
+		const std::string & first_col,
+		const std::string & last_col
+	);
+
+
 };
 
 

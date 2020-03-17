@@ -135,12 +135,27 @@ ExcelManager::log_table_coords(
 void
 ExcelManager::log_missing_column(int col){
 
-		std::string msg;
-		msg = "Could not find column ";
-		msg += TI->colnames[col];
-		msg += " in spreadsheet table header";
-		logger.log(msg, LOG_ERROR);
+	std::string msg;
+	msg = "Could not find column ";
+	msg += TI->colnames[col];
+	msg += " in spreadsheet table header";
+	logger.log(msg, LOG_ERROR);
 };
+
+
+void
+ExcelManager::log_last_row_change(int initial_row, int updated_row){
+
+	std::string msg;
+	msg = "table last row changed from ";
+	msg += numeric_to_string(initial_row);
+	msg += " to ";
+	msg += numeric_to_string(updated_row);
+	logger.log(msg, LOG_WARNING);
+};
+
+
+
 
 
 int
@@ -1391,6 +1406,7 @@ ExcelWriteManager::manage_data(){
 		last_row = get_last_row_in_table(node, first_row, first_col);
 		//~ last_row = first_row + TI->nrows;
 	}
+
 	log_table_coords(first_col, last_col, first_row, last_row);
 
 	// map shared strings for fast access and get the number of existing strings, since we may add
@@ -1399,6 +1415,26 @@ ExcelWriteManager::manage_data(){
 	int n_sstrings = shared_strings.size();
 
 	if (inout == "OUT"){
+
+		// At this point we have an estimate of the table dimensions.
+		// However, due to the dynamic nature of data, this estimate may not be correct.
+		// We compare dimensions and increase/reduce the number of rows accordingly
+
+		int n_xl_rows = last_row - first_row; // still including the header so we dont need the +1
+		int n_diff_rows = abs(TI->nrows - n_xl_rows);
+
+		if (n_xl_rows > TI->nrows){
+			// need to shrink
+			delete_range_values(node, last_row - n_diff_rows + 1, last_row, first_col, last_col);
+			log_last_row_change(last_row, last_row - n_diff_rows);
+			last_row -= n_diff_rows;
+		}
+		else if (n_xl_rows < TI->nrows){
+			// increase number of rows
+			log_last_row_change(last_row, last_row + n_diff_rows);
+
+			last_row += n_diff_rows;
+		}
 
 		if (write == "drop"){
 
@@ -1588,14 +1624,6 @@ ExcelWriteManager::write_data_out(
 
 	std::clock_t start_time = get_time();
 
-	pugi::xml_node excel_row;
-	pugi::xml_node excel_cell;
-	pugi::xml_node excel_val;
-	pugi::xml_node dnode;
-
-	std::stringstream strs;
-	std::string row_id_str;
-
 	// map rows and cells for faster access
 	std::map<std::string, pugi::xml_node> row_map;
 	std::map<std::string, pugi::xml_node> cell_map;
@@ -1617,21 +1645,21 @@ ExcelWriteManager::write_data_out(
 	const int ampl_ncols = TI->arity + TI->ncols;
 	DbCol *db;
 
-	int trow = 0;
-	for (int i = first_row; i <= last_row; i++){
+	int xl_row = first_row;
+	for (int i = 0; i < TI->nrows; i++){
 
 		db = TI->cols;
 
 		for (int j = 0; j < ampl_ncols; j++){
 
 			std::string cell_col = ampl_to_excel_cols[j];
-			std::string cell_row = numeric_to_string(i);
+			std::string cell_row = numeric_to_string(xl_row);
 			std::string cell_reference = cell_col + cell_row;
 			pugi::xml_node write_cell = cell_map[cell_reference];
-			set_cell_value(db, trow, write_cell);
+			set_cell_value(db, i, write_cell);
 			db++;
 		}
-		trow += 1;
+		xl_row += 1;
 	}
 
 	std::clock_t end_time = get_time();
@@ -4838,5 +4866,78 @@ ExcelWriteManager::get_ampl_keys_2D(int line, int h_set){
 };
 
 
+void
+ExcelWriteManager::delete_range_values(
+	pugi::xml_node parent,
+	int first_row,
+	int last_row,
+	const std::string & first_col,
+	const std::string & last_col
+){
+	std::string msg;
+
+	msg = "Delete range values...";
+	logger.log(msg, LOG_INFO);
+	std::clock_t start_time = get_time();
+
+	pugi::xml_node xl_row;
+	pugi::xml_node xl_cell;
+	std::string row_id;
+	std::string iter_col;
+	std::string cell_adress;
+
+	//~ row_id = numeric_to_string(first_row);
+	xl_row = get_excel_row(parent, first_row);
+
+	// iterate rows
+	for (int i = first_row; i <= last_row; i++){
+
+		row_id = numeric_to_string(i);
+
+		if (xl_row.attribute(row_attr).value() != row_id){
+			xl_row = get_excel_row(parent, i);
+		}
+
+		if (xl_row){
+
+			// iterate columns and delete cell (if found)
+			iter_col = first_col;
+			cell_adress = iter_col + row_id;
+			xl_cell = xl_row.find_child_by_attribute(row_attr, cell_adress.c_str());
+
+			while (1){
+				cell_adress = iter_col + row_id;
+
+				// get the cell element
+				if (xl_cell.attribute(row_attr).value() != cell_adress){
+					xl_cell = xl_row.find_child_by_attribute(row_attr, cell_adress.c_str());
+				}
+
+				if (xl_cell){
+
+					pugi::xml_node xl_val = xl_cell.child("v");
+
+					if (xl_val){
+						xl_cell.remove_child(xl_val);
+					}
+				}
+
+				if (iter_col == last_col){
+					break;
+				}
+
+				xl_cell = xl_cell.next_sibling();
+				ecm.next(iter_col);
+			}
+		}
+		xl_row = xl_row.next_sibling();
+	}
+
+	std::clock_t end_time = get_time();
+	double total_time = clock_to_seconds(start_time, end_time);
+
+	msg = std::string("Delete range values done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" s.");
+	logger.log(msg, LOG_INFO);
+};
 
 
