@@ -21,6 +21,12 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 
 project(TABLES VERSION 0.0.1 LANGUAGES CXX C)
 
+
+if (MSVC)
+  # Disable useless MSVC warnings suggesting nonportable "secure" alternatives.
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+endif ()
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # CPack
