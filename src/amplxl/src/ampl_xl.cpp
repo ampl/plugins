@@ -4404,11 +4404,11 @@ ExcelManager::parse_data2D(
 
 	// structure to store info of the row we are reading
 	std::vector<std::string> xl_row_info;
-	xl_row_info.resize(xl_col_map.size());
+	xl_row_info.resize(header.size());
 
 	// check if value was read from numeric or string
 	std::vector<int> is_string;
-	is_string.resize(xl_col_map.size());
+	is_string.resize(header.size());
 
 	// iterate rows
 	std::string cell_ref;
