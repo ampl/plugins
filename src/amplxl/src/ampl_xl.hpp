@@ -177,6 +177,9 @@ class ExcelManager
 	// if we are dealing with a 2 dimensional table
 	bool is2D;
 
+	// check if we are only reading a table
+	bool isReader;
+
 	// map of a shared string to its position in the shared_strings array
 	std::map<std::string, int> sstrings_map;
 
@@ -441,6 +444,8 @@ public ExcelManager{
 	std::vector<std::string> excel_keys;
 	std::vector<std::string> ampl_keys;
 
+
+	ExcelWriteManager();
 
 	/*
 	** Main method of the class.

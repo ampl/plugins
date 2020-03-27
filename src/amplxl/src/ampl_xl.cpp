@@ -89,6 +89,12 @@ ExcelManager::ExcelManager(){
 	write = "drop";
 	backup = true;
 	is2D = false;
+	isReader = true;
+};
+
+
+ExcelWriteManager::ExcelWriteManager(){
+	isReader = false;
 };
 
 
@@ -228,7 +234,7 @@ ExcelManager::prepare(){
 	else{
 		msg = "unsuported flag";
 		logger.log(msg, LOG_ERROR);
-		return 1;
+		return DB_Error;
 	}
 
 	// first string holds table handler name
@@ -368,6 +374,12 @@ ExcelManager::prepare(){
 
 		//if no file declared write as an out table
 		if (inout == "INOUT"){
+
+			if (isReader){
+				msg = "Could not find " + excel_path;
+				logger.log(msg, LOG_ERROR);
+				return DB_Error;
+			}
 			inout = "OUT";
 		}
 
@@ -389,7 +401,7 @@ ExcelManager::prepare(){
 				// Failed to build oxml
 				msg = "Could not create oxml file, please confirm that the folders to the defined file exist.";
 				logger.log(msg, LOG_ERROR);
-				return 1;
+				return DB_Error;
 			}
 
 			res = oxml_add_new_sheet(excel_path, table_name);
@@ -399,7 +411,7 @@ ExcelManager::prepare(){
 				//~ std::string err = "amplxl: could not add new sheet to oxml file.\n";
 				msg = "amplxl: could not add new sheet to oxml file.";
 				logger.log(msg, LOG_ERROR);
-				return 1;
+				return DB_Error;
 			}
 		}
 		// IN file must exist beforehand
@@ -407,7 +419,7 @@ ExcelManager::prepare(){
 			msg = "Could not find file ";
 			msg += excel_path;
 			logger.log(msg, LOG_ERROR);
-			return 1;
+			return DB_Error;
 		}
 	}
 	// file exists
