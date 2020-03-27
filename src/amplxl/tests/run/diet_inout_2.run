@@ -3,8 +3,8 @@ option display_precision 0;
 model diet.mod;
 
 param dname symbolic := "amplxl";
-param fname_in symbolic := "diet_xlsx/diet_in_1.xlsx";
-param fname_out symbolic := "diet_xlsx/diet_inout_1.xlsx";
+param fname_in symbolic := "diet_in_2.xlsx";
+param fname_out symbolic := "diet_inout_2.xlsx";
 
 table Amounts IN (dname) (fname_in):
     [NUTR,FOOD], amt;
@@ -34,7 +34,7 @@ reset;
 option display_precision 0;
 
 param dname symbolic := "amplxl";
-param fname_out symbolic := "diet_xlsx/diet_inout_1.xlsx";
+param fname_out symbolic := "diet_inout_2.xlsx";
 
 set FOOD;
 param cost{FOOD};

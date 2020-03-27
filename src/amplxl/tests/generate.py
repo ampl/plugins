@@ -211,8 +211,8 @@ display BuyRC;
 
 if __name__ == '__main__':
     NTYPES = 3
-    RUN_DIR = 'diet_run/'
-    XLSX_DIR = 'diet_xlsx/'
+    RUN_DIR = 'run/'
+    XLSX_DIR = ''
     generated = []
 
     for i in range(NTYPES):

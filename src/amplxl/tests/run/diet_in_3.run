@@ -3,7 +3,7 @@ option display_precision 0;
 model diet.mod;
 
 param dname symbolic := "amplxl";
-param fname symbolic := "diet_xlsx/diet_in_3.xlsx";
+param fname symbolic := "diet_in_3.xlsx";
 
 table Amounts IN (dname) (fname):
     [NUTR,FOOD], amt;

@@ -1,0 +1,34 @@
+# test if .xlsx file that does not exist but is provided in table declaration is generated
+reset;
+option display_precision 0;
+
+set A := 1..100;
+param B{A};
+param C{A};
+
+for {i in A}{
+
+	let B[i] := 1/i;
+	let C[i] := 2**i;
+}
+
+table notexists OUT "amplxl" "notexists.xlsx":
+	[A], B, C;
+
+write table notexists;
+
+reset;
+
+set A;
+param B{A};
+param C{A};
+
+table notexists IN "amplxl" "notexists.xlsx":
+	A <- [A], B, C;
+
+read table notexists;
+
+display A;
+display B;
+display C;
+

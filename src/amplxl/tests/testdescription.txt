@@ -1,0 +1,54 @@
+Brief description of the tests in the run folder.
+The name of the test usually ends in a number, the number indicates how the table is defined:
+1 - the table is defined by a named range
+2 - only the header of the table is defined by a named range
+3 - the table is defined by a sheet name
+____________________________________________________________________________________________________
+Diet tests
+
+Tests for the basic functionality of the table handler: table reading (in); table writting (out); 
+table reading and update (inout); and table reading and update with a single table declaration
+(inout_single).
+
+Files:
+diet_in_*
+diet_inout_*
+diet_inout_single_*
+diet_out_*
+____________________________________________________________________________________________________
+Key value tests
+
+tests to validate if the keys and values of a given table are handled correctly. In keyvaltest* and
+keyvaltest2D* we read the table, update some values and overwtite the table. In keyvaltestinout* and
+keyvaltestinout2D* we read the table, change some values and update the table. The keys used don't
+make sense, since they are basically identical numbers and strings, but are good for testing.
+
+Files:
+keyvaltest*
+keyvaltest2D*
+keyvaltestinout*
+keyvaltestinout2D*
+____________________________________________________________________________________________________
+File generation
+
+Check if missing files are generated correctly.
+In notdeclared no file is declared, so the handler is expected to generate a .xlsx file with the 
+name of the table.
+In notexists the file is declared in the table statement but it does not exist, so it should be
+created.
+The generated files have uncommon numerical values so they are also good to test the numerical
+acuracy of the table handler. 
+
+Files:
+notdeclared
+notexists
+____________________________________________________________________________________________________
+Table redimension
+
+When we write a table with a number of rows greater than the previous the table handler will
+naturaly overwrite the previous values. However, when the number of rows is smaler than the previous
+we need to clean up the information from the previous table. These tests validate this operation.
+
+Files:
+shrinkrows*
+____________________________________________________________________________________________________
