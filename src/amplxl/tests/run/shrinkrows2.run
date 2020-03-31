@@ -14,10 +14,10 @@ for {i in A, j in B}{
 	let temp := temp - 1;
 }
 
-table table1 OUT "amplxl" "shrinkrows2.xlsx":
+table table2 OUT "amplxl" "shrinkrows2.xlsx":
 	[A, B], C;
 
-write table table1;
+write table table2;
 
 reset;
 
@@ -29,10 +29,10 @@ set B := 1..m;
 
 param C{A,B};
 
-table table1 IN "amplxl" "shrinkrows2.xlsx":
+table table2 IN "amplxl" "shrinkrows2.xlsx":
 	[A, B], C;
 
-read table table1;
+read table table2;
 
 display C;
 
