@@ -90,11 +90,13 @@ ExcelManager::ExcelManager(){
 	backup = true;
 	is2D = false;
 	isReader = true;
+	tableType = 0;
 };
 
 
 ExcelWriteManager::ExcelWriteManager(){
 	isReader = false;
+	updateRange = false;
 };
 
 
@@ -483,10 +485,15 @@ ExcelManager::manage_workbook(){
 	if (excel_range.empty()){
 		// assume the name of the sheet equals the name of the table
 		range_sheet = table_name;
+		tableType = TABLE_SHEET;
 	}
 	else{
 		has_range = true;
 		result = parse_excel_range();
+
+		if (range_first_row == range_last_row){
+			tableType = TABLE_RANGE;
+		}
 
 		if (result){
 			msg = "cannot parse range";
@@ -495,13 +502,16 @@ ExcelManager::manage_workbook(){
 		}
 	}
 
+	msg = "Table type: " + tableType;
+	logger.log(msg, LOG_DEBUG);
+
 	//~ sheet_rel = sheet_rel_map[range_sheet];
 
 	std::map<std::string,std::string>::iterator it = sheet_rel_map.find(range_sheet);
 	if (it == sheet_rel_map.end()){
 		// cannot find table
 		// if inout is OUT we create a new sheet with the table name
-		if (inout == "OUT" || inout == "INOUT"){
+		if (!isReader){
 
 			result = oxml_add_new_sheet(excel_path, table_name);
 
@@ -926,6 +936,9 @@ ExcelManager::parse_workbook(){
 		std::string name = it->attribute("name").value();
 		std::string r_id = it->attribute("r:id").value();
 		sheet_rel_map[name] = r_id;
+
+		msg = "sheet rel map: " + name + " : " + r_id;
+		logger.log(msg, LOG_DEBUG);
 	}
 
 	msg = "xl range: " + excel_range;
@@ -1365,22 +1378,6 @@ ExcelWriteManager::manage_data(){
 
 	node = doc.child("worksheet").child("sheetData");
 
-	//~ int first_row = 1;
-	//~ int last_row = EXCEL_MAX_ROWS;
-	//~ std::string first_col = std::string("A");
-	//~ std::string last_col = EXCEL_MAX_COLS;
-
-
-	//~ if (has_range){
-		//~ first_row = range_first_row;
-		//~ first_col = range_first_col; 
-		//~ last_col = range_last_col;
-	//~ }
-	//~ else{
-		//~ last_col = number_to_cell_reference(TI->arity + TI->ncols);
-	//~ }
-	//~ last_row = first_row + TI->nrows;
-
 	// get table dimensions
 	int first_row = 1;
 	int last_row = EXCEL_MAX_ROWS;
@@ -1520,6 +1517,12 @@ ExcelWriteManager::manage_data(){
 	std::vector<std::string> changed_files;
 
 
+	if (updateRange){
+		changed_files.push_back("xl/workbook.xml");
+	}
+
+
+
 	// update sheet xml
 	excel_iner_file = "xl/" + data_sheet;
 	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
@@ -1581,6 +1584,11 @@ ExcelWriteManager::manage_data(){
 			return 1;
 		}
 	}
+
+	if (updateRange){
+		update_workbook(xl_copy_path);
+	}
+
 
 	// remove initial file
 	result = remove(excel_path.c_str());
@@ -1674,6 +1682,10 @@ ExcelWriteManager::write_data_out(
 		xl_row += 1;
 	}
 
+	if (tableType == TABLE_RANGE){
+		check_range_update(xl_row - 1);
+	}
+
 	std::clock_t end_time = get_time();
 	double total_time = clock_to_seconds(start_time, end_time);
 
@@ -1681,6 +1693,17 @@ ExcelWriteManager::write_data_out(
 	logger.log(msg, LOG_INFO);
 
 	return 0;
+};
+
+void
+ExcelWriteManager::check_range_update(int last_row){
+
+	if (last_row != range_last_row){
+		range_last_row = last_row;
+		updateRange = true;
+		std::string msg = "named range update required";
+		logger.log(msg, LOG_DEBUG);
+	}
 };
 
 
@@ -2025,6 +2048,10 @@ ExcelWriteManager::write_data_inout(
 
 		// write info
 		copy_info(row_to_write, atoi(row_to_write.attribute("r").value()), i);
+	}
+
+	if (tableType == TABLE_RANGE){
+		check_range_update(xl_table_last_row);
 	}
 
 	std::clock_t end_time = get_time();
@@ -4951,5 +4978,111 @@ ExcelWriteManager::delete_range_values(
 	msg = std::string("Delete range values done in ") +  numeric_to_fixed(total_time, CPUTIMES_NDIGITS) + std::string(" s.");
 	logger.log(msg, LOG_INFO);
 };
+
+
+int
+ExcelWriteManager::update_workbook(std::string & xl_copy_path
+){
+
+	std::string new_range;
+	get_new_range(new_range);
+
+	if (verbose > 0){
+		std::cout << "new range: " << new_range << std::endl;
+	}
+
+	int result = 0;
+
+	// extract workbook
+	excel_iner_file = "xl/workbook.xml";
+	result = myunzip(excel_path, excel_iner_file, temp_folder);
+
+	if (result){
+		// error extracting workbook
+		//~ cannot_extract_workbook();
+		return 1;
+	}
+
+	// get info from workbook
+	excel_file = "workbook.xml";
+	join_path(temp_folder, excel_file, final_path);
+
+	pugi::xml_document doc;
+	pugi::xml_node node;
+	pugi::xml_parse_result presult;
+	pugi::xml_node_iterator it;
+
+	presult = doc.load_file(&final_path[0u]);
+
+	if (!presult){
+		//~ cannot_open_workbook();
+		return 1;
+	}
+
+	// replace named range
+	node = doc.child("workbook").child("definedNames");
+
+	for (it = node.begin(); it != node.end(); ++it){
+
+		if (it->attribute("name").value() == table_name){
+			//~ excel_range = it->child_value();
+			pugi::xml_text my_text = it->text();
+			my_text.set(&new_range[0u]);
+		}
+	}
+
+
+	if (verbose == 73){
+
+		std::cout << "excel_path: " << excel_path << std::endl;
+		std::cout << "excel_iner_file: " << excel_iner_file << std::endl;
+		std::cout << "final_path: " << final_path << std::endl;
+	}
+
+
+	// update sheet xml
+	doc.save_file(&final_path[0u]);
+
+	// replace inside zip
+	result = myzip(xl_copy_path, excel_iner_file, final_path);
+
+	return 0;
+};
+
+
+
+int
+ExcelWriteManager::get_new_range(std::string & new_range){
+
+	std::string msg;
+
+	new_range = range_sheet;
+	new_range += "!$";
+	new_range += range_first_col;
+	new_range += "$";
+	new_range += numeric_to_string(range_first_row);
+	new_range += ":$";
+	new_range += range_last_col;
+	new_range += "$";
+
+	if (tableType == TABLE_RANGE){
+		new_range += numeric_to_string(range_last_row);
+	}
+	else if (tableType == TABLE_HEADER){
+		new_range += numeric_to_string(range_first_row);
+	}
+	else{
+		msg = "undefined table type for named range";
+		logger.log(msg, LOG_ERROR);
+	}
+
+	msg = "new named range: " + new_range;
+	logger.log(msg, LOG_DEBUG);
+};
+
+
+
+
+
 
 

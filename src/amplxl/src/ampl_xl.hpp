@@ -110,6 +110,20 @@ class ExcelColumnManager
 	void next(std::string &astring);
 };
 
+
+/*
+** Enum to classify how the table is defined in the spreadsheet
+** TABLE_RANGE - table is defined by a named range
+** TABLE_HEADER - only the  header of the table is defined by a named range
+** TABLE_SHEET - table is defined by a sheet name
+*/
+enum TABLE_TYPE{
+	TABLE_RANGE = 0,
+	TABLE_HEADER = 1,
+	TABLE_SHEET = 2
+};
+
+
 /*
 ** Base class, provides the methods and structures to read information from a OOXML file.
 */
@@ -180,12 +194,11 @@ class ExcelManager
 	// check if we are only reading a table
 	bool isReader;
 
+	// how the table is represented in the spreadsheet, see enum TABLE_TYPE
+	int tableType;
+
 	// map of a shared string to its position in the shared_strings array
 	std::map<std::string, int> sstrings_map;
-
-
-
-
 
 	// methods
 
@@ -444,8 +457,13 @@ public ExcelManager{
 	std::vector<std::string> excel_keys;
 	std::vector<std::string> ampl_keys;
 
+	bool updateRange;
 
 	ExcelWriteManager();
+
+	void check_range_update(int last_row);
+	int update_workbook(std::string & xl_copy_path);
+	int get_new_range(std::string & new_range);
 
 	/*
 	** Main method of the class.
