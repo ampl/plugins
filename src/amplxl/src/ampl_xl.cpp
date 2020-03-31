@@ -90,7 +90,7 @@ ExcelManager::ExcelManager(){
 	backup = true;
 	is2D = false;
 	isReader = true;
-	tableType = 0;
+	tableType = TABLE_RANGE;
 };
 
 
@@ -492,7 +492,7 @@ ExcelManager::manage_workbook(){
 		result = parse_excel_range();
 
 		if (range_first_row == range_last_row){
-			tableType = TABLE_RANGE;
+			tableType = TABLE_HEADER;
 		}
 
 		if (result){
