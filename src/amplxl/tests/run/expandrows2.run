@@ -1,0 +1,37 @@
+reset;
+
+param n := 4;
+param m := 5;
+
+set A := 1..n;
+set B := 1..m;
+
+param C{A,B};
+param temp default n * m;
+
+for {i in A, j in B}{
+	let C[i,j] := temp;
+	let temp := temp - 1;
+}
+
+table table1 OUT "amplxl" "expandrows2.xlsx":
+	[A, B], C;
+
+write table table1;
+
+reset;
+
+param n := 4;
+param m := 5;
+
+set A := 1..n;
+set B := 1..m;
+
+param C{A,B};
+
+table table1 IN "amplxl" "expandrows2.xlsx":
+	[A, B], C;
+
+read table table1;
+
+display C;

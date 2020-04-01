@@ -47,8 +47,12 @@ Table redimension
 
 When we write a table with a number of rows greater than the previous the table handler will
 naturaly overwrite the previous values. However, when the number of rows is smaler than the previous
-we need to clean up the information from the previous table. These tests validate this operation.
+we need to clean up the information from the previous table. The shrinkrows* tests validate the 
+cleanup operation. The expandrows* tests validate that the dimensions of the table are expanded
+correctly. In shrinkrows1 and expandrows1 we are also validating that the named range is updated
+correctly, otherwise we would not be able to read the information back.
 
 Files:
 shrinkrows*
+expandrows*
 ____________________________________________________________________________________________________
