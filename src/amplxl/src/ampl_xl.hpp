@@ -200,6 +200,10 @@ class ExcelManager
 	// map of a shared string to its position in the shared_strings array
 	std::map<std::string, int> sstrings_map;
 
+	// if the named range that defines the table needs to be updated
+	bool updateRange;
+
+
 	// methods
 
 
@@ -456,8 +460,6 @@ public ExcelManager{
 	// vectors to store the arity strings (in case INOUT)
 	std::vector<std::string> excel_keys;
 	std::vector<std::string> ampl_keys;
-
-	bool updateRange;
 
 	ExcelWriteManager();
 

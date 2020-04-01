@@ -91,12 +91,12 @@ ExcelManager::ExcelManager(){
 	is2D = false;
 	isReader = true;
 	tableType = TABLE_RANGE;
+	updateRange = false;
 };
 
 
 ExcelWriteManager::ExcelWriteManager(){
 	isReader = false;
-	updateRange = false;
 };
 
 
@@ -1030,7 +1030,7 @@ ExcelManager::check_columns(
 		}
 		else{
 			// if reading missing column generates error
-			if (inout == "IN"){
+			if (isReader){
 				return i;
 			}
 			// otherwise add column to table
@@ -1059,6 +1059,11 @@ ExcelManager::add_missing_column(
 	}
 
 	set_cell_string_value(xl_cell, col_name, row, col);
+
+	if (tableType == TABLE_RANGE || tableType == TABLE_HEADER){
+		range_last_col = col;
+		updateRange = true;
+	}
 
 	return 0;
 };
@@ -1485,19 +1490,18 @@ ExcelWriteManager::manage_data(){
 
 		result = check_columns(node, first_row, first_col, last_col);
 
-		if (result == -2){ // update non existing table ???
-			msg = "Table does not exist. " + table_name;
-			logger.log(msg, LOG_ERROR);
-			return 1;
+		if (result == -2){
+			// the table is defined by a named range or sheet name but is empty
+			result = write_all_data_out(node, first_row, last_row, first_col, last_col);
 		}
 		else if (result != -1){
 			log_missing_column(result);
 			return 1;
 		}
-
-		first_row += 1;
-
-		result = write_data_inout(node, first_row, last_row, first_col, last_col);
+		else{
+			first_row += 1;
+			result = write_data_inout(node, first_row, last_row, first_col, last_col);
+		}
 	}
 	else{
 		// unsuported write flag
@@ -1773,6 +1777,10 @@ ExcelWriteManager::write_all_data_out(
 			ecm.next(iter_col);
 		}
 		trow += 1;
+	}
+
+	if (tableType == TABLE_RANGE){
+		check_range_update(trow - 1);
 	}
 
 	std::clock_t end_time = get_time();
