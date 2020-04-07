@@ -95,6 +95,20 @@ ExcelManager::ExcelManager(){
 };
 
 
+int
+ExcelManager::get_sheet_from_zip(){
+
+	if (data_sheet.size() > 3 && data_sheet.substr(0, 3) == "/xl"){
+		excel_iner_file = data_sheet.substr(1, data_sheet.size());
+	}
+	else{
+		excel_iner_file = "xl/" + data_sheet;
+	}
+
+	return myunzip(excel_path, excel_iner_file, temp_folder);
+};
+
+
 ExcelWriteManager::ExcelWriteManager(){
 	isReader = false;
 };
@@ -659,17 +673,15 @@ ExcelReadManager::manage_data(){
 
 	int result = 0;
 
-	// extract sheet with data
-	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(excel_path, excel_iner_file, temp_folder);
+	result = get_sheet_from_zip();
 
 	if (result){
-		msg = "Could not extract sheet";
+		msg = "Could not extract sheet " + excel_iner_file;
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
-	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	excel_file = data_sheet.substr(data_sheet.find_last_of("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
 	pugi::xml_document doc;
@@ -1270,6 +1282,10 @@ ExcelManager::parse_data(
 					temp_strings[j] = value;
 					has_content = true;
 				}
+				else{
+					msg = "empty value for cell " + cell_adress;
+					logger.log(msg, LOG_DEBUG);
+				}
 			}
 
 			ecm.next(iter_col);
@@ -1348,18 +1364,15 @@ ExcelWriteManager::manage_data(){
 
 	int result = 0;
 
-	// extract sheet with data
-	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(excel_path, excel_iner_file, temp_folder);
+	result = get_sheet_from_zip();
 
 	if (result){
-		// error extracting data
-		msg = "Could not extract sheet";
+		msg = "Could not extract sheet " + excel_iner_file;
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
-	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	excel_file = data_sheet.substr(data_sheet.find_last_of("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
 	std::string sheet_final_path = final_path;
@@ -3322,19 +3335,16 @@ ExcelReadManager::manage_data2D(){
 
 	int result = 0;
 
-	// extract sheet with data
-	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(excel_path, excel_iner_file, temp_folder);
+	result = get_sheet_from_zip();
 
 	if (result){
-		// error extracting data
-		msg = "Could not extract sheet";
+		msg = "Could not extract sheet " + excel_iner_file;
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
 	// open xml
-	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	excel_file = data_sheet.substr(data_sheet.find_last_of("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
 	pugi::xml_document doc;
@@ -3958,17 +3968,15 @@ ExcelWriteManager::manage_data2D(){
 
 	int result = 0;
 
-	// extract sheet with data
-	excel_iner_file = "xl/" + data_sheet;
-	result = myunzip(excel_path, excel_iner_file, temp_folder);
+	result = get_sheet_from_zip();
 
 	if (result){
-		msg = "Could not extract sheet";
+		msg = "Could not extract sheet " + excel_iner_file;
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
 
-	excel_file = data_sheet.substr(data_sheet.find("/") + 1); 
+	excel_file = data_sheet.substr(data_sheet.find_last_of("/") + 1); 
 	join_path(temp_folder, excel_file, final_path);
 
 	std::string sheet_final_path = final_path;

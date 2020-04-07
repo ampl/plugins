@@ -70,7 +70,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.2";
+const std::string version = "0.1.3";
 
 
 const char* row_attr = "r";
@@ -415,6 +415,9 @@ class ExcelManager
 
 	void
 	log_last_row_change(int initial_row, int updated_row);
+
+	int
+	get_sheet_from_zip();
 
 };
 
