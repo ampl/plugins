@@ -8,7 +8,6 @@ param C{A,B};
 table inlinestr IN "amplxl":
 	[A, B], C;
 
-load amplxl.dll;
 read table inlinestr;
 
 display C;
