@@ -1,0 +1,14 @@
+reset;
+
+set A := {"a1", "a2"};
+set B := {"b1", "b2"};
+
+param C{A,B};
+
+table inlinestr IN "amplxl":
+	[A, B], C;
+
+load amplxl.dll;
+read table inlinestr;
+
+display C;

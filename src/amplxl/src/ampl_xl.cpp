@@ -1274,7 +1274,7 @@ ExcelManager::parse_data(
 					is_string[j] = 1;
 				}
 				else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
-					value = excel_cell.first_child().first_child().child_value();
+					value = excel_cell.child("is").child("t").child_value();
 					is_string[j] = 1;
 				}
 
@@ -2703,7 +2703,7 @@ ExcelWriteManager::delete_header_range(pugi::xml_node parent, int include_header
 					value = shared_strings[std::atoi(value.c_str())];
 				}
 				else if (excel_cell.attribute("t").value() == std::string("inlineStr")){
-					value = excel_cell.first_child().first_child().child_value();
+					value = excel_cell.child("is").child("t").child_value();
 				}
 
 				if (value.length() > 0){
@@ -3422,7 +3422,7 @@ void ExcelManager::get_cell_val(pugi::xml_node node, std::string & val){
 			val = shared_strings[std::atoi(val.c_str())];
 		}
 		else if (node.attribute("t").value() == std::string("inlineStr")){
-			val = node.first_child().first_child().child_value();
+			val = node.child("is").child("t").child_value();
 		}
 };
 
@@ -3483,7 +3483,6 @@ ExcelManager::get_last_column_in_table(
 	// iterate columns
 	while (true){
 
-		ecm.next(iter_col); // first col might be empty in 2D tables
 		cell_ref = iter_col + row_id;
 
 		if (cell.attribute(row_attr).value() != row_id){
@@ -3497,6 +3496,10 @@ ExcelManager::get_last_column_in_table(
 
 		value = cell.child("v").child_value();
 
+		if (cell.attribute("t").value() == std::string("inlineStr")){
+			value = cell.child("is").child("t").child_value();
+		}
+
 		if(value.empty()){
 			// cell may have only formating
 			return 0;
@@ -3504,6 +3507,8 @@ ExcelManager::get_last_column_in_table(
 
 		last_col = iter_col;
 		cell = cell.next_sibling();
+		ecm.next(iter_col);
+
 	}
 	if (verbose > 2){printf("amplxl: get_last_column_in_table done!\n");}
 
@@ -3542,6 +3547,11 @@ ExcelManager::get_last_row_in_table(
 		if (!cell){break;}
 
 		value = cell.child("v").child_value();
+
+		if (cell.attribute("t").value() == std::string("inlineStr")){
+			value = cell.child("is").child("t").child_value();
+		}
+
 
 		if(value.empty()){break;}
 
@@ -3915,7 +3925,7 @@ ExcelManager::parse_header(
 			is_numeric = false;
 		}
 		else if (xl_cell.attribute("t").value() == std::string("inlineStr")){
-			xl_col_name = xl_cell.child("v").first_child().child_value();
+			xl_col_name = xl_cell.child("is").child("t").child_value();
 			is_numeric = false;
 		}
 
@@ -4323,7 +4333,7 @@ ExcelManager::parse_header_2D_reader(
 			is_string = 1;
 		}
 		else if (xl_cell.attribute("t").value() == std::string("inlineStr")){
-			xl_col_name = xl_cell.child("v").first_child().child_value();
+			xl_col_name = xl_cell.child("is").child("t").child_value();
 			is_string = 1;
 		}
 
@@ -4526,7 +4536,7 @@ ExcelManager::parse_data2D(
 					is_string_cell = 1;
 				}
 				else if (iter_cell.attribute("t").value() == std::string("inlineStr")){
-					cell_value = node.first_child().first_child().child_value();
+					cell_value = iter_cell.child("is").child("t").child_value();
 					is_string_cell = 1;
 				}
 			}
