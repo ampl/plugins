@@ -1011,9 +1011,6 @@ remove_temp_folder(const std::string & temp_folder){
 int
 update_sheet_name(std::string & sheet_name, std::string & temp_string){
 
-	std::cout << "sheet_name: " << sheet_name << std::endl;
-	std::cout << "temp_string: " << temp_string << std::endl;
-
 	pugi::xml_document doc;
 	pugi::xml_node node;
 	pugi::xml_parse_result result;
@@ -1024,13 +1021,8 @@ update_sheet_name(std::string & sheet_name, std::string & temp_string){
 		return 1;
 	}
 
-	std::cout << "searching:" << std::endl;
-
 	node = doc.child("workbook").child("sheets").first_child();
-
-	std::cout << "before: " << node.attribute("name").value() << std::endl;
 	node.attribute("name").set_value(sheet_name.c_str());
-	std::cout << "after: " << node.attribute("name").value() << std::endl;
 	doc.save_file(temp_string.c_str());
 
 	return 0;
