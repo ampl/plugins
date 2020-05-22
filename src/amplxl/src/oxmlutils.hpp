@@ -205,6 +205,9 @@ Returns:
 int
 oxml_build_file(std::string & oxml_file);
 
+int
+oxml_build_file2(std::string & oxml_file, std::string & sheet_name);
+
 /*
 Updates the relations of an oxml file after adding a new sheet.
 Parameters:
@@ -371,5 +374,10 @@ get_temp_folder(const std::string & base, std::string & temp_folder);
 
 int
 remove_temp_folder(const std::string & temp_folder);
+
+int
+update_sheet_name(std::string & sheet_name, std::string & temp_string);
+
+
 
 

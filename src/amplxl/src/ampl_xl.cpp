@@ -411,21 +411,11 @@ ExcelManager::prepare(){
 			logger.log(msg, LOG_WARNING);
 
 			int res = 0;
-			res = oxml_build_file(excel_path);
+			res = oxml_build_file2(excel_path, table_name);
 
 			if (res){
 				// Failed to build oxml
 				msg = "Could not create oxml file, please confirm that the folders to the defined file exist.";
-				logger.log(msg, LOG_ERROR);
-				return DB_Error;
-			}
-
-			res = oxml_add_new_sheet(excel_path, table_name);
-
-			if (res){
-				// Failed to add new sheet
-				//~ std::string err = "amplxl: could not add new sheet to oxml file.\n";
-				msg = "amplxl: could not add new sheet to oxml file.";
 				logger.log(msg, LOG_ERROR);
 				return DB_Error;
 			}

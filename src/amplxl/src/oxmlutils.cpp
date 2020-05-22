@@ -154,6 +154,77 @@ oxml_build_file(std::string & oxml){
 
 
 int
+oxml_build_file2(std::string & oxml, std::string & sheet_name){
+
+	int res = 0;
+	std::string base = "oxml";
+	std::string temp_folder;
+
+	res = get_temp_folder(base, temp_folder);
+
+	if (res){
+		//could not create temp folder
+		return 1;
+	}
+
+	std::vector<std::string> xml_content;
+
+	xml_content.push_back(content_types_xml);
+	xml_content.push_back(xl_rels_workbook_xml_rels);
+	xml_content.push_back(xl_worksheets_sheet1_xml);
+	xml_content.push_back(xl_styles_xml);
+	xml_content.push_back(xl_workbook_xml);
+	xml_content.push_back(rels_rels);
+	xml_content.push_back(docProps_app_xml);
+	xml_content.push_back(docProps_core_xml);
+
+	std::vector<std::string> zip_orig(char_zip_orig, char_zip_orig + sizeof(char_zip_orig)/sizeof(char_zip_orig[0]));
+	std::vector<std::string> zip_dest(char_zip_dest, char_zip_dest + sizeof(char_zip_dest)/sizeof(char_zip_dest[0]));
+
+	std::ofstream out;
+	std::string temp_string;
+
+	// create xml files in temp folder
+	for (int i = 0; i < xml_content.size(); i++){
+		join_path(temp_folder, zip_orig[i], temp_string);
+		reuse_ofstream(out, xml_content[i], temp_string);
+	}
+
+	// update date
+	std::string current_date = get_current_date();
+	join_path(temp_folder, "docProps_core_xml", temp_string);
+	update_date_created(current_date, temp_string);
+
+	// update sheet name
+	join_path(temp_folder, "xl_workbook_xml", temp_string);
+	update_sheet_name(sheet_name, temp_string);
+
+	// zip files
+	res = zip_xml_files(
+		oxml,
+		temp_folder,
+		zip_orig,
+		zip_dest
+	);
+
+	if (res){
+		return 1;
+	}
+
+	// delete xml files in temp folder
+	for (int i = 0; i < xml_content.size(); i++){
+		join_path(temp_folder, zip_orig[i], temp_string);
+		remove(temp_string.c_str());
+	}
+
+	// delete temp folder
+	res = remove_temp_folder(temp_folder);
+
+	return 0;
+};
+
+
+int
 oxml_add_new_sheet(std::string & oxml, std::string & sheet_name){
 
 	int res = 0;
@@ -937,7 +1008,33 @@ remove_temp_folder(const std::string & temp_folder){
 
 
 
+int
+update_sheet_name(std::string & sheet_name, std::string & temp_string){
 
+	std::cout << "sheet_name: " << sheet_name << std::endl;
+	std::cout << "temp_string: " << temp_string << std::endl;
+
+	pugi::xml_document doc;
+	pugi::xml_node node;
+	pugi::xml_parse_result result;
+
+	result = doc.load_file(temp_string.c_str());
+
+	if (!result){
+		return 1;
+	}
+
+	std::cout << "searching:" << std::endl;
+
+	node = doc.child("workbook").child("sheets").first_child();
+
+	std::cout << "before: " << node.attribute("name").value() << std::endl;
+	node.attribute("name").set_value(sheet_name.c_str());
+	std::cout << "after: " << node.attribute("name").value() << std::endl;
+	doc.save_file(temp_string.c_str());
+
+	return 0;
+};
 
 
 
