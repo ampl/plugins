@@ -3640,7 +3640,30 @@ ExcelWriteManager::write_data_out_2D(
 
 	if (!has_header){
 		// need to recalculate last column
-		int card_h_set = TI->nrows / n_recalc_rows;
+
+		// count number of unique elements in h_set
+		int card_h_set = 0;
+		std::map<std::string, int> h_set_items;
+
+		for (int i=0; i<TI->nrows; i++){
+
+			std::string temp_item;
+
+			if (TI->cols[h_set_pos].sval && TI->cols[h_set_pos].sval[i]){
+				temp_item = TI->cols[h_set_pos].sval[i];
+			}
+			else{
+				temp_item = "ampl-numeric-" + numeric_to_string(TI->cols[h_set_pos].dval[i]);
+			}
+
+			if (!temp_item.empty()){
+				if (h_set_items.find(temp_item) == h_set_items.end()){
+					h_set_items[temp_item] = card_h_set;
+					card_h_set += 1;
+				}
+			}
+		}
+
 		int n_recalc_cols = TI->arity - 1 + card_h_set;
 		int first_col_num = cell_reference_to_number(first_col);
 		int last_col_num = first_col_num + n_recalc_cols - 1;
