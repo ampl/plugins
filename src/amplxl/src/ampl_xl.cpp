@@ -4581,7 +4581,13 @@ ExcelManager::parse_data2D(
 
 		// for each element in value_cols we add a row to the ampl table
 		for (int j = 0; j < value_cols.size(); j++){
+
 			pos = value_cols[j];
+
+			if (xl_row_info[pos].empty()){
+				continue;
+			}
+
 			set_dbcol_val(header[pos], &TI->cols[h_set_pos], is_header_string[pos]);
 			set_dbcol_val(xl_row_info[pos], &TI->cols[TI->arity], is_string[pos]);
 
