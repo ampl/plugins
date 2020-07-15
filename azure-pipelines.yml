@@ -1,0 +1,83 @@
+jobs:
+- job: linux
+  pool: {vmImage: 'Ubuntu-16.04'}
+  strategy:
+    matrix:
+      x86:
+        image: 'fdabrandao/manylinux32:coin_cmake-3.12.4'
+        nbits: 32
+      x64:
+        image: 'fdabrandao/manylinux64:coin_cmake-3.12.4'
+        nbits: 64
+  variables:
+    upload: $(Build.ArtifactStagingDirectory)
+  steps:
+    - bash: |
+        lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
+        cat /proc/cpuinfo
+      displayName: Check CPU
+    - bash: |
+        BUILD_DIR=manylinux/linux$NBITS/
+        git submodule update --init --recursive --remote
+        mkdir -p $BUILD_DIR/*
+        rm -rf $BUILD_DIR/*
+        docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
+      displayName: Build package
+    - bash: |
+        BUILD_DIR=manylinux/linux$NBITS/
+        UPLOAD_DIR=$UPLOAD/linux$NBITS/
+        mkdir -p $UPLOAD_DIR
+        cp $BUILD_DIR/tables.zip $UPLOAD_DIR
+      displayName: Upload package
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+- job: macos
+  pool: {vmImage: 'macOS-10.15'}
+  variables:
+    upload: $(Build.ArtifactStagingDirectory)
+  steps:
+    - bash: |
+        git submodule update --init --recursive --remote
+        mkdir build
+        cd build
+        cmake ..
+        make all -j2
+        make test || true
+        cpack
+      displayName: Build package
+    - bash: |
+        UPLOAD_DIR=$UPLOAD/macos/
+        mkdir -p $UPLOAD_DIR
+        cp build/tables.zip $UPLOAD_DIR
+      displayName: Upload package
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+- job: windows
+  pool: {vmImage: 'windows-2019'}
+  strategy:
+    matrix:
+      x86:
+        arch: 'win32'
+        nbits: 32
+      x64:
+        arch: 'x64'
+        nbits: 64
+  variables:
+    upload: $(Build.ArtifactStagingDirectory)
+  steps:
+    - bash: |
+        git submodule update --init --recursive --remote
+        mkdir build
+        cd build
+        cmake .. -G "Visual Studio 16 2019" -A $ARCH
+        cmake --build . -j 2 --config Release
+        ctest -C Release || true
+        cpack
+      displayName: Build package
+    - bash: |
+        UPLOAD_DIR=$UPLOAD/win$NBITS/
+        mkdir -p $UPLOAD_DIR
+        cp build/tables.zip $UPLOAD_DIR
+      displayName: Upload package
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
