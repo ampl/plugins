@@ -72,6 +72,7 @@ jobs:
         cmake .. -G "Visual Studio 16 2019" -A $ARCH
         cmake --build . -j 2 --config Release
         ctest -C Release || true
+        cpack
       displayName: Build package
     - bash: |
         UPLOAD_DIR=$UPLOAD/win$NBITS/
