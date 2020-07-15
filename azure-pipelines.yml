@@ -32,7 +32,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
 - job: macos
-  pool: {vmImage: 'macOS-10.13'}
+  pool: {vmImage: 'macOS-10.15'}
   variables:
     upload: $(Build.ArtifactStagingDirectory)
   steps:
@@ -65,10 +65,6 @@ jobs:
   variables:
     upload: $(Build.ArtifactStagingDirectory)
   steps:
-    - script: |
-        choco uninstall mingw
-        choco install mingw --x86 -y
-      condition: eq(variables['arch'], 'win32')
     - bash: |
         git submodule update --init --recursive --remote
         mkdir build
