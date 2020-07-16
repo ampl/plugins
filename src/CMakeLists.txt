@@ -38,6 +38,7 @@ macro(add_ampl_library name)
 endmacro()
 
 
+add_subdirectory(ampltableconnector)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
