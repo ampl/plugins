@@ -954,7 +954,8 @@ ExcelManager::parse_excel_range(){
 
 	std::string msg;
 
-	char* to_split = &excel_range[0u];
+	char to_split[excel_range.length() + 1];
+	strcpy(to_split, excel_range.c_str());
 	char* pch;
 
 	pch = strtok(to_split, "!$:;");
