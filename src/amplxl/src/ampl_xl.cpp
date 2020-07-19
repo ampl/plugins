@@ -954,7 +954,15 @@ ExcelManager::parse_excel_range(){
 
 	std::string msg;
 
+	/*
 	char to_split[excel_range.length() + 1];
+	MSVS doesn't like this, even with
+	const int n = excel_range.length() + 1;
+	char to_split[n];
+	MSVS Express 2013 given an error C2057: expected constant expression
+	*/
+
+	char to_split[100];
 	strcpy(to_split, excel_range.c_str());
 	char* pch;
 
@@ -5124,6 +5132,8 @@ ExcelWriteManager::get_new_range(std::string & new_range){
 
 	msg = "new named range: " + new_range;
 	logger.log(msg, LOG_DEBUG);
+
+	return 0;
 };
 
 
