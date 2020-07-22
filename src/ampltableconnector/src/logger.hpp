@@ -7,7 +7,7 @@
 
 // headers from AMPL
 #include "funcadd.h"
-#include "arith.h"	/* for Arith_Kind_ASL and Long */
+//~ #include "arith.h"	/* for Arith_Kind_ASL and Long */
 
 // auxiliary macro to allocate memory in AMPLs internal structures
 #define TM(len) (*ae->Tempmem)(TI->TMI,len)
