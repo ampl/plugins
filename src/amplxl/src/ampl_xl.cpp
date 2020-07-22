@@ -954,19 +954,11 @@ ExcelManager::parse_excel_range(){
 
 	std::string msg;
 
-	/*
-	char to_split[excel_range.length() + 1];
-	MSVS doesn't like this, even with
-	const int n = excel_range.length() + 1;
-	char to_split[n];
-	MSVS Express 2013 given an error C2057: expected constant expression
-	*/
-
-	char to_split[100];
-	strcpy(to_split, excel_range.c_str());
+	// copy excel_range as it will be modified by strtok
+	std::string to_split = excel_range;
 	char* pch;
 
-	pch = strtok(to_split, "!$:;");
+	pch = strtok(&to_split[0u], "!$:;");
 
 	while(pch != NULL){
 		split.push_back(pch);
