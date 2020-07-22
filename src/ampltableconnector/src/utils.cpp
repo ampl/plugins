@@ -11,11 +11,22 @@ get_file_extension(const std::string & filepath){
 };
 
 
+//~ bool
+//~ check_file_exists(const std::string & filename){
+	//~ std::ifstream ifile(filename.c_str());
+	//~ return static_cast<bool>(ifile);
+//~ };
+
+
 bool
-check_file_exists(const std::string & filename){
-	std::ifstream ifile(filename.c_str());
-	return static_cast<bool>(ifile);
-};
+check_file_exists (const std::string & filename) {
+	if (FILE *file = fopen(filename.c_str(), "r")) {
+		fclose(file);
+		return true;
+	} else {
+		return false;
+	}   
+}
 
 
 bool
