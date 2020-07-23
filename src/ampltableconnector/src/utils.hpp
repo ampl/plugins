@@ -9,6 +9,7 @@
 #include <cstring>
 #include <math.h>
 //#include <fstream>
+#include <cstdio>
 
 
 // Simple replacement for the to_string function since we are building for -std=c++03 
