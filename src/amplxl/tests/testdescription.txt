@@ -56,3 +56,11 @@ Files:
 shrinkrows*
 expandrows*
 ____________________________________________________________________________________________________
+Indexing over indexing
+
+Examples for parameters that are indexed over an indexed collection of sets.
+
+Files:
+t_links-*.xlsx
+test4_*.run
+test4_*.out

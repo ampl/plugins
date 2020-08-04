@@ -1,0 +1,36 @@
+reset;
+
+set ND ;
+set NS ;
+set F ;
+set F1 {ND} within F ;
+set A1 within ((ND cross NS) union (NS cross (ND union NS))) ;
+
+data;
+
+set ND := DC1 DC2 ;
+set NS := S1 S2 S3 S4 ; 
+
+set A1 : DC1 DC2 S1 S2 S3 S4 :=
+    DC1   -   -  +  +  +  +
+    DC2   -   -  +  +  +  +
+    S1    +   +  -  +  +  +
+    S2    +   +  +  -  +  +
+    S3    +   +  +  +  -  +
+    S4    +   +  +  +  +  -    ;
+
+set F := T1 T2 T3 T4 V1 V2 V3 V4 V5 V6 V7 V8; 
+set F1[DC1] := T1 T2 ; 
+set F1[DC2] := T3 T4 ;
+
+model;
+param T_LINKS_F1 {d in ND, t in F1[d], A1} >= 0 ;
+
+### VERSION 2: ONE 2D TABLE
+
+table T_LINKS_F1_tab IN "amplxl" "2D" "t_links-2.xlsx" "t_links_f1":
+   [ND, F1, FROM, TO], T_LINKS_F1;
+
+read table T_LINKS_F1_tab;
+
+display T_LINKS_F1;
