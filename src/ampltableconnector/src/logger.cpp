@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "masterheader.hpp"
 
 
 Logger::Logger(){
@@ -29,20 +29,20 @@ Logger::log(const std::string & msg, int code){
 
 	// pass error to AMPL
 	if (code == 0){
-		sprintf(TI->Errmsg = (char*)TM(msg.size() + 1), "%s", msg.c_str());
+		ae->SprintF(TI->Errmsg = (char*)TM(msg.size() + 1), "%s", msg.c_str());
 	}
 	// print message acording to level
 	else if (code <= level){
 		if (code == LOG_WARNING){
-			printf("WARNING: ");
+			ae->PrintF("WARNING: ");
 		}
 		else if (code == LOG_INFO){
-			printf("INFO: ");
+			ae->PrintF("INFO: ");
 		}
 		else{
-			printf("DEBUG: ");
+			ae->PrintF("DEBUG: ");
 		}
-		printf("%s\n", msg.c_str());
+		ae->PrintF("%s\n", msg.c_str());
 	}
 };
 
@@ -53,15 +53,15 @@ Logger::print_log(){
 	for (int i = 0; i < codes.size(); i++){
 		if (codes[i] <= level){
 			if (codes[i] == LOG_WARNING){
-				printf("WARNING: ");
+				ae->PrintF("WARNING: ");
 			}
 			else if (codes[i] == LOG_INFO){
-				printf("INFO: ");
+				ae->PrintF("INFO: ");
 			}
 			else{
-				printf("DEBUG: ");
+				ae->PrintF("DEBUG: ");
 			}
-			printf("%s\n", messages[i].c_str());
+			ae->PrintF("%s\n", messages[i].c_str());
 		} 
 	}
 };

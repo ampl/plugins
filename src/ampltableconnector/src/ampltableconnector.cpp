@@ -1,4 +1,4 @@
-#include "ampltableconnector.hpp"
+#include "masterheader.hpp"
 
 
 static int
@@ -45,19 +45,116 @@ Write_Example(AmplExports *ae, TableInfo *TI){
 void
 funcadd(AmplExports *ae){
 
-	printf("Add meaningfull names to Read_Example and Write_Example in funcadd() and in the two  previous functions. Also update the string version in the header file. Remove this print afterwards.\n");
+	ae->PrintF("Add meaningfull names to Read_Example and Write_Example in funcadd() and in the two  previous functions. Also update the string version in the header file. Remove this print afterwards.\n");
 
 	// write a description of the handlers
 	static char info[] = "handler name\n"
 		"Write table handler description and help\n";
 
 	// Inform AMPL about the handlers
-	add_table_handler(Read_Example, Write_Example, info, 0, 0);
+	ae->Add_table_handler(Read_Example, Write_Example, info, 0, 0);
 };
 
 
 Connector::Connector(){
 	is_writer = false;
+};
+
+
+int
+Connector::nkeycols(){ // keycols
+	if (TI){
+		return TI->arity;
+	}
+	return -1;
+};
+
+
+int
+Connector::ndatacols(){ // datacols
+	if (TI){
+		return TI->ncols;
+	}
+	return -1;
+};
+
+
+int
+Connector::ncols(){
+	if (TI){
+		return TI->arity + TI->ncols;
+	}
+	return -1;
+};
+
+
+int
+Connector::nrows(){
+	if (TI){
+		return TI->nrows;
+	}
+	return -1;
+};
+
+
+void
+Connector::set_col_val(real val, int col){
+	TI->cols[col].dval[0] = val;
+};
+
+
+void
+Connector::set_col_val(std::string & val, int col){
+	TI->cols[col].sval[0] = const_cast<char*>(val.c_str());
+};
+
+
+void
+Connector::add_row(){
+
+	// pass data to AMPL
+	DbCol * db = TI->cols;
+	if ((*TI->AddRows)(TI, db, 1)){
+		log_msg = "Error with AddRows";
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	}
+
+	int debug;
+};
+
+
+real
+Connector::get_numeric_val(int row, int col){
+	return TI->cols[col].dval[row];
+};
+
+
+char*
+Connector::get_char_val(int row, int col){
+	return TI->cols[col].sval[row];
+};
+
+
+bool
+Connector::is_char_val(int row, int col){
+
+	if (TI->cols[col].sval && TI->cols[col].sval[row]){
+		return true;
+	}
+	return false;
+};
+
+
+bool
+Connector::is_numeric_val(int row, int col){
+	return !is_char_val(row, col);
+};
+
+
+char*
+Connector::get_col_name(int col){
+	return TI->colnames[col];
 };
 
 
@@ -394,28 +491,6 @@ ReadConnector::read_in(){
 	// In this method you will get the data from your external representation of the table and pass
 	// it to AMPL.
 
-	// TI->arity is the number of indexing columns in AMPLs representation of the table
-	// TI->ncols is the number of data columns in AMPLs representation of the table
-	// TI->colnames[j] holds the name of column j
-	// TI->cols[j] is a DBcol Struct that has a pointer to a pointer to hold characters values and a
-	// pointer to real to hold numeric values
-	//
-	//	typedef struct
-	//	DbCol {
-	//		real	*dval;
-	//		char	**sval;
-	//	} DbCol;
-	//
-	// for example to pass a string to column i use
-	//     TI->cols[i].sval[0] = mystring;
-	//
-	// if you want to pass the numeric value 5 to column i you can do
-	//     TI->cols[i].sval[0] = NULL;
-	//     TI->cols[i].dval[0] = 5;
-	//
-	// After filling all the values pass the row to AMPL with
-	// *TI->AddRows
-
 	// A small example follows. Consider a table with 10 rows and 3 columns (keys, string_values and
 	// numeric_values) with data contained in vectors. The table is iterated row by row and each row
 	// is individually passed to AMPL. Use this code with the file ../tests/test_in.run 
@@ -440,33 +515,16 @@ ReadConnector::read_in(){
 	// iterate rows of data
 	for (int i = 0; i < nrows; i++){
 
-		TI->cols[0].sval[0] = const_cast<char*>(keys[i].c_str());
-		TI->cols[1].sval[0] = const_cast<char*>(string_values[i].c_str());
-		TI->cols[2].dval[0] = numeric_values[i];
+		// set value for the appropriate column number
+		set_col_val(keys[i], 0);
+		set_col_val(string_values[i], 1);
+		set_col_val(numeric_values[i], 2);
 
-		// pass data to AMPL
-		DbCol * db = TI->cols;
-		if ((*TI->AddRows)(TI, db, 1)){
-			log_msg = "Error with AddRows";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
+		// pass row to AMPL
+		add_row();
 	}
 
-	// Note that in the previous example each column had a numeric or string type. However AMPL has
-	// symbolic sets/parameters that can contain both numeric and string values. To pass data to an
-	// AMPL column in that situation use something like:
-	//	if (is_string){
-	//		TI->cols[i].sval[0] = mystring;
-	//	}
-	//	else{
-	//		TI->cols[i].sval[0] = NULL;
-	//		TI->cols[i].dval[0] = 5;
-	//	}
-	// A detailed description of table handlers management is available at
-	// https://ampl.com/netlib/ampl/tables/index.html
-
-	printf("Implement read_in() as needed and remove this print afterwards.\n");
+	ae->PrintF("Implement read_in() as needed and remove this print afterwards.\n");
 };
 
 
@@ -524,48 +582,36 @@ WriteConnector::write_out(){
 	// The following code is an example on how to get the data from AMPL, printing the column names
 	// and the data in AMPL's representation of the table.
 
-	// TI->arity is the number of indexing columns in AMPLs representation of the table
-	// TI->ncols is the number of data columns in AMPLs representation of the table
-	// tcols is the total number od columns in the table
-
-	const int tcols = TI->arity + TI->ncols;
-
-	// TI->colnames[j] holds the name of column j
-
 	// iterate the column names
-	for (int j = 0; j < tcols; j++){
-		printf("%s", TI->colnames[j]);
-		if (j < tcols - 1){
-			printf("\t");
+	for (int j = 0; j < ncols(); j++){
+		ae->PrintF("%s", get_col_name(j));
+		if (j < ncols() - 1){
+			ae->PrintF("\t");
 		}
 	}
-	printf("\n");
-
-	// TI->nrows is the number of rows in AMPLs representation of the table
+	ae->PrintF("\n");
 
 	// iterate rows and columns printing data
-	for (int i = 0; i < TI->nrows; i++){
-		for (int j = 0; j < tcols; j++){
+	for (int i = 0; i < nrows(); i++){
+		for (int j = 0; j < ncols(); j++){
 
-			if (TI->cols[j].sval && TI->cols[j].sval[i]){
+			if (is_char_val(i, j)){
 				// string value
-				printf("%s", TI->cols[j].sval[i]);
+				ae->PrintF("%s", get_char_val(i, j));
 			}
 			else{
 				// numeric value
-				printf("%g", TI->cols[j].dval[i]);
+				ae->PrintF("%g", get_numeric_val(i, j));
 			}
-			if (j < tcols - 1){
-				printf("\t");
+
+			if (j < ncols() - 1){
+				ae->PrintF("\t");
 			}
 		}
-		printf("\n");
+		ae->PrintF("\n");
 	}
 
-	// A detailed description of table handlers management is available at
-	// https://ampl.com/netlib/ampl/tables/index.html
-
-	printf("Implement write_out() as needed and remove this print afterwards.\n");
+	ae->PrintF("Implement write_out() as needed and remove this print afterwards.\n");
 };
 
 

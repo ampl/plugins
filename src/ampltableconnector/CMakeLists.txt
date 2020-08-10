@@ -2,9 +2,6 @@ set(SRCDIR src)
 set(SOURCES ${SRCDIR}/ampltableconnector.cpp 
             ${SRCDIR}/logger.cpp 
             ${SRCDIR}/utils.cpp
-            ${SRCDIR}/ampltableconnector.hpp 
-            ${SRCDIR}/logger.hpp 
-            ${SRCDIR}/utils.hpp
 ) 
 
 add_ampl_library(ampltableconnector ${SOURCES})
