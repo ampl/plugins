@@ -26,7 +26,7 @@ check_file_exists (const std::string & filename) {
 	} else {
 		return false;
 	}   
-}
+};
 
 
 bool
@@ -45,5 +45,9 @@ compare_strings_lower(const std::string & str1, const std::string & str2){
 };
 
 
-
-
+void
+copy_file(const std::string & source_path, const std::string & dest_path){
+	std::ifstream source(source_path.c_str(), std::ios::binary);
+	std::ofstream dest(dest_path.c_str(), std::ios::binary);
+	dest << source.rdbuf();
+};

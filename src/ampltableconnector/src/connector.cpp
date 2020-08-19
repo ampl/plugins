@@ -1,104 +1,42 @@
 #include "masterheader.hpp"
 
 
-static int
-Read_Example(AmplExports *ae, TableInfo *TI){
-
-	int res = DBE_Done;
-	ReadConnector rc;
-
-	try{
-		rc.add_ampl_connections(ae, TI);
-		rc.prepare();
-		rc.run();
-	}
-	catch (DBE e){
-		// something went wrong
-		// the error must be in the logger
-		res = e;
-	}
-	return res;
-};
-
-
-static int
-Write_Example(AmplExports *ae, TableInfo *TI){
-
-	int res = DBE_Done;
-	WriteConnector wc;
-
-	try{
-		wc.add_ampl_connections(ae, TI);
-		wc.prepare();
-		wc.run();
-	}
-	catch (DBE e){
-		// something went wrong
-		// the error must be in the logger
-		res = e;
-	}
-	// everything OK
-	return res;
-};
-
-
-void
-funcadd(AmplExports *ae){
-
-	ae->PrintF("Add meaningfull names to Read_Example and Write_Example in funcadd() and in the two  previous functions. Also update the string version in the header file. Remove this print afterwards.\n");
-
-	// write a description of the handlers
-	static char info[] = "handler name\n"
-		"Write table handler description and help\n";
-
-	// Inform AMPL about the handlers
-	ae->Add_table_handler(Read_Example, Write_Example, info, 0, 0);
-};
-
-
 Connector::Connector(){
 	is_writer = false;
 };
 
 
+Connector::~Connector(){};
+
+
+// Table info functions
+
 int
-Connector::nkeycols(){ // keycols
-	if (TI){
-		return TI->arity;
-	}
-	return -1;
+Connector::nkeycols(){
+	return TI->arity;
 };
 
 
 int
-Connector::ndatacols(){ // datacols
-	if (TI){
-		return TI->ncols;
-	}
-	return -1;
+Connector::ndatacols(){
+	return TI->ncols;
 };
 
 
 int
 Connector::ncols(){
-	if (TI){
-		return TI->arity + TI->ncols;
-	}
-	return -1;
+	return TI->arity + TI->ncols;
 };
 
 
 int
 Connector::nrows(){
-	if (TI){
-		return TI->nrows;
-	}
-	return -1;
+	return TI->nrows;
 };
 
 
 void
-Connector::set_col_val(real val, int col){
+Connector::set_col_val(double val, int col){
 	TI->cols[col].dval[0] = val;
 };
 
@@ -106,6 +44,12 @@ Connector::set_col_val(real val, int col){
 void
 Connector::set_col_val(std::string & val, int col){
 	TI->cols[col].sval[0] = const_cast<char*>(val.c_str());
+};
+
+
+void
+Connector::set_col_val(char* val, int col){
+	TI->cols[col].sval[0] = val;
 };
 
 
@@ -119,12 +63,10 @@ Connector::add_row(){
 		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;
 	}
-
-	int debug;
 };
 
 
-real
+double
 Connector::get_numeric_val(int row, int col){
 	return TI->cols[col].dval[row];
 };
@@ -157,6 +99,58 @@ Connector::get_col_name(int col){
 	return TI->colnames[col];
 };
 
+// AMPL Export functions
+
+int
+Connector::ampl_fprintf(FILE* stream, const char* format, ...){
+
+	va_list va;
+	va_start (va, format);
+	int res = ae->FprintF(stream, format, va);
+	va_end(va);
+	return res;
+};
+
+
+int
+Connector::ampl_printf(const char* format, ...){
+
+	va_list va;
+	va_start (va, format);
+	int res =  ae->PrintF(format, va);
+	va_end(va);
+	return res;
+};
+
+
+int
+Connector::ampl_sprintf(char* str, const char* format, ...){
+
+	va_list va;
+	va_start (va, format);
+	int res = ae->SprintF(str, format, va);
+	va_end(va);
+	return res;
+};
+
+
+int
+Connector::ampl_vfprintf(FILE* stream, const char* format, va_list arg){
+	return ae->VfprintF(stream, format, arg);
+};
+
+
+int
+Connector::ampl_vsprintf(char* buffer, const char* format, va_list arg){
+	return ae->VsprintF(buffer, format, arg);
+};
+
+
+double
+Connector::ampl_strtod(const char* str, char** endptr){
+	return ae->Strtod(str, endptr);
+};
+
 
 void
 Connector::add_ampl_connections(AmplExports *ae, TableInfo *TI){
@@ -182,35 +176,6 @@ Connector::add_ampl_connections(AmplExports *ae, TableInfo *TI){
 
 	register_handler_names();
 	register_handler_extensions();
-};
-
-
-void
-Connector::register_handler_names(){
-
-	log_msg = "<register_handler_names>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// use something like the following to add handler names, this will be compatible with older
-	// compiler versions
-	handler_names.push_back("examplehandler");
-	handler_names.push_back("examplehandler.dll");
-};
-
-
-void
-Connector::register_handler_extensions(){
-
-	log_msg = "<register_handler_extensions>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// use something like the following to add extension names, this will be compatible with older
-	// compiler versions
-
-	handler_extensions.push_back("hxt");
-
-	// if we need to create a file the first handler extension will be used
-	// handler_extensions might be empty, for example if it is defined in kargs_map 
 };
 
 
@@ -453,7 +418,7 @@ Connector::validate_filepath(){
 
 
 void
-ReadConnector::prepare(){
+Connector::prepare(){
 
 	log_msg = "<prepare>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -465,187 +430,38 @@ ReadConnector::prepare(){
 	// check if filepath exists
 	if(!check_file_exists(filepath)){
 
-		log_msg = "Cannot find source to read data.";
-		logger.log(log_msg, LOG_ERROR);
-		throw DBE_Error;
+		if (!is_writer){
+			log_msg = "Cannot find source to read data.";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+		else{
+			// write as an OUT table as there is nothing to update
+			inout = "OUT";
+			generate_table();
+
+			log_msg = "generating file: " + filepath;
+			logger.log(log_msg, LOG_WARNING);
+		}
 	}
 };
 
 
 void
-ReadConnector::run(){
+Connector::run(){
 
 	log_msg = "<run>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	read_in();
-};
-
-
-void
-ReadConnector::read_in(){
-
-	log_msg = "<read_in>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// In this method you will get the data from your external representation of the table and pass
-	// it to AMPL.
-
-	// A small example follows. Consider a table with 10 rows and 3 columns (keys, string_values and
-	// numeric_values) with data contained in vectors. The table is iterated row by row and each row
-	// is individually passed to AMPL. Use this code with the file ../tests/test_in.run 
-
-	int nrows = 10;
-
-	std::vector<std::string> keys;
-	std::vector<std::string> string_values;
-	std::vector<real> numeric_values;
-
-	keys.reserve(nrows);
-	string_values.reserve(nrows);
-	numeric_values.reserve(nrows);
-
-	// generate some data
-	for (int i = 0; i < nrows; i++){
-		keys.push_back("k" + numeric_to_string(i + 1));
-		string_values.push_back("val" + numeric_to_string(i + 1));
-		numeric_values.push_back(2 * (i + 1));
+	if (!is_writer){
+		read_in();
 	}
-
-	// iterate rows of data
-	for (int i = 0; i < nrows; i++){
-
-		// set value for the appropriate column number
-		set_col_val(keys[i], 0);
-		set_col_val(string_values[i], 1);
-		set_col_val(numeric_values[i], 2);
-
-		// pass row to AMPL
-		add_row();
-	}
-
-	ae->PrintF("Implement read_in() as needed and remove this print afterwards.\n");
-};
-
-
-WriteConnector::WriteConnector(){
-	is_writer = true;
-};
-
-
-void
-WriteConnector::prepare(){
-
-	log_msg = "<prepare>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	parse_arguments();
-	validate_arguments();
-	validate_filepath();
-
-	// check if filepath already exists
-	if(!check_file_exists(filepath)){
-
-		// write as an OUT table as there is nothing to update
-		inout = "OUT";
-		generate_file();
-
-		log_msg = "generating file: " + filepath;
-		logger.log(log_msg, LOG_WARNING);
-	}
-};
-
-
-void
-WriteConnector::run(){
-
-	log_msg = "<run>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	if (inout == "OUT"){
-		write_out();
-	}
-	else if (inout == "INOUT"){
-		write_inout();
-	}
-};
-
-
-void
-WriteConnector::write_out(){
-
-	log_msg = "<write_out>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// This method should overwrite the external representation of the table with the data in AMPL's
-	// table.
-	// The following code is an example on how to get the data from AMPL, printing the column names
-	// and the data in AMPL's representation of the table.
-
-	// iterate the column names
-	for (int j = 0; j < ncols(); j++){
-		ae->PrintF("%s", get_col_name(j));
-		if (j < ncols() - 1){
-			ae->PrintF("\t");
+	else{
+		if (inout == "OUT"){
+			write_out();
+		}
+		else if (inout == "INOUT"){
+			write_inout();
 		}
 	}
-	ae->PrintF("\n");
-
-	// iterate rows and columns printing data
-	for (int i = 0; i < nrows(); i++){
-		for (int j = 0; j < ncols(); j++){
-
-			if (is_char_val(i, j)){
-				// string value
-				ae->PrintF("%s", get_char_val(i, j));
-			}
-			else{
-				// numeric value
-				ae->PrintF("%g", get_numeric_val(i, j));
-			}
-
-			if (j < ncols() - 1){
-				ae->PrintF("\t");
-			}
-		}
-		ae->PrintF("\n");
-	}
-
-	ae->PrintF("Implement write_out() as needed and remove this print afterwards.\n");
-};
-
-
-void
-WriteConnector::write_inout(){
-
-	log_msg = "<write_inout>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// Unlike write_out() this method should update the external representation of the table with
-	// the data in AMPL's table.
-	// For an example on how to get the data from AMPL see write_out() .
-
-	// A detailed description of table handlers management is available at
-	// https://ampl.com/netlib/ampl/tables/index.html
-
-	// implement the method as needed and remove the following error
-	log_msg = "write_inout() not implemented";
-	logger.log(log_msg, LOG_ERROR);
-	throw DBE_Error;
-};
-
-
-void
-WriteConnector::generate_file(){
-
-	log_msg = "<generate_file>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// Implement a method to generate a file (or something else) for the developed handler with
-	// name filepath.
-
-	// Implement the method as needed and remove the following error
-	log_msg = "generate_file() not implemented";
-	logger.log(log_msg, LOG_ERROR);
-	throw DBE_Error;
 };

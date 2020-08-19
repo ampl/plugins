@@ -1,17 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <limits>
-#include <iomanip>
-#include <sstream>
-#include <cstring>
-#include <math.h>
-#include <fstream>
-//#include <istream>
-//#include <streambuf>
-
 
 // Simple replacement for the to_string function since we are building for -std=c++03 
 template <class T>
@@ -61,20 +49,6 @@ void print_vector(std::vector<T> v){
 	std::cout << "]";
 	std::cout << std::endl;
 };
-
-
-// Remove first andl last elements of str if they are the quotechar
-void try_unquote_string(std::string & str, char* quotechar);
-
-
-// std::getline only checks for the endline for your particular platform (???)
-// code adapted from:
-// https://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf
-// Changed case to if else, since with -std=c++03 gcc complains about
-//
-// utils.cpp:70:37: error: ‘std::char_traits<char>::eof()’ cannot appear in a constant-expression
-//   case std::streambuf::traits_type::eof():
-std::istream& safeGetline(std::istream& is, std::string& t);
 
 
 // copies the file in source_path to dest_path

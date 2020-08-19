@@ -3,19 +3,18 @@ import os
 import shutil
 
 
+dll = "basichandler.dll"
+
 # compile
 params = [
 	"g++",
-	"-I/home/nsantos/Documents/ampl/mylibs/solvers2/sys.x86_64.Linux/",
 	"-std=c++03",
 	"-O2",
 	# ~ "-Wall",
 	# ~ "-g",
 	"-c",
 	"-fPIC",
-	"ampltableconnector.cpp",
-	"logger.cpp",
-	"utils.cpp"
+	"handler.cpp",
 ]
 
 subprocess.call(params)
@@ -25,10 +24,8 @@ params = [
 	"g++",
 	"-shared",
 	"-o",
-	"examplehandler.dll",
-	"ampltableconnector.o",
-	"logger.o",
-	"utils.o"
+	dll,
+	"handler.o",
 ]
 
 subprocess.call(params)
@@ -39,6 +36,6 @@ for f in os.listdir("."):
 		os.remove(f)
 
 # move dll to ampl folder
-src = "./examplehandler.dll"
-dst = "/home/nsantos/Documents/ampl/ampl_linux-intel64/examplehandler.dll"
+src = "./" + dll
+dst = "/home/nsantos/Documents/ampl/ampl_linux-intel64/" + dll
 shutil.copyfile(src, dst)

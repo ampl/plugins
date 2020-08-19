@@ -3,7 +3,7 @@ import os
 import shutil
 
 
-dll = "amplcsv.dll"
+dll = "dummytablehandler.dll"
 
 # compile
 params = [
