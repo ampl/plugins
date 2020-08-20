@@ -47,12 +47,7 @@ with open(merge_path, "w") as f:
 # copy new version of ampltableconnector to relevant folders
 src = "./" + conn
 
-dests = [
-	"../examples/dummy/src/",
-	"../examples/template/src/",
-	"../examples/amplcsv/src/"
-]
+dst = "../include/"
 
-for d in dests:
-	dst = d + conn
-	shutil.copyfile(src, dst)
+dst += conn
+shutil.copyfile(src, dst)

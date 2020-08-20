@@ -7,7 +7,9 @@ public Connector{
 
 	public:
 
-	// add attributes as needed
+	Handler();
+
+	// add aditional attributes as needed
 
 	// override functions
 	void read_in();
@@ -17,5 +19,7 @@ public Connector{
 	void register_handler_extensions();
 	void generate_table();
 
-	// add functions as needed
+	// add aditional methods as needed
 };
+
+// add aditional functions as needed

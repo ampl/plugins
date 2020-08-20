@@ -55,6 +55,11 @@ funcadd(AmplExports *ae){
 };
 
 
+Handler::Handler(){
+	// provide default values for atributes
+};
+
+
 void
 Handler::read_in(){
 

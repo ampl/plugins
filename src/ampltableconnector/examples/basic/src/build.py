@@ -3,12 +3,13 @@ import os
 import shutil
 
 
-dll = "dummytablehandler.dll"
+dll = "template.dll"
 
 # compile
 params = [
 	"g++",
 	"-std=c++03",
+	"-I../../../include/",
 	"-O2",
 	# ~ "-Wall",
 	# ~ "-g",

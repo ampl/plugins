@@ -8,6 +8,12 @@ public Connector{
 
 	public:
 
+	// map string to variant map<string, someclass>
+	//get double
+	//get string
+	//get bool
+	//get int
+
 	Handler();
 
 	// separator between elements in csv

@@ -37,6 +37,9 @@ class Connector{
 	// file extensions accepted by the handler
 	std::vector<std::string> handler_extensions;
 
+	// attributes that may be modified by the user in AMPL's table handler declaration
+	std::map<std::string, std::string> user_args;
+
 	// structures to parse the provided arguments:
 	// args - vector of strings of individual arguments passed by AMPL
 	std::vector<std::string> args;

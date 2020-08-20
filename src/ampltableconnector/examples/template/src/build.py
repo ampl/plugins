@@ -3,12 +3,13 @@ import os
 import shutil
 
 
-dll = "basichandler.dll"
+dll = "template.dll"
 
 # compile
 params = [
 	"g++",
 	"-std=c++03",
+	"-I../../../include/",
 	"-O2",
 	# ~ "-Wall",
 	# ~ "-g",
@@ -38,4 +39,4 @@ for f in os.listdir("."):
 # move dll to ampl folder
 src = "./" + dll
 dst = "/home/nsantos/Documents/ampl/ampl_linux-intel64/" + dll
-shutil.copyfile(src, dst)
+os.rename(src, dst)
