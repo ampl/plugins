@@ -1,0 +1,24 @@
+reset;
+
+set A := {"a1", "a2"};
+set B := {"b1", "b2", "b3"};
+
+param C{A, B};
+
+param count default 0;
+
+for {i in A, j in B}{
+
+	let C[i,j] := count;
+	let count := count + 1;
+};
+
+display A;
+display B;
+display C;
+
+table example OUT "basichandler" "test.bas":
+	[A, B], C;
+
+load basichandler.dll;
+write table example;

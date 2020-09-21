@@ -56,8 +56,22 @@ funcadd(AmplExports *ae){
 
 
 Handler::Handler(){
-	sep = (char*)",";
-	quotechar = (char*)"\"";
+
+	version = "amplcsv - alpha 0.0.0";
+
+	// define default values for arguments that can be changed by the user
+	// set the values for the elements in ampl_args_map as false, the framework will set it to
+	// true if it was used in args 
+	ampl_args_map["quotestrings"] = false;
+
+	// set the values for ampl_kargs_map as apropriate
+	ampl_kargs_map["sep"] = ",";
+	ampl_kargs_map["quotechar"] = "false";
+	ampl_kargs_map["header"] = "true";
+
+	// you can use the values from tha maps directly or convert them to attributes latter
+	sep = ",";
+	quotechar = "\"";
 	quotestrings = false;
 	has_header = true;
 };
@@ -79,10 +93,10 @@ Handler::read_in(){
 		throw DBE_Error;
 	}
 
-	int nfields = 0; // number of fields (columns) in the csv table
+	std::size_t nfields = 0; // number of fields (columns) in the csv table
 
 	std::vector<std::string> header; // vector to store the strings in the csv header
-	std::vector<std::string> row; // vector to store the strings in the csv rows
+	std::vector<std::string> row; // vector to store the strings in the sucessive csv rows
 
 	// for each column i in the csv perm[i] gives the position of the same column in AMPLs table
 	// this allows for the column order to be different in both tables 
@@ -95,8 +109,8 @@ Handler::read_in(){
 	// to AMPLs table. 
 	if (has_header){
 
-		safeGetline(infile, str);
-		parse_row(str, header);
+		str = get_csv_row(infile);
+		header = parse_row(str);
 		nfields = header.size();
 		validate_header(header, perm);
 		row_count += 1;
@@ -110,19 +124,23 @@ Handler::read_in(){
 		}
 	}
 
-	row.resize(nfields); // allocate space for the expected number of fields 
+	allocate_row_size(nfields);
 
 	// iterate rows of file
 	while (true) {
 
-		safeGetline(infile, str);
+		//~ safeGetline(infile, str);
+		str = get_csv_row(infile);
 
-		if (!infile.good()){break;}
+		//~ if (!infile.good()){break;}
+		if (str.empty()){break;}
 
-		row.clear();
+		//~ row.clear();
 		row_count += 1;
 
-		parse_row(str, row);
+		//~ row.clear();
+		//~ parse_row(str, row);
+		row = parse_row(str, nfields);
 
 		if (row.size() != nfields){
 			log_msg = "Invalid number of fields when reading row ";
@@ -135,7 +153,7 @@ Handler::read_in(){
 			throw DBE_Error;
 		}
 
-		for (int j = 0; j < row.size(); j++){
+		for (std::size_t j = 0; j < row.size(); j++){
 			send_val_to_ampl(row[j], perm[j]);
 		}
 
@@ -164,14 +182,14 @@ Handler::write_out(){
 		for (int j = 0; j < ncols(); j++){
 
 			if (quotestrings){
-				ampl_fprintf (f, "%s%s%s", quotechar, get_col_name(j), quotechar);
+				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_col_name(j), quotechar.c_str());
 			}
 			else{
 				ampl_fprintf (f, "%s", get_col_name(j));
 			}
 			// add separator
 			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep);
+				ampl_fprintf (f, "%s", sep.c_str());
 			}
 		}
 		ampl_fprintf (f, "\n");
@@ -181,26 +199,24 @@ Handler::write_out(){
 	for (int i = 0; i < nrows(); i++){
 		for (int j = 0; j < ncols(); j++){
 
-			// check string value
+			// check if element is a string
 			if (is_char_val(i, j)){
-
-				if (get_char_val(i, j) == TI->Missing){
-					continue;
-				}
-				if (quotestrings){
-					ampl_fprintf (f, "%s%s%s", quotechar, get_char_val(i, j), quotechar);
+				// if value is missing don't write anything
+				if (is_missing(i, j)){}
+				else if (quotestrings){
+					ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
 				}
 				else{
 					ampl_fprintf (f, "%s", get_char_val(i, j));
 				}
 			}
-			// otherwise numeric value
+			// otherwise element is numeric
 			else{
 				ampl_fprintf (f, "%.g", get_numeric_val(i, j));
 			}
 			// add separator
 			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep);
+				ampl_fprintf (f, "%s", sep.c_str());
 			}
 		}
 		ampl_fprintf (f, "\n");
@@ -225,7 +241,7 @@ Handler::write_inout(){
 		throw DBE_Error;
 	}
 
-	int nfields = 0; // number of fields (columns) in the csv table
+	std::size_t nfields = 0; // number of fields (columns) in the csv table
 
 	std::vector<std::string> header; // vector to store the strings in the csv header
 	std::vector<std::string> row; // vector to store the strings in the csv rows
@@ -242,8 +258,9 @@ Handler::write_inout(){
 	if (has_header){
 
 		//~ std::getline(infile, str);
-		safeGetline(infile, str);
-		parse_row(str, header);
+		//~ safeGetline(infile, str);
+		str = get_csv_row(infile);
+		header = parse_row(str);
 		nfields = header.size();
 		validate_header(header, perm);
 		row_count += 1;
@@ -274,14 +291,14 @@ Handler::write_inout(){
 		for (int j = 0; j < ncols(); j++){
 
 			if (quotestrings){
-				ampl_fprintf (f, "%s%s%s", quotechar, get_col_name(j), quotechar);
+				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_col_name(j), quotechar.c_str());
 			}
 			else{
 				ampl_fprintf (f, "%s", get_col_name(j));
 			}
 			// add separator
 			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep);
+				ampl_fprintf (f, "%s", sep.c_str());
 			}
 		}
 		ampl_fprintf (f, "\n");
@@ -305,7 +322,7 @@ Handler::write_inout(){
 					continue;
 				}
 				if (quotestrings){
-					ampl_fprintf (f, "%s%s%s", quotechar, get_char_val(i, j), quotechar);
+					ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
 					tmp_str = quotechar; 
 					tmp_str += get_char_val(i, j); 
 					tmp_str += quotechar;
@@ -328,7 +345,7 @@ Handler::write_inout(){
 				}
 			}
 			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep);
+				ampl_fprintf (f, "%s", sep.c_str());
 			}
 		}
 		ampl_fprintf (f, "\n");
@@ -340,14 +357,15 @@ Handler::write_inout(){
 	// the row to the output file
 	while (true) {
 
-		safeGetline(infile, str);
+		//~ safeGetline(infile, str);
+		str = get_csv_row(infile);
 
-		if (!infile.good()){break;}
+		if (str.empty()){break;}
 
-		row.clear();
+		//~ row.clear();
 		temp_keys.clear();
 
-		parse_row(str, row);
+		row = parse_row(str);
 		row_count += 1;
 
 		if (row.size() != nfields){
@@ -414,16 +432,21 @@ Handler::register_handler_extensions(){
 };
 
 
-void
-Handler::parse_row(std::string & str, std::vector<std::string> & row){
+std::vector<std::string>
+Handler::parse_row(const std::string & str, int row_size){
+
+	std::vector<std::string> row;
+	if (row_size > 0){
+		row.reserve(row_size);
+	}
 
 	bool is_first = true;
-	int i = 0;
-	int lb = 0;
-	int ub = 0;
+	std::size_t i = 0;
+	std::size_t lb = 0;
+	std::size_t ub = 0;
 
 	while (true){
-		if (str[i] == *quotechar && is_first){
+		if (str[i] == quotechar[0] && is_first){
 			is_first = false;
 			lb = i;
 			while (true){
@@ -432,13 +455,13 @@ Handler::parse_row(std::string & str, std::vector<std::string> & row){
 					i -= 1;
 					break;
 				}
-				if (str[i] == *quotechar && i + 1 < str.size() && str[i + 1] != *quotechar){
+				if (str[i] == quotechar[0] && i + 1 < str.size() && str[i + 1] != quotechar[0]){
 					ub = i;
 					break;
 				}
 			}
 		}
-		else if (str[i] == *sep){
+		else if (str[i] == sep[0]){
 			if (is_first){
 				row.push_back(std::string());
 			}
@@ -461,6 +484,7 @@ Handler::parse_row(std::string & str, std::vector<std::string> & row){
 		}
 		i += 1;
 	}
+	return row;
 };
 
 
@@ -471,7 +495,7 @@ Handler::validate_header(const std::vector<std::string> & header, std::vector<in
 	std::map<std::string, int> ampl_col_map;
 
 	// get a map of the columns in the external representation of the table 
-	for (int i = 0; i < header.size(); i++){
+	for (std::size_t i = 0; i < header.size(); i++){
 		std::string tmp_str = header[i];
 		if (quotestrings){
 			try_unquote_string(tmp_str, quotechar);
@@ -502,7 +526,7 @@ Handler::validate_header(const std::vector<std::string> & header, std::vector<in
 		std::string tmp_str = header[i];
 
 		if (quotestrings){
-			try_unquote_string(tmp_str, quotechar);
+			tmp_str = try_unquote_string(tmp_str, quotechar);
 		}
 
 		if (ampl_col_map.find(tmp_str) != ampl_col_map.end()){
@@ -523,7 +547,7 @@ Handler::get_keys(
 	std::vector<int> & perm,
 	std::vector<std::string> & keyvec
 ){
-	for (int i=0; i<row.size(); i++){
+	for (std::size_t i=0; i<row.size(); i++){
 		if (perm[i] < nkeycols()){
 			keyvec.push_back(row[i]);
 		}
@@ -532,11 +556,11 @@ Handler::get_keys(
 
 
 void
-Handler::send_val_to_ampl(std::string & val, int col){
+Handler::send_val_to_ampl(std::string val, int col){
+
 
 	if (val.empty()){
-		//~ TI->cols[col].sval[0] = TI->Missing;
-		return;
+		set_col_missing_val(col);
 	}
 
 	char* se;
@@ -545,17 +569,14 @@ Handler::send_val_to_ampl(std::string & val, int col){
 	// check if val is a number
 	t = ampl_strtod(val.c_str(), &se);
 	if (!*se) {/* valid number */
-		//~ TI->cols[col].sval[0] = 0;
-		//~ TI->cols[col].dval[0] = t;
 		set_col_val(t, col);
 	}
 	else{
 		// check for quoted char
 		if (quotestrings){
-			try_unquote_string(val, quotechar);
+			val = try_unquote_string(val, quotechar);
 
 			if (val.empty()){
-				//~ TI->cols[col].sval[0] = TI->Missing;
 				return;
 			}
 		}
@@ -565,19 +586,87 @@ Handler::send_val_to_ampl(std::string & val, int col){
 
 
 void
-try_unquote_string(std::string & str, char* quotechar){
+Handler::validate_arguments(){
 
-	size_t n = str.size();
-	if (str[0] == *quotechar && str.size() > 1 && str[n-1] == *quotechar){
-		str = str.substr(1, n-2);
+	log_msg = "<validate_arguments>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	// check if ampl_args_map was changed by the user
+	for (std::size_t i = 0; i < used_args.size(); i++){
+		if (used_args[i] == "quotestrings"){
+			quotestrings = true;
+			// It's also possible to use ampl_args_map["quotestrings"] (which was also set to true) directly.
+		}
 	}
 
-	int deb = 1;
+	// check if ampl_kargs_map was changed by the user
+	std::string key;
+	std::vector<std::string> user_options;
+	std::vector<std::string> handler_vals;
+
+	for (std::size_t i = 0; i < used_kargs.size(); i++){
+
+		key = used_kargs[i];
+
+		if (key == "sep"){
+			user_options.clear();
+			handler_vals.clear();
+
+			user_options.push_back(",");
+			user_options.push_back(";");
+			user_options.push_back("space");
+			user_options.push_back("tab");
+
+			handler_vals.push_back(",");
+			handler_vals.push_back(";");
+			handler_vals.push_back(" ");
+			handler_vals.push_back("\t");
+
+			//~ // for recent versions of C++
+			//~ user_options = {",", ";", ":", "space", "tab"};
+			//~ handler_vals = {",", ";", ":", " ", "\t"};
+
+			sep = get_map_karg(key, user_options, handler_vals);
+		}
+		else if (key == "quotechar"){
+			user_options.clear();
+			handler_vals.clear();
+
+			user_options.push_back("single");
+			user_options.push_back("double");
+
+			handler_vals.push_back("'");
+			handler_vals.push_back("\"");
+
+			//~ // for recent versions of C++
+			//~ user_options = {"single", "double"};
+			//~ handler_vals = {"'", "\""};
+
+			quotechar = get_map_karg(key, user_options, handler_vals);
+
+			// if we define quotechar quotestrings is set to true
+			quotestrings = true;
+		}
+		else if (key == "header"){
+			has_header = get_bool_karg(key);
+		}
+	}
+};
+
+
+std::string
+try_unquote_string(std::string str, const std::string & quotechar){
+
+	size_t n = str.size();
+	if (str[0] == quotechar[0] && str.size() > 1 && str[n-1] == quotechar[0]){
+		str = str.substr(1, n-2);
+	}
+	return str;
 };
 
 
 std::istream&
-safeGetline(std::istream& is, std::string& t)
+safe_get_line(std::istream& is, std::string& t)
 {
 	t.clear();
 
@@ -633,4 +722,71 @@ safeGetline(std::istream& is, std::string& t)
 		}
 	}
 };
+
+
+std::string
+get_csv_row(std::istream& is)
+{
+	std::string t;
+
+	// The characters in the stream are read one-by-one using a std::streambuf.
+	// That is faster than reading them one-by-one using the std::istream.
+	// Code that uses streambuf this way must be guarded by a sentry object.
+	// The sentry object performs various tasks,
+	// such as thread synchronization and updating the stream state.
+
+	std::istream::sentry se(is, true);
+	std::streambuf* sb = is.rdbuf();
+
+	// original code for reference
+	// for(;;) {
+		// int c = sb->sbumpc();
+		// switch (c) {
+		// case '\n':
+			// return is;
+		// case '\r':
+			// if(sb->sgetc() == '\n')
+				// sb->sbumpc();
+			// return is;
+		// case std::streambuf::traits_type::eof():
+			// // Also handle the case when the last line has no line ending
+			// if(t.empty())
+				// is.setstate(std::ios::eofbit);
+			// return is;
+		// default:
+			// t += (char)c;
+		// }
+	// }
+
+	for(;;) {
+		int c = sb->sbumpc();
+		if (c == '\n'){
+			break;
+		}
+		else if (c == '\r'){
+			if(sb->sgetc() == '\n'){
+				sb->sbumpc();
+			}
+			break;
+		}
+		else if (c == std::streambuf::traits_type::eof()){
+			// Also handle the case when the last line has no line ending
+			if(t.empty()){
+				is.setstate(std::ios::eofbit);
+			}
+			break;
+		}
+		else{
+			t += (char)c;
+		}
+	}
+	return t;
+};
+
+
+
+
+
+
+
 

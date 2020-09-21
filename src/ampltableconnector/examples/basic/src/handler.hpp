@@ -2,6 +2,8 @@
 
 #include "ampltableconnector.hpp"
 
+using namespace ampl;
+
 class BasicHandler:
 public Connector{
 

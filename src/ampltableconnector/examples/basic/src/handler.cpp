@@ -85,6 +85,9 @@ BasicHandler::read_in(){
 		numeric_values.push_back(2 * (i + 1));
 	}
 
+	// tell AMPL the expected size of each row (number of columns of the table)
+	allocate_row_size(3);
+
 	// iterate rows of data
 	for (int i = 0; i < n_data_rows; i++){
 

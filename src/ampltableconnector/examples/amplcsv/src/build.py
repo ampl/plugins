@@ -3,16 +3,21 @@ import os
 import shutil
 
 
-dll = "template.dll"
+dll = "amplcsv.dll"
 
 # compile
 params = [
 	"g++",
-	"-std=c++03",
+	# ~ "clang",
+	# ~ "-std=c++03",
+	# ~ "-std=c++0x",
+	"-std=c++11",
+	# ~ "-std=c++14",
 	"-I../../../include/",
-	"-O2",
-	# ~ "-Wall",
-	# ~ "-g",
+	# ~ "-O2",
+	"-Wall",
+	"-Wextra",
+	"-g",
 	"-c",
 	"-fPIC",
 	"handler.cpp",

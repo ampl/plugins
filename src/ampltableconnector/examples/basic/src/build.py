@@ -3,7 +3,7 @@ import os
 import shutil
 
 
-dll = "template.dll"
+dll = "basichandler.dll"
 
 # compile
 params = [

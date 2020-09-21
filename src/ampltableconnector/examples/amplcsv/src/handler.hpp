@@ -2,25 +2,20 @@
 
 #include "ampltableconnector.hpp"
 
+using namespace ampl;
 
 class Handler:
 public Connector{
 
 	public:
 
-	// map string to variant map<string, someclass>
-	//get double
-	//get string
-	//get bool
-	//get int
-
 	Handler();
 
 	// separator between elements in csv
-	char* sep; 
+	std::string sep; 
 
 	// character used to quote strings
-	char* quotechar;
+	std::string quotechar;
 
 	// weather or not to read/write the header
 	bool has_header;
@@ -35,6 +30,7 @@ public Connector{
 	void register_handler_names();
 	void register_handler_extensions();
 	void generate_table();
+	void validate_arguments();
 
 	// Splits the string str into elements of vector row according to the defined separator.
 	// If the first character of a string is a quote all elements are included until an individual
@@ -42,7 +38,8 @@ public Connector{
 	// that a string starting with quote must end with a quote so something like
 	//     " a strin,g""inside quote"" more text"should not be here
 	// between separators will be parsed as a single string.
-	void parse_row(std::string & str, std::vector<std::string> & row);
+	std::vector<std::string> parse_row(const std::string & str, int row_size = 0);
+	//~ void parse_row(const std::string & str, std::vector<std::string> & row);
 
 	// Validates if all column names in AMPLs table are found in the header and assigns the position
 	// of each column in perm, so perm[i] gives as the position of column i in the external table on
@@ -55,12 +52,12 @@ public Connector{
 		std::vector<std::string> & keyvec
 	);
 
-	void send_val_to_ampl(std::string & val, int col);
+	void send_val_to_ampl(std::string val, int col);
 };
 
 
 // Remove first andl last elements of str if they are the quotechar
-void try_unquote_string(std::string & str, char* quotechar);
+std::string try_unquote_string(std::string str, const std::string & quotechar);
 
 
 // std::getline only checks for the endline for your particular platform (???)
@@ -71,3 +68,5 @@ void try_unquote_string(std::string & str, char* quotechar);
 // utils.cpp:70:37: error: ‘std::char_traits<char>::eof()’ cannot appear in a constant-expression
 //   case std::streambuf::traits_type::eof():
 std::istream& safeGetline(std::istream& is, std::string& t);
+
+std::string get_csv_row(std::istream& is);
