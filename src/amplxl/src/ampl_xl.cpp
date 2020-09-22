@@ -3961,12 +3961,11 @@ ExcelManager::parse_header(
 			break;
 		}
 
-		//~ if (nempty == max_empty){
-			//~ if (verbose > 2){
-				//~ printf("Cannot find more columns, search done.\n");
-			//~ }
-			//~ break;
-		//~ }
+		if (has_range){
+			if (iter_col == range_last_col){
+				break;
+			}
+		}
 
 		if (iter_col == EXCEL_MAX_COLS){
 			if (verbose > 2){
