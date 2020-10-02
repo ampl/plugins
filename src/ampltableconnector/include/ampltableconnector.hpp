@@ -622,6 +622,7 @@ int Connector::ncols() { return TI->arity + TI->ncols; };
 int Connector::nrows() { return TI->nrows; };
 
 void Connector::set_col_val(double val, int col) {
+    TI->cols[col].sval[0] = 0;
     TI->cols[col].dval[0] = val;
 };
 
