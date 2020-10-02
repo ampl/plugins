@@ -558,7 +558,6 @@ Handler::get_keys(
 void
 Handler::send_val_to_ampl(std::string val, int col){
 
-
 	if (val.empty()){
 		set_col_missing_val(col);
 	}
@@ -568,7 +567,7 @@ Handler::send_val_to_ampl(std::string val, int col){
 
 	// check if val is a number
 	t = ampl_strtod(val.c_str(), &se);
-	if (!*se) {/* valid number */
+	if (!*se) {//valid number
 		set_col_val(t, col);
 	}
 	else{
@@ -577,7 +576,7 @@ Handler::send_val_to_ampl(std::string val, int col){
 			val = try_unquote_string(val, quotechar);
 
 			if (val.empty()){
-				return;
+				set_col_missing_val(col);
 			}
 		}
 		set_col_val(val, col);
