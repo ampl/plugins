@@ -1059,6 +1059,6 @@ void Connector::allocate_row_size(int size) { tmp_row.reserve(size); };
 
 } // namespace ampl
 
-#define funcadd ampl::funcadd_ASL
+#define funcadd amplt::funcadd_ASL
 
 #endif

@@ -2,7 +2,7 @@
 
 #include "ampltableconnector.hpp"
 
-using namespace ampl;
+using namespace amplt;
 
 class BasicHandler:
 public Connector{
