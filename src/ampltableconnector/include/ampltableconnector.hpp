@@ -286,7 +286,8 @@ enum {                      /* bits in flags field of TableInfo */
 };
 
 // macro to allocate memory in AMPLs internal structures (if needed)
-#define TM(len) (*ae->Tempmem)(TI->TMI, len)
+//~ #define TM(len) (*ae->Tempmem)(TI->TMI, len)
+void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len);
 
 // Simple replacement for the to_string function since we are building for
 // -std=c++03
@@ -556,6 +557,10 @@ void copy_file(const std::string &source_path, const std::string &dest_path) {
     dest << source.rdbuf();
 };
 
+void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len){
+    return ae->Tempmem(TI->TMI, len);
+};
+
 Logger::Logger() { level = 0; };
 
 void Logger::add_info(AmplExports *ae, TableInfo *TI) {
@@ -573,7 +578,8 @@ void Logger::log(const std::string &msg, int code) {
 
     // pass error to AMPL
     if (code == 0) {
-        ae->SprintF(TI->Errmsg = (char *)TM(msg.size() + 1), "%s", msg.c_str());
+        //~ ae->SprintF(TI->Errmsg = (char *)TM(msg.size() + 1), "%s", msg.c_str());
+        ae->SprintF(TI->Errmsg = (char *)temp_mem(ae, TI, msg.size() + 1), "%s", msg.c_str());
     }
     // print message acording to level
     else if (code <= level) {
