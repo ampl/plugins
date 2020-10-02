@@ -59,19 +59,14 @@ Handler::Handler(){
 
 	version = "amplcsv - alpha 0.0.0";
 
-	// define default values for arguments that can be changed by the user
-	// set the values for the elements in ampl_args_map as false, the framework will set it to
-	// true if it was used in args 
-	ampl_args_map["quotestrings"] = false;
-
 	// set the values for ampl_kargs_map as apropriate
 	ampl_kargs_map["sep"] = ",";
-	ampl_kargs_map["quotechar"] = "false";
+	ampl_kargs_map["quote"] = "none";
 	ampl_kargs_map["header"] = "true";
 
 	// you can use the values from tha maps directly or convert them to attributes latter
 	sep = ",";
-	quotechar = "\"";
+	quotechar = "";
 	quotestrings = false;
 	has_header = true;
 };
@@ -498,7 +493,7 @@ Handler::validate_header(const std::vector<std::string> & header, std::vector<in
 	for (std::size_t i = 0; i < header.size(); i++){
 		std::string tmp_str = header[i];
 		if (quotestrings){
-			try_unquote_string(tmp_str, quotechar);
+			tmp_str = try_unquote_string(tmp_str, quotechar);
 		}
 		csv_col_map[tmp_str] = i;
 	}
@@ -591,12 +586,13 @@ Handler::validate_arguments(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	// check if ampl_args_map was changed by the user
+	/*
 	for (std::size_t i = 0; i < used_args.size(); i++){
-		if (used_args[i] == "quotestrings"){
-			quotestrings = true;
-			// It's also possible to use ampl_args_map["quotestrings"] (which was also set to true) directly.
+		if (used_args[i] == "something"){
+			do something
 		}
 	}
+	*/
 
 	// check if ampl_kargs_map was changed by the user
 	std::string key;
@@ -627,24 +623,28 @@ Handler::validate_arguments(){
 
 			sep = get_map_karg(key, user_options, handler_vals);
 		}
-		else if (key == "quotechar"){
+		else if (key == "quote"){
 			user_options.clear();
 			handler_vals.clear();
 
+			user_options.push_back("none");
 			user_options.push_back("single");
 			user_options.push_back("double");
 
+			handler_vals.push_back("");
 			handler_vals.push_back("'");
 			handler_vals.push_back("\"");
 
 			//~ // for recent versions of C++
-			//~ user_options = {"single", "double"};
-			//~ handler_vals = {"'", "\""};
+			//~ user_options = {"none", "single", "double"};
+			//~ handler_vals = {"", "'", "\""};
 
 			quotechar = get_map_karg(key, user_options, handler_vals);
 
 			// if we define quotechar quotestrings is set to true
-			quotestrings = true;
+			if (ampl_kargs_map[key] == "single" || ampl_kargs_map[key] == "double"){
+				quotestrings = true;
+			}
 		}
 		else if (key == "header"){
 			has_header = get_bool_karg(key);
