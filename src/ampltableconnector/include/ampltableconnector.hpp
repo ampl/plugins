@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace ampl {
+namespace amplt {
 
 typedef struct cryptblock cryptblock;
 
