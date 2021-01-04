@@ -1296,7 +1296,20 @@ ExcelManager::parse_data(
 		for (int j=0; j<TI->ncols + TI->arity; j++){
 
 			if (temp_strings[j].empty()){
-				db->sval[0] = TI->Missing;
+				if (j < TI->arity){
+					msg = "Missing value for key column ";
+					msg += TI->colnames[j];
+					msg += " at row ";
+					msg += row_id_str;
+					msg += " in range/sheet ";
+					msg += table_name;
+					logger.log(msg, LOG_ERROR);
+					report_error = false;
+					return DB_Error;
+				}
+				else{
+					db->sval[0] = TI->Missing;
+				}
 			}
 			else{
 				if (is_string[j]){
@@ -4364,6 +4377,15 @@ ExcelManager::parse_header_2D_reader(
 			msg = "Found column header " + xl_col_name;
 			logger.log(msg, LOG_DEBUG);
 		}
+		else if (tableType != TABLE_SHEET){
+			msg = "Missing value in header of 2D table at cell ";
+			msg += cell_adress;
+			msg += " of range ";
+			msg += table_name;
+			logger.log(msg, LOG_ERROR);
+			report_error = false;
+			return 1;
+		}
 		else{
 			break;
 		}
@@ -4406,7 +4428,10 @@ ExcelManager::parse_data2D(
 	std::vector<int> is_header_string;
 	int res = parse_header_2D_reader(first_col, last_col, first_row, node, xl_col_map, header, is_header_string);
 
-	if (res){
+	if (res && !report_error){
+		return 1;
+	}
+	else if (res){
 		// no header found?
 		msg = "Cannot find header in 2D table";
 		logger.log(msg, LOG_ERROR);
@@ -4545,6 +4570,14 @@ ExcelManager::parse_data2D(
 			if (!iter_cell){
 				// could not find cell in defined range ?!
 				cell_value = "";
+				if (iter_col == first_col){
+					msg = "Missing value for key column at cell ";
+					msg += cell_ref;
+					msg += " in range/sheet ";
+					msg += table_name;
+					logger.log(msg, LOG_ERROR);
+					return DB_Error;
+				}
 			}
 			else{
 				//~ get_cell_val(iter_cell, cell_value);
