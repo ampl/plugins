@@ -70,7 +70,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.8";
+const std::string version = "0.1.9";
 
 
 const char* row_attr = "r";
