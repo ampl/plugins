@@ -203,6 +203,8 @@ class ExcelManager
 	// if the named range that defines the table needs to be updated
 	bool updateRange;
 
+	// weather or not to override AMPL's error
+	bool report_error;
 
 	// methods
 

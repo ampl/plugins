@@ -92,6 +92,7 @@ ExcelManager::ExcelManager(){
 	isReader = true;
 	tableType = TABLE_RANGE;
 	updateRange = false;
+	report_error = true;
 };
 
 
@@ -731,9 +732,14 @@ ExcelReadManager::manage_data(){
 	first_row += 1;
 	result = parse_data(node, first_row, last_row, first_col, last_col);
 
-	if (result){
+	if (result && report_error){
 		msg = "Could not parse data";
 		logger.log(msg, LOG_ERROR);
+		return 1;
+	}
+	else if (result){
+		msg = "Could not parse data";
+		logger.log(msg, LOG_WARNING);
 		return 1;
 	}
 
@@ -1316,7 +1322,8 @@ ExcelManager::parse_data(
 		db = TI->cols;
 		if ((*TI->AddRows)(TI, db, 1)){
 			msg = "Error with AddRows";
-			logger.log(msg, LOG_DEBUG);
+			logger.log(msg, LOG_WARNING);
+			report_error = false;
 			return DB_Error;
 		}
 
