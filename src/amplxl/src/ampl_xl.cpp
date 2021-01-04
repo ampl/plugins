@@ -535,7 +535,7 @@ ExcelManager::manage_workbook(){
 			manage_workbook();
 		}
 		else{
-			msg = "could not find table";
+			msg = "could not find a range or sheet named " + table_name;
 			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
