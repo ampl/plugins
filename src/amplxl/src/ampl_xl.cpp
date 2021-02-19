@@ -159,9 +159,9 @@ void
 ExcelManager::log_missing_column(int col){
 
 	std::string msg;
-	msg = "Could not find column ";
+	msg = "Could not find column \'";
 	msg += TI->colnames[col];
-	msg += " in spreadsheet table header";
+	msg += "\' in spreadsheet table header";
 	logger.log(msg, LOG_ERROR);
 };
 
@@ -3989,10 +3989,12 @@ ExcelManager::parse_header(
 
 			xl_col_map[xl_col_name] = iter_col;
 
-			if (verbose == 73){
-				printf("Found column %s\n", xl_col_name.c_str());
+			if (verbose >= 3){
+				std::string msg = "Found column \'";
+				msg += xl_col_name;
+				msg += "\'";
+				logger.log(msg, LOG_DEBUG);
 			}
-
 		}
 		else{
 			//~ nempty += 1;
