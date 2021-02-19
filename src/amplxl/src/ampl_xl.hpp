@@ -281,6 +281,8 @@ class ExcelManager
 	// node is an xml node that holds the spreadsheet rows as children
 	// remaining parameters define the bounds of the header in the table
 	// returns -1 if all columns are found or the index of the missing column
+	// return -2 if no columns found
+	// return -3 if a duplicate column is found
 	int check_columns(
 		const pugi::xml_node &node,
 		const int first_row,
@@ -321,7 +323,7 @@ class ExcelManager
 	);
 
 
-	void
+	int
 	parse_header(
 		const std::string & first_col,
 		std::string & last_col,

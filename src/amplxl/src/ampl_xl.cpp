@@ -710,9 +710,7 @@ ExcelReadManager::manage_data(){
 	// check the headers of the table and adjust last_col
 	result = check_columns(node, first_row, first_col, last_col);
 
-	if (result == -2){
-		msg = "Could not parse header";
-		logger.log(msg, LOG_ERROR);
+	if (result == -2 || result == -3){
 		return 1;
 	}
 	else if (result != -1){
@@ -1017,9 +1015,16 @@ ExcelManager::check_columns(
 ){
 	// get the columns names in the row
 	std::map<std::string, std::string> excel_col_map;
-	parse_header(first_col, last_col, first_row, node, excel_col_map);
+	int res = parse_header(first_col, last_col, first_row, node, excel_col_map);
+
+	if (res){
+		// error in logger
+		return -3;
+	}
 
 	if (excel_col_map.size() == 0){
+		std::string msg = "Parse header found 0 columns.";
+		logger.log(msg, LOG_ERROR);
 		return -2;
 	}
 
@@ -3922,7 +3927,7 @@ write_indexing_sets(
 
 
 
-void
+int
 ExcelManager::parse_header(
 
 	const std::string & first_col,
@@ -3968,8 +3973,21 @@ ExcelManager::parse_header(
 			if (is_numeric){
 				xl_col_name = "ampl-numeric-" + xl_col_name;
 			}
+
+			if (xl_col_map.find(xl_col_name) != xl_col_map.end()){
+				std::string msg = "Column \'" + xl_col_name;
+				msg += "\' at cell \'";
+				msg += iter_col;
+				msg += row_id;
+				msg += "\' already defined at cell \'";
+				msg += xl_col_map[xl_col_name];
+				msg += row_id;
+				msg += "\'";
+				logger.log(msg, LOG_ERROR);
+				return 1;
+			}
+
 			xl_col_map[xl_col_name] = iter_col;
-			//~ nempty = 0;
 
 			if (verbose == 73){
 				printf("Found column %s\n", xl_col_name.c_str());
@@ -3996,6 +4014,7 @@ ExcelManager::parse_header(
 
 		ecm.next(iter_col);
 	}
+	return 0;
 };
 
 
