@@ -756,7 +756,7 @@ public ExcelManager{
 		const std::string & last_col
 	);
 
-
+	bool validate_table_utf8_compatible();
 };
 
 

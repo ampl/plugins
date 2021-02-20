@@ -831,6 +831,10 @@ ExcelWriteManager::run(){
 		return DB_Error;
 	}
 
+	if (!validate_table_utf8_compatible()){
+		return DB_Error;
+	}
+
 	if (is2D){
 		result = manage_data2D();
 	}
@@ -5189,8 +5193,54 @@ ExcelWriteManager::get_new_range(std::string & new_range){
 };
 
 
+bool
+ExcelWriteManager::validate_table_utf8_compatible(){
 
+	unsigned char* temp_string;
 
+	int ampl_ncols = TI->arity + TI->ncols;
+	DbCol *db;
+
+	// validate header
+	for (int j = 0; j < ampl_ncols; j++){
+
+		temp_string = reinterpret_cast<unsigned char *>(TI->colnames[j]);
+
+		if (utf8_check(temp_string)){
+
+			std::string msg = "Could not write invalid utf-8 column name \'";
+			msg += TI->colnames[j];
+			msg += "\' to spreadsheet";
+			logger.log(msg, LOG_ERROR);
+			return false;
+		}
+	}
+
+	// validate data
+	for (int i = 0; i < TI->nrows; i++){
+
+		db = TI->cols;
+
+		for (int j = 0; j < ampl_ncols; j++){
+
+			if (db->sval && db->sval[i]){
+
+				temp_string = reinterpret_cast<unsigned char *>(db->sval[i]);
+
+				if (utf8_check(temp_string)){
+
+					std::string msg = "Could not write invalid utf-8 table value \'";
+					msg += db->sval[i];
+					msg += "\' to spreadsheet";
+					logger.log(msg, LOG_ERROR);
+					return false;
+				}
+			}
+			db++;
+		}
+	}
+	return true;
+}
 
 
 
