@@ -44,7 +44,7 @@ public Connector{
 	// Validates if all column names in AMPLs table are found in the header and assigns the position
 	// of each column in perm, so perm[i] gives as the position of column i in the external table on
 	// AMPLs table.
-	void validate_header(const std::vector<std::string> & header, std::vector<int> & perm);
+	void validate_header(std::vector<std::string> & header, std::vector<int> & perm);
 
 	void get_keys(
 		std::vector<std::string> & row,

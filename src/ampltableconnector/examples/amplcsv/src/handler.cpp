@@ -236,6 +236,7 @@ Handler::write_inout(){
 		throw DBE_Error;
 	}
 
+	std::size_t init_nfields = 0; // number of fields (columns) in the csv table
 	std::size_t nfields = 0; // number of fields (columns) in the csv table
 
 	std::vector<std::string> header; // vector to store the strings in the csv header
@@ -256,8 +257,9 @@ Handler::write_inout(){
 		//~ safeGetline(infile, str);
 		str = get_csv_row(infile);
 		header = parse_row(str);
-		nfields = header.size();
+		init_nfields = header.size();
 		validate_header(header, perm);
+		nfields = header.size();
 		row_count += 1;
 	}
 	// otherwise we assume the number of fields equals the number of columns in AMPLs table and give
@@ -283,13 +285,13 @@ Handler::write_inout(){
 
 	// write header
 	if (has_header){
-		for (int j = 0; j < ncols(); j++){
+		for (int j = 0; j < header.size(); j++){
 
 			if (quotestrings){
-				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_col_name(j), quotechar.c_str());
+				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
 			}
 			else{
-				ampl_fprintf (f, "%s", get_col_name(j));
+				ampl_fprintf (f, "%s", header[j].c_str());
 			}
 			// add separator
 			if (j < ncols() - 1){
@@ -303,6 +305,64 @@ Handler::write_inout(){
 	std::map<std::vector<std::string>,int> used_keys_map;
 	std::vector<std::string> temp_keys;
 
+	for (int i = 0; i < nrows(); i++){
+
+		temp_keys.clear();
+
+		for (int j = 0; j < nfields; j++){
+
+			if (perm[j] != -1){
+
+				int ampl_col = perm[j];
+
+
+
+				tmp_str.clear();
+
+				if (is_char_val(i, ampl_col)){
+
+					if (get_char_val(i, ampl_col) == TI->Missing){
+						continue;
+					}
+					if (quotestrings){
+						ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+						tmp_str = quotechar;
+						tmp_str += get_char_val(i, ampl_col);
+						tmp_str += quotechar;
+					}
+					else{
+						ampl_fprintf (f, "%s", get_char_val(i, ampl_col));
+						tmp_str = get_char_val(i, ampl_col);
+					}
+
+					if (perm[j] < nkeycols()){
+						temp_keys.push_back(tmp_str);
+					}
+				}
+				else{
+					// numeric value
+					ampl_fprintf (f, "%.g", get_numeric_val(i, ampl_col));
+
+					if (perm[j] < nkeycols()){
+						temp_keys.push_back(numeric_to_string(get_numeric_val(i, ampl_col)));
+					}
+				}
+
+
+
+			}
+
+			if (j < nfields - 1){
+				ampl_fprintf (f, "%s", sep.c_str());
+			}
+		}
+		ampl_fprintf (f, "\n");
+		used_keys_map[temp_keys] = i;
+	}
+
+
+
+/*
 	for (int i = 0; i < nrows(); i++){
 
 		temp_keys.clear();
@@ -347,6 +407,7 @@ Handler::write_inout(){
 
 		used_keys_map[temp_keys] = i;
 	}
+*/
 
 	// now we read the rows in the input file and if the keys are not in used_keys_map we write
 	// the row to the output file
@@ -363,7 +424,7 @@ Handler::write_inout(){
 		row = parse_row(str);
 		row_count += 1;
 
-		if (row.size() != nfields){
+		if (row.size() != init_nfields){
 
 			std::cout << str << std::endl;
 
@@ -380,6 +441,14 @@ Handler::write_inout(){
 		get_keys(row, perm, temp_keys);
 
 		if (used_keys_map.find(temp_keys) == used_keys_map.end()){
+
+			if (row.size() < nfields){
+				for (int i=0; i<nfields-row.size(); i++){
+					
+					str += sep;
+				}
+			}
+
 			ampl_fprintf (f, "%s\n", str.c_str());
 		}
 		// we could also track duplicate rows here, but we'll assume everything is ok
@@ -484,29 +553,10 @@ Handler::parse_row(const std::string & str, int row_size){
 
 
 void
-Handler::validate_header(const std::vector<std::string> & header, std::vector<int> & perm){
+Handler::validate_header(std::vector<std::string> & header, std::vector<int> & perm){
 
 	std::map<std::string, int> csv_col_map;
 	std::map<std::string, int> ampl_col_map;
-
-	// get a map of the columns in the external representation of the table 
-	for (std::size_t i = 0; i < header.size(); i++){
-		std::string tmp_str = header[i];
-		if (quotestrings){
-			tmp_str = try_unquote_string(tmp_str, quotechar);
-		}
-		csv_col_map[tmp_str] = i;
-	}
-
-	// confirm all ampl columns are in the external table
-	for (int i = 0; i < ncols(); i++){
-		std::string temp_str = get_col_name(i);
-		if (csv_col_map.find(temp_str) == csv_col_map.end()){
-			log_msg = "Could not find column " + temp_str + " in the external table.";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-	}
 
 	// get a map for the columns in AMPL's table
 	for (int i = 0; i < ncols(); i++){
@@ -514,23 +564,60 @@ Handler::validate_header(const std::vector<std::string> & header, std::vector<in
 		ampl_col_map[temp_str] = i;
 	}
 
-	perm.resize(ncols());
+	perm.resize(header.size());
 
-	for (int i = 0; i < ncols(); i++){
-
+	// get a map of the columns in the external representation of the table 
+	for (std::size_t i = 0; i < header.size(); i++){
 		std::string tmp_str = header[i];
-
 		if (quotestrings){
 			tmp_str = try_unquote_string(tmp_str, quotechar);
 		}
 
+		// log columns that were found by the table handler
+		log_msg = "Found column \'";
+		log_msg += tmp_str;
+		log_msg += "\'.";
+		logger.log(log_msg, LOG_DEBUG);
+
+		// check for duplicate names
+		if (csv_col_map.find(tmp_str) != csv_col_map.end()){
+			log_msg = "Duplicate column in the external table.\n";
+			log_msg += "Column name \'" + header[i] + "\' at column ";
+			log_msg += numeric_to_string(i);
+			log_msg += " already defined at column ";
+			log_msg += csv_col_map[tmp_str];
+			log_msg += ".";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+		csv_col_map[tmp_str] = i;
+
+		// check if the column is in AMPLs table
 		if (ampl_col_map.find(tmp_str) != ampl_col_map.end()){
 			perm[i] = ampl_col_map[tmp_str];
 		}
 		else{
+			perm[i] = -1;
 			log_msg = "Could not find external column name " + tmp_str + " in AMPL's table.";
-			logger.log(log_msg, LOG_WARNING);
-			//~ throw DBE_Error;
+			logger.log(log_msg, LOG_DEBUG);
+		}
+	}
+
+	// confirm all ampl columns are in the external table
+	for (int i = 0; i < ncols(); i++){
+		std::string temp_str = get_col_name(i);
+		if (csv_col_map.find(temp_str) == csv_col_map.end()){
+			// If a key column is missing we throw an error
+			if (i < nkeycols()){
+				log_msg = "Could not find column " + temp_str + " in the external table.";
+				logger.log(log_msg, LOG_ERROR);
+				throw DBE_Error;
+			}
+			// Otherwise we add the value column to the external table
+			else{
+				header.push_back(temp_str);
+				perm.push_back(i);
+			}
 		}
 	}
 };
