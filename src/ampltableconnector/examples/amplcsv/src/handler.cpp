@@ -845,11 +845,13 @@ Handler::validate_arguments(){
 
 			user_options.push_back(",");
 			user_options.push_back(";");
+			user_options.push_back(":");
 			user_options.push_back("space");
 			user_options.push_back("tab");
 
 			handler_vals.push_back(",");
 			handler_vals.push_back(";");
+			handler_vals.push_back(":");
 			handler_vals.push_back(" ");
 			handler_vals.push_back("\t");
 
