@@ -23,6 +23,9 @@ public Connector{
 	// Weather or not to quote/unquote strings when writting/reading, defaults to false
 	bool quotestrings;
 
+	// Weather or not to use the existing csv header (OUT only)
+	bool use_header;
+
 	// override functions
 	void read_in();
 	void write_out();
@@ -44,7 +47,7 @@ public Connector{
 	// Validates if all column names in AMPLs table are found in the header and assigns the position
 	// of each column in perm, so perm[i] gives as the position of column i in the external table on
 	// AMPLs table.
-	void validate_header(std::vector<std::string> & header, std::vector<int> & perm);
+	std::vector<int> validate_header(std::vector<std::string> & header);
 
 	void get_keys(
 		std::vector<std::string> & row,
@@ -53,6 +56,13 @@ public Connector{
 	);
 
 	void send_val_to_ampl(std::string val, int col);
+
+	std::vector<std::string> get_header_ampl();
+	std::vector<std::string> get_header_csv();
+	std::vector<int> parse_header();
+	void write_data_ampl(FILE *f);
+	void write_data_perm(FILE *f, std::vector<int>& perm);
+	void write_header(FILE *f, std::vector<std::string>& header);
 };
 
 

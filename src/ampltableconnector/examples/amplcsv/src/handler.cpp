@@ -63,12 +63,14 @@ Handler::Handler(){
 	ampl_kargs_map["sep"] = ",";
 	ampl_kargs_map["quote"] = "none";
 	ampl_kargs_map["header"] = "true";
+	ampl_kargs_map["use_header"] = "true";
 
 	// you can use the values from tha maps directly or convert them to attributes latter
 	sep = ",";
 	quotechar = "";
 	quotestrings = false;
 	has_header = true;
+	use_header = true;
 };
 
 
@@ -107,7 +109,7 @@ Handler::read_in(){
 		str = get_csv_row(infile);
 		header = parse_row(str);
 		nfields = header.size();
-		validate_header(header, perm);
+		perm = validate_header(header);
 		row_count += 1;
 	}
 	// otherwise we assume the number of fields equals the number of columns in AMPLs table and give
@@ -168,27 +170,127 @@ Handler::write_out(){
 
 	if (!f){
 		log_msg = "write_out: could not open " + filepath;
+		log_msg += " to write data.";
 		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;
 	}
 
-	// write header
-	if (has_header){
-		for (int j = 0; j < ncols(); j++){
-
-			if (quotestrings){
-				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_col_name(j), quotechar.c_str());
-			}
-			else{
-				ampl_fprintf (f, "%s", get_col_name(j));
-			}
-			// add separator
-			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
-			}
-		}
-		ampl_fprintf (f, "\n");
+	// overwrite data without including header
+	if (!has_header){
+		write_data_ampl(f);
+		fclose(f);
+		return;
 	}
+
+	std::vector<std::string> header;
+
+	// overwrite data
+	if (!use_header){
+		header = get_header_ampl();
+		write_header(f, header);
+		write_data_ampl(f);
+		fclose(f);
+		return;
+	}
+
+	// read header from the data file
+	header = get_header_csv();
+
+	// file might be empty (just created)
+	if (header.size() == 0){
+		header = get_header_ampl();
+		write_header(f, header);
+		write_data_ampl(f);
+		fclose(f);
+		return;
+	}
+
+	std::vector<int> perm = validate_header(header);
+
+	write_header(f, header);
+	write_data_perm(f, perm);
+	fclose(f);
+};
+
+
+
+std::vector<std::string>
+Handler::get_header_ampl(){
+
+	log_msg = "<get_header_ampl>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::vector<std::string> header;
+	for (int j = 0; j < ncols(); j++){
+		header.push_back(get_col_name(j));
+	}
+	return header;
+};
+
+std::vector<std::string>
+Handler::get_header_csv(){
+
+	log_msg = "<get_header_csv>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::vector<std::string> header;
+
+	std::ifstream infile(filepath.c_str()); // stream to read the data in the csv file
+
+	if (!infile){
+		log_msg = "Could not open " + filepath + " to read data.";
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	}
+
+	std::string str = get_csv_row(infile);
+
+	if (str.size() == 0){
+		return header;
+	}
+
+	header = parse_row(str);
+
+	infile.close();
+
+	std::cout << header.size() << std::endl;
+
+	return header;
+};
+
+
+
+
+void
+Handler::write_header(FILE *f, std::vector<std::string>& header){
+
+	log_msg = "<write_header>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	for (int j = 0; j < header.size(); j++){
+
+		if (quotestrings){
+			ampl_fprintf (f, "%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
+		}
+		else{
+			ampl_fprintf (f, "%s", header[j].c_str());
+		}
+		// add separator
+		if (j < ncols() - 1){
+			ampl_fprintf (f, "%s", sep.c_str());
+		}
+	}
+	ampl_fprintf (f, "\n");
+};
+
+
+
+
+void
+Handler::write_data_ampl(FILE *f){
+
+	log_msg = "<write_data_ampl>";
+	logger.log(log_msg, LOG_DEBUG);
 
 	// write data iterating by rows and columns
 	for (int i = 0; i < nrows(); i++){
@@ -216,8 +318,61 @@ Handler::write_out(){
 		}
 		ampl_fprintf (f, "\n");
 	}
-	fclose(f);
 };
+
+
+
+
+
+
+
+
+
+
+void
+Handler::write_data_perm(FILE *f, std::vector<int>& perm){
+
+	log_msg = "<write_data_perm>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	for (int i = 0; i < nrows(); i++){
+
+		for (int j = 0; j < perm.size(); j++){
+
+			if (perm[j] != -1){
+
+				int ampl_col = perm[j];
+
+				if (is_char_val(i, ampl_col)){
+
+					if (is_missing(i, j)){}
+					else if (quotestrings){
+						ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+					}
+					else{
+						ampl_fprintf (f, "%s", get_char_val(i, ampl_col));
+					}
+				}
+				else{
+					// numeric value
+					ampl_fprintf (f, "%.g", get_numeric_val(i, ampl_col));
+				}
+			}
+			if (j < perm.size() - 1){
+				ampl_fprintf (f, "%s", sep.c_str());
+			}
+		}
+		ampl_fprintf (f, "\n");
+	}
+};
+
+
+
+
+
+
+
+
 
 
 void
@@ -258,7 +413,7 @@ Handler::write_inout(){
 		str = get_csv_row(infile);
 		header = parse_row(str);
 		init_nfields = header.size();
-		validate_header(header, perm);
+		perm = validate_header(header);
 		nfields = header.size();
 		row_count += 1;
 	}
@@ -285,20 +440,7 @@ Handler::write_inout(){
 
 	// write header
 	if (has_header){
-		for (int j = 0; j < header.size(); j++){
-
-			if (quotestrings){
-				ampl_fprintf (f, "%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
-			}
-			else{
-				ampl_fprintf (f, "%s", header[j].c_str());
-			}
-			// add separator
-			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
-			}
-		}
-		ampl_fprintf (f, "\n");
+		write_header(f, header);
 	}
 
 	// write AMPL's table and get a map of used keys
@@ -499,6 +641,8 @@ Handler::register_handler_extensions(){
 std::vector<std::string>
 Handler::parse_row(const std::string & str, int row_size){
 
+	std::cout << "std: " << str.size() << std::endl;
+
 	std::vector<std::string> row;
 	if (row_size > 0){
 		row.reserve(row_size);
@@ -552,11 +696,15 @@ Handler::parse_row(const std::string & str, int row_size){
 };
 
 
-void
-Handler::validate_header(std::vector<std::string> & header, std::vector<int> & perm){
+std::vector<int>
+Handler::validate_header(std::vector<std::string> & header){
+
+	log_msg = "<validate_header>";
+	logger.log(log_msg, LOG_DEBUG);
 
 	std::map<std::string, int> csv_col_map;
 	std::map<std::string, int> ampl_col_map;
+	std::vector<int> perm;
 
 	// get a map for the columns in AMPL's table
 	for (int i = 0; i < ncols(); i++){
@@ -576,7 +724,7 @@ Handler::validate_header(std::vector<std::string> & header, std::vector<int> & p
 		// log columns that were found by the table handler
 		log_msg = "Found column \'";
 		log_msg += tmp_str;
-		log_msg += "\'.";
+		log_msg += "\'";
 		logger.log(log_msg, LOG_DEBUG);
 
 		// check for duplicate names
@@ -620,6 +768,7 @@ Handler::validate_header(std::vector<std::string> & header, std::vector<int> & p
 			}
 		}
 	}
+	return perm;
 };
 
 
@@ -736,7 +885,21 @@ Handler::validate_arguments(){
 		else if (key == "header"){
 			has_header = get_bool_karg(key);
 		}
+		else if (key == "use_header"){
+			use_header = get_bool_karg(key);
+		}
 	}
+
+	log_msg = "sep: " + sep;
+	logger.log(log_msg, LOG_DEBUG);
+	log_msg = "quotechar: " + ampl_kargs_map["quotechar"];
+	logger.log(log_msg, LOG_DEBUG);
+	log_msg = "quotestrings: " + ampl_kargs_map["quotestrings"];
+	logger.log(log_msg, LOG_DEBUG);
+	log_msg = "header: " + ampl_kargs_map["header"];
+	logger.log(log_msg, LOG_DEBUG);
+	log_msg = "use_header: " + ampl_kargs_map["use_header"];
+	logger.log(log_msg, LOG_DEBUG);
 };
 
 
