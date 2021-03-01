@@ -51,7 +51,8 @@ funcadd(AmplExports *ae){
 		"Write table handler description and help\n";
 
 	// Inform AMPL about the handlers
-	ae->Add_table_handler(Read_AMPLcsv, Write_AMPLcsv, info, 0, 0);
+	//~ ae->Add_table_handler(Read_AMPLcsv, Write_AMPLcsv, info, 0, 0);
+	add_table_handler(ae, Read_AMPLcsv, Write_AMPLcsv, info, 0, 0);
 };
 
 
@@ -421,6 +422,7 @@ Handler::write_inout(){
 	// a direct correspondence in perm
 	else{
 		nfields = ncols();
+		init_nfields = ncols();
 		for (int i = 0; i < ncols(); i++){
 			perm.push_back(i);
 		}
@@ -573,7 +575,7 @@ Handler::write_inout(){
 			log_msg = "Invalid number of fields when reading row ";
 			log_msg += numeric_to_string(row_count);
 			log_msg += ". Expected ";
-			log_msg += numeric_to_string(nfields);
+			log_msg += numeric_to_string(init_nfields);
 			log_msg += " got ";
 			log_msg += numeric_to_string(row.size());
 			logger.log(log_msg, LOG_ERROR);

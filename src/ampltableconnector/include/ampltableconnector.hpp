@@ -289,6 +289,29 @@ enum {                      /* bits in flags field of TableInfo */
 //~ #define TM(len) (*ae->Tempmem)(TI->TMI, len)
 void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len);
 
+
+void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+);
+
+
+void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+){
+	ae->Add_table_handler(DbRead, DbWrite, handler_info, flags, Vinfo);
+};
+
+
 // Simple replacement for the to_string function since we are building for
 // -std=c++03
 template <class T> std::string numeric_to_string(T num) {
