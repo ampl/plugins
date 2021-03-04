@@ -669,7 +669,8 @@ void Connector::add_row() {
     DbCol *db = TI->cols;
     if ((*TI->AddRows)(TI, db, 1)) {
         log_msg = "Error with AddRows";
-        logger.log(log_msg, LOG_ERROR);
+        logger.log(log_msg, LOG_WARNING);
+        // we only log a warning to preserve the original error message from AMPL
         throw DBE_Error;
     }
     tmp_row.clear();

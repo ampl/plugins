@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ctime>
+
 #include "ampltableconnector.hpp"
 
 using namespace amplt;

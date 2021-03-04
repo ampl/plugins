@@ -152,7 +152,9 @@ Handler::read_in(){
 		}
 
 		for (std::size_t j = 0; j < row.size(); j++){
-			send_val_to_ampl(row[j], perm[j]);
+			if (perm[j] != -1){
+				send_val_to_ampl(row[j], perm[j]);
+			}
 		}
 
 		add_row();
@@ -165,6 +167,13 @@ Handler::write_out(){
 
 	log_msg = "<write_out>";
 	logger.log(log_msg, LOG_DEBUG);
+
+	std::vector<std::string> header;
+
+	// read header before overwritting file
+	if (use_header){
+		header = get_header_csv();
+	}
 
 	FILE *f;
 	f = fopen(filepath.c_str(), "w");
@@ -183,8 +192,6 @@ Handler::write_out(){
 		return;
 	}
 
-	std::vector<std::string> header;
-
 	// overwrite data
 	if (!use_header){
 		header = get_header_ampl();
@@ -194,8 +201,83 @@ Handler::write_out(){
 		return;
 	}
 
+	// header might be empty (file just created)
+	if (header.size() == 0){
+		header = get_header_ampl();
+		write_header(f, header);
+		write_data_ampl(f);
+		fclose(f);
+		return;
+	}
+
+	std::vector<int> perm = validate_header(header);
+
+	write_header(f, header);
+	write_data_perm(f, perm);
+	fclose(f);
+};
+
+/*
+void
+Handler::write_out(){
+
+	log_msg = "<write_out>";
+	logger.log(log_msg, LOG_DEBUG);
+
+
+	// overwrite data without including header
+	if (!has_header){
+
+		FILE *f;
+		f = fopen(filepath.c_str(), "w");
+
+		if (!f){
+			log_msg = "write_out: could not open " + filepath;
+			log_msg += " to write data.";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		write_data_ampl(f);
+		fclose(f);
+		return;
+	}
+
+	std::vector<std::string> header;
+
+	// overwrite data
+	if (!use_header){
+
+		FILE *f;
+		f = fopen(filepath.c_str(), "w");
+
+		if (!f){
+			log_msg = "write_out: could not open " + filepath;
+			log_msg += " to write data.";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		header = get_header_ampl();
+		write_header(f, header);
+		write_data_ampl(f);
+		fclose(f);
+		return;
+	}
+
 	// read header from the data file
 	header = get_header_csv();
+
+	FILE *f;
+	f = fopen(filepath.c_str(), "w");
+
+	if (!f){
+		log_msg = "write_out: could not open " + filepath;
+		log_msg += " to write data.";
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	}
+
 
 	// file might be empty (just created)
 	if (header.size() == 0){
@@ -212,6 +294,7 @@ Handler::write_out(){
 	write_data_perm(f, perm);
 	fclose(f);
 };
+*/
 
 
 
@@ -293,6 +376,8 @@ Handler::write_data_ampl(FILE *f){
 	log_msg = "<write_data_ampl>";
 	logger.log(log_msg, LOG_DEBUG);
 
+	std::clock_t c_start = std::clock();
+
 	// write data iterating by rows and columns
 	for (int i = 0; i < nrows(); i++){
 		for (int j = 0; j < ncols(); j++){
@@ -319,6 +404,10 @@ Handler::write_data_ampl(FILE *f){
 		}
 		ampl_fprintf (f, "\n");
 	}
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "write_data_ampl done in: " + std::to_string(time_elapsed / 1000);
+	logger.log(log_msg, LOG_DEBUG);
 };
 
 
@@ -335,6 +424,8 @@ Handler::write_data_perm(FILE *f, std::vector<int>& perm){
 
 	log_msg = "<write_data_perm>";
 	logger.log(log_msg, LOG_DEBUG);
+
+	std::clock_t c_start = std::clock();
 
 	for (int i = 0; i < nrows(); i++){
 
@@ -365,6 +456,10 @@ Handler::write_data_perm(FILE *f, std::vector<int>& perm){
 		}
 		ampl_fprintf (f, "\n");
 	}
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "write_data_perm done in: " + std::to_string(time_elapsed / 1000);
+	logger.log(log_msg, LOG_DEBUG);
 };
 
 
@@ -642,8 +737,6 @@ Handler::register_handler_extensions(){
 
 std::vector<std::string>
 Handler::parse_row(const std::string & str, int row_size){
-
-	std::cout << "std: " << str.size() << std::endl;
 
 	std::vector<std::string> row;
 	if (row_size > 0){
