@@ -62,9 +62,17 @@ public Connector{
 	std::vector<std::string> get_header_ampl();
 	std::vector<std::string> get_header_csv();
 	std::vector<int> parse_header();
-	void write_data_ampl(FILE *f);
-	void write_data_perm(FILE *f, std::vector<int>& perm);
-	void write_header(FILE *f, std::vector<std::string>& header);
+	void write_data_ampl(FileHandler & f);
+	void write_data_perm(FileHandler & f, std::vector<int>& perm);
+	void write_header(FileHandler & f, std::vector<std::string>& header);
+	std::map<std::vector<std::string>, int> get_used_keys_map(std::vector<int>& perm);
+	void write_remaining_rows(
+		std::ifstream & infile,
+		std::map<std::vector<std::string>, int> & used_keys_map,
+		std::vector<int> & perm,
+		FileHandler & f,
+		int init_nfields
+	);
 };
 
 

@@ -58,13 +58,14 @@ funcadd(AmplExports *ae){
 
 Handler::Handler(){
 
-	version = "amplcsv - alpha 0.0.0";
+	version = "amplcsv - alpha 0.0.1";
+
+	ampl_args_map["no_header"] = false;
+	ampl_args_map["overwrite_header"] = false;
 
 	// set the values for ampl_kargs_map as apropriate
 	ampl_kargs_map["sep"] = ",";
 	ampl_kargs_map["quote"] = "none";
-	ampl_kargs_map["header"] = "true";
-	ampl_kargs_map["use_header"] = "true";
 
 	// you can use the values from tha maps directly or convert them to attributes latter
 	sep = ",";
@@ -175,20 +176,11 @@ Handler::write_out(){
 		header = get_header_csv();
 	}
 
-	FILE *f;
-	f = fopen(filepath.c_str(), "w");
-
-	if (!f){
-		log_msg = "write_out: could not open " + filepath;
-		log_msg += " to write data.";
-		logger.log(log_msg, LOG_ERROR);
-		throw DBE_Error;
-	}
+	FileHandler f = get_file_handler(filepath, "w");
 
 	// overwrite data without including header
 	if (!has_header){
 		write_data_ampl(f);
-		fclose(f);
 		return;
 	}
 
@@ -197,7 +189,6 @@ Handler::write_out(){
 		header = get_header_ampl();
 		write_header(f, header);
 		write_data_ampl(f);
-		fclose(f);
 		return;
 	}
 
@@ -206,7 +197,6 @@ Handler::write_out(){
 		header = get_header_ampl();
 		write_header(f, header);
 		write_data_ampl(f);
-		fclose(f);
 		return;
 	}
 
@@ -214,7 +204,6 @@ Handler::write_out(){
 
 	write_header(f, header);
 	write_data_perm(f, perm);
-	fclose(f);
 };
 
 /*
@@ -337,8 +326,6 @@ Handler::get_header_csv(){
 
 	infile.close();
 
-	std::cout << header.size() << std::endl;
-
 	return header;
 };
 
@@ -346,7 +333,7 @@ Handler::get_header_csv(){
 
 
 void
-Handler::write_header(FILE *f, std::vector<std::string>& header){
+Handler::write_header(FileHandler & f, std::vector<std::string> & header){
 
 	log_msg = "<write_header>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -354,24 +341,24 @@ Handler::write_header(FILE *f, std::vector<std::string>& header){
 	for (int j = 0; j < header.size(); j++){
 
 		if (quotestrings){
-			ampl_fprintf (f, "%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
+			f.ampl_fprintf ("%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
 		}
 		else{
-			ampl_fprintf (f, "%s", header[j].c_str());
+			f.ampl_fprintf ("%s", header[j].c_str());
 		}
 		// add separator
 		if (j < ncols() - 1){
-			ampl_fprintf (f, "%s", sep.c_str());
+			f.ampl_fprintf ("%s", sep.c_str());
 		}
 	}
-	ampl_fprintf (f, "\n");
+	f.ampl_fprintf ("\n");
 };
 
 
 
 
 void
-Handler::write_data_ampl(FILE *f){
+Handler::write_data_ampl(FileHandler & f){
 
 	log_msg = "<write_data_ampl>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -387,22 +374,22 @@ Handler::write_data_ampl(FILE *f){
 				// if value is missing don't write anything
 				if (is_missing(i, j)){}
 				else if (quotestrings){
-					ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
+					f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
 				}
 				else{
-					ampl_fprintf (f, "%s", get_char_val(i, j));
+					f.ampl_fprintf ("%s", get_char_val(i, j));
 				}
 			}
 			// otherwise element is numeric
 			else{
-				ampl_fprintf (f, "%.g", get_numeric_val(i, j));
+				f.ampl_fprintf ("%.g", get_numeric_val(i, j));
 			}
 			// add separator
 			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
+				f.ampl_fprintf ("%s", sep.c_str());
 			}
 		}
-		ampl_fprintf (f, "\n");
+		f.ampl_fprintf ("\n");
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
@@ -420,7 +407,7 @@ Handler::write_data_ampl(FILE *f){
 
 
 void
-Handler::write_data_perm(FILE *f, std::vector<int>& perm){
+Handler::write_data_perm(FileHandler & f, std::vector<int>& perm){
 
 	log_msg = "<write_data_perm>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -439,35 +426,28 @@ Handler::write_data_perm(FILE *f, std::vector<int>& perm){
 
 					if (is_missing(i, j)){}
 					else if (quotestrings){
-						ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+						f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
 					}
 					else{
-						ampl_fprintf (f, "%s", get_char_val(i, ampl_col));
+						f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
 					}
 				}
 				else{
 					// numeric value
-					ampl_fprintf (f, "%.g", get_numeric_val(i, ampl_col));
+					f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
 				}
 			}
 			if (j < perm.size() - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
+				f.ampl_fprintf ("%s", sep.c_str());
 			}
 		}
-		ampl_fprintf (f, "\n");
+		f.ampl_fprintf ("\n");
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
 	log_msg = "write_data_perm done in: " + std::to_string(time_elapsed / 1000);
 	logger.log(log_msg, LOG_DEBUG);
 };
-
-
-
-
-
-
-
 
 
 
@@ -526,180 +506,30 @@ Handler::write_inout(){
 	// temporary file to write data
 	std::string new_file = filepath + ".temp";
 
-	FILE *f;
-	f = fopen(new_file.c_str(), "w");
-
-	if (!f){
-		log_msg = "write_inout: could not open " + filepath;
-		logger.log(log_msg, LOG_ERROR);
-		throw DBE_Error;
-	}
+	FileHandler f = get_file_handler(new_file, "w");
 
 	// write header
 	if (has_header){
 		write_header(f, header);
 	}
 
-	// write AMPL's table and get a map of used keys
-	std::map<std::vector<std::string>,int> used_keys_map;
-	std::vector<std::string> temp_keys;
+	// write data from AMPLs table
+	write_data_perm(f, perm);
 
-	for (int i = 0; i < nrows(); i++){
-
-		temp_keys.clear();
-
-		for (int j = 0; j < nfields; j++){
-
-			if (perm[j] != -1){
-
-				int ampl_col = perm[j];
-
-
-
-				tmp_str.clear();
-
-				if (is_char_val(i, ampl_col)){
-
-					if (get_char_val(i, ampl_col) == TI->Missing){
-						continue;
-					}
-					if (quotestrings){
-						ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
-						tmp_str = quotechar;
-						tmp_str += get_char_val(i, ampl_col);
-						tmp_str += quotechar;
-					}
-					else{
-						ampl_fprintf (f, "%s", get_char_val(i, ampl_col));
-						tmp_str = get_char_val(i, ampl_col);
-					}
-
-					if (perm[j] < nkeycols()){
-						temp_keys.push_back(tmp_str);
-					}
-				}
-				else{
-					// numeric value
-					ampl_fprintf (f, "%.g", get_numeric_val(i, ampl_col));
-
-					if (perm[j] < nkeycols()){
-						temp_keys.push_back(numeric_to_string(get_numeric_val(i, ampl_col)));
-					}
-				}
-
-
-
-			}
-
-			if (j < nfields - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
-			}
-		}
-		ampl_fprintf (f, "\n");
-		used_keys_map[temp_keys] = i;
-	}
-
-
-
-/*
-	for (int i = 0; i < nrows(); i++){
-
-		temp_keys.clear();
-
-		for (int j = 0; j < ncols(); j++){
-
-			tmp_str.clear();
-
-			if (is_char_val(i, j)){
-
-				if (get_char_val(i, j) == TI->Missing){
-					continue;
-				}
-				if (quotestrings){
-					ampl_fprintf (f, "%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
-					tmp_str = quotechar; 
-					tmp_str += get_char_val(i, j); 
-					tmp_str += quotechar;
-				}
-				else{
-					ampl_fprintf (f, "%s", get_char_val(i, j));
-					tmp_str = get_char_val(i, j);
-				}
-
-				if (perm[j] < nkeycols()){
-					temp_keys.push_back(tmp_str);
-				}
-			}
-			else{
-				// numeric value
-				ampl_fprintf (f, "%.g", get_numeric_val(i, j));
-
-				if (perm[j] < nkeycols()){
-					temp_keys.push_back(numeric_to_string(get_numeric_val(i, j)));
-				}
-			}
-			if (j < ncols() - 1){
-				ampl_fprintf (f, "%s", sep.c_str());
-			}
-		}
-		ampl_fprintf (f, "\n");
-
-		used_keys_map[temp_keys] = i;
-	}
-*/
+	// get a map of used keys
+	std::map<std::vector<std::string>, int> used_keys_map = get_used_keys_map(perm);
 
 	// now we read the rows in the input file and if the keys are not in used_keys_map we write
 	// the row to the output file
-	while (true) {
-
-		//~ safeGetline(infile, str);
-		str = get_csv_row(infile);
-
-		if (str.empty()){break;}
-
-		//~ row.clear();
-		temp_keys.clear();
-
-		row = parse_row(str);
-		row_count += 1;
-
-		if (row.size() != init_nfields){
-
-			std::cout << str << std::endl;
-
-			log_msg = "Invalid number of fields when reading row ";
-			log_msg += numeric_to_string(row_count);
-			log_msg += ". Expected ";
-			log_msg += numeric_to_string(init_nfields);
-			log_msg += " got ";
-			log_msg += numeric_to_string(row.size());
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		get_keys(row, perm, temp_keys);
-
-		if (used_keys_map.find(temp_keys) == used_keys_map.end()){
-
-			if (row.size() < nfields){
-				for (int i=0; i<nfields-row.size(); i++){
-					
-					str += sep;
-				}
-			}
-
-			ampl_fprintf (f, "%s\n", str.c_str());
-		}
-		// we could also track duplicate rows here, but we'll assume everything is ok
-	}
+	write_remaining_rows(infile, used_keys_map, perm, f, init_nfields);
 
 	infile.close();
-	fclose(f);
+	f.close();
 
 	// swap temp file for the original one
 	remove(filepath.c_str());
 	copy_file(new_file, filepath);
-	//~ remove(new_file.c_str());
+	remove(new_file.c_str());
 };
 
 
@@ -917,13 +747,25 @@ Handler::validate_arguments(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	// check if ampl_args_map was changed by the user
-	/*
 	for (std::size_t i = 0; i < used_args.size(); i++){
-		if (used_args[i] == "something"){
-			do something
+		if (used_args[i] == "no_header"){
+			has_header = false;
+			use_header = false;
+		}
+		if (used_args[i] == "overwrite_header"){
+			use_header = false;
 		}
 	}
-	*/
+
+	if (!has_header){
+		log_msg = "no_header";
+		logger.log(log_msg, LOG_INFO);
+	}
+
+	if (!use_header && has_header){
+		log_msg = "overwrite_header";
+		logger.log(log_msg, LOG_INFO);
+	}
 
 	// check if ampl_kargs_map was changed by the user
 	std::string key;
@@ -979,24 +821,19 @@ Handler::validate_arguments(){
 				quotestrings = true;
 			}
 		}
-		else if (key == "header"){
-			has_header = get_bool_karg(key);
-		}
-		else if (key == "use_header"){
-			use_header = get_bool_karg(key);
+		else{
+			log_msg = "Discarding argument: " + key + "=";
+		logger.log(log_msg, LOG_WARNING);
 		}
 	}
 
-	log_msg = "sep: " + sep;
-	logger.log(log_msg, LOG_DEBUG);
-	log_msg = "quotechar: " + ampl_kargs_map["quotechar"];
-	logger.log(log_msg, LOG_DEBUG);
-	log_msg = "quotestrings: " + ampl_kargs_map["quotestrings"];
-	logger.log(log_msg, LOG_DEBUG);
-	log_msg = "header: " + ampl_kargs_map["header"];
-	logger.log(log_msg, LOG_DEBUG);
-	log_msg = "use_header: " + ampl_kargs_map["use_header"];
-	logger.log(log_msg, LOG_DEBUG);
+	log_msg = "sep: \'" + sep + "\'";
+	logger.log(log_msg, LOG_INFO);
+
+	if (ampl_kargs_map["quote"] != "none"){
+		log_msg = "quote: \'" + quotechar + "\'";
+		logger.log(log_msg, LOG_INFO);
+	}
 };
 
 
@@ -1129,6 +966,109 @@ get_csv_row(std::istream& is)
 	return t;
 };
 
+
+std::map<std::vector<std::string>, int>
+Handler::get_used_keys_map(std::vector<int>& perm){
+
+	std::string tmp_str;
+	std::map<std::vector<std::string>, int> used_keys_map;
+	std::vector<std::string> temp_keys;
+
+	for (int i = 0; i < nrows(); i++){
+
+		temp_keys.clear();
+
+		for (int j = 0; j < perm.size(); j++){
+
+			if (perm[j] != -1){
+
+				int ampl_col = perm[j];
+
+				tmp_str.clear();
+
+				if (is_char_val(i, ampl_col)){
+
+					if (is_missing(i, ampl_col)){
+						continue;
+					}
+					if (quotestrings){
+						tmp_str = quotechar;
+						tmp_str += get_char_val(i, ampl_col);
+						tmp_str += quotechar;
+					}
+					else{
+						tmp_str = get_char_val(i, ampl_col);
+					}
+
+					if (perm[j] < nkeycols()){
+						temp_keys.push_back(tmp_str);
+					}
+				}
+				else{
+					// numeric value
+					if (perm[j] < nkeycols()){
+						temp_keys.push_back(numeric_to_string(get_numeric_val(i, ampl_col)));
+					}
+				}
+			}
+		}
+		used_keys_map[temp_keys] = i;
+	}
+	return used_keys_map;
+};
+
+
+void
+Handler::write_remaining_rows(
+	std::ifstream & infile,
+	std::map<std::vector<std::string>, int> & used_keys_map,
+	std::vector<int> & perm,
+	FileHandler & f,
+	int init_nfields
+)
+{
+	std::vector<std::string> temp_keys;
+	int row_count = 0;
+
+	while (true) {
+
+		//~ safeGetline(infile, str);
+		std::string str = get_csv_row(infile);
+
+		if (str.empty()){break;}
+
+		//~ row.clear();
+		temp_keys.clear();
+
+		std::vector<std::string> row = parse_row(str);
+		row_count += 1;
+
+		if (row.size() != init_nfields){
+
+			log_msg = "Invalid number of fields when reading row ";
+			log_msg += numeric_to_string(row_count);
+			log_msg += ". Expected ";
+			log_msg += numeric_to_string(init_nfields);
+			log_msg += " got ";
+			log_msg += numeric_to_string(row.size());
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		get_keys(row, perm, temp_keys);
+
+		if (used_keys_map.find(temp_keys) == used_keys_map.end()){
+
+			if (row.size() < perm.size()){
+				for (int i = 0; i < perm.size() - row.size(); i++){
+					str += sep;
+				}
+			}
+			f.ampl_fprintf ("%s\n", str.c_str());
+		}
+		// we could also track duplicate rows here, but we'll assume everything is ok
+	}
+};
 
 
 

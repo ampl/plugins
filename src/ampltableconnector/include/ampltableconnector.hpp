@@ -393,16 +393,18 @@ private:
 	AmplExports *ae;
 	Logger logger;
 	FILE* f;
+	bool closed;
 
 public:
 	FileHandler(
-	AmplExports *ae,
-	Logger & logger,
-	const std::string & filename,
-	const std::string & mode
-);
+		AmplExports *ae,
+		Logger & logger,
+		const std::string & filename,
+		const std::string & mode
+	);
 	~FileHandler();
 	void ampl_fprintf(const char *format, ...);
+	void close();
 };
 
 
@@ -857,6 +859,8 @@ void Connector::parse_arguments() {
     bool has_alias = false;
     bool has_file = false;
 
+	int verbose_level = 0;
+
     // parse remaining args and check for verbose
     for (int i = 1; i < TI->nstrings; i++) {
 
@@ -870,19 +874,19 @@ void Connector::parse_arguments() {
             if (arg_string == "verbose") {
                 // set basic level of verbose (warnings)
                 log_msg = "verbose level set to 1";
-                logger.log(log_msg, LOG_WARNING);
-                logger.set_level(1);
+                logger.log(log_msg, LOG_INFO);
+                verbose_level = 1;
             }
             // check if the string is a potential file of the given extensions
             else if (is_handler_extensions(arg_string)) {
                 if (!has_file) {
                     filepath = arg_string;
                     has_file = true;
-                    log_msg = "filepath: " + arg_string;
-                    logger.log(log_msg, LOG_WARNING);
+                    log_msg = "file: " + arg_string;
+                    logger.log(log_msg, LOG_INFO);
                 } else {
                     log_msg = "ignoring argument: " + arg_string;
-                    logger.log(log_msg, LOG_WARNING);
+                    logger.log(log_msg, LOG_INFO);
                 }
             }
             // check if arg_string is in the keys of ampl_args_map
@@ -916,19 +920,18 @@ void Connector::parse_arguments() {
 
                 // check verbose
                 if (key == "verbose") {
-                    int verbose_level = std::atoi(val.c_str());
+                    verbose_level = std::atoi(val.c_str());
                     if (verbose_level > 0) {
                         log_msg = "verbose: " + val;
-                        logger.log(log_msg, LOG_WARNING);
-                        logger.set_level(verbose_level);
+                        logger.log(log_msg, LOG_INFO);
                     }
                 }
                 // add valid keys to ampl_kargs_map for posterior validation
                 else if (ampl_kargs_map.find(key) != ampl_kargs_map.end()) {
                     ampl_kargs_map[key] = val;
                     used_kargs.push_back(key);
-                    log_msg = key + " set to " + val;
-                    logger.log(log_msg, LOG_WARNING);
+                    log_msg = "parse_arguments: \'" + key + "\' set to \'" + val + "\'";
+                    logger.log(log_msg, LOG_DEBUG);
                 }
                 // discard keys that were not declared
                 else {
@@ -946,9 +949,12 @@ void Connector::parse_arguments() {
     }
 
     // print previous messages in logger (if requested)
-    if (logger.level > 0) {
-        logger.print_log();
-    }
+	if (verbose_level != 0){
+		logger.set_level(verbose_level);
+		if (logger.level > 0) {
+			logger.print_log();
+		}
+	}
 };
 
 void Connector::validate_arguments() {
@@ -994,10 +1000,10 @@ void Connector::validate_filepath() {
         if (handler_extensions.size() > 0) {
             filepath += ".";
             filepath += handler_extensions[0];
-            log_msg = "filepath updated: " + filepath;
+            log_msg = "No file declared. Using \'" + filepath + "\'";
             logger.log(log_msg, LOG_WARNING);
         } else {
-            log_msg = "Could not add extension to filepath: " + filepath;
+            log_msg = "Could not add extension to file \'" + filepath + "\'";
             logger.log(log_msg, LOG_WARNING);
         }
     }
@@ -1124,6 +1130,7 @@ FileHandler::FileHandler(
 	this->ae = ae;
 	this->logger = logger;
 	f = fopen(filename.c_str(), mode.c_str());
+	closed = false;
 
 	if (f == NULL){
 		std::string log_msg = "FileHandler: could not open " + filename;
@@ -1132,9 +1139,17 @@ FileHandler::FileHandler(
 	}
 };
 
+void
+FileHandler::close(){
+	fclose(f);
+	closed = true;
+};
+
 
 FileHandler::~FileHandler(){
-	fclose(f);
+	if (!closed){
+		fclose(f);
+	}
 };
 
 
