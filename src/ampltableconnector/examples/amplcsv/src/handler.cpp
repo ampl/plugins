@@ -393,7 +393,7 @@ Handler::write_data_ampl(FileHandler & f){
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
-	log_msg = "write_data_ampl done in: " + std::to_string(time_elapsed / 1000);
+	log_msg = "write_data_ampl done in: " + numeric_to_fixed(time_elapsed / 1000, 3);
 	logger.log(log_msg, LOG_DEBUG);
 };
 
@@ -445,7 +445,7 @@ Handler::write_data_perm(FileHandler & f, std::vector<int>& perm){
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
-	log_msg = "write_data_perm done in: " + std::to_string(time_elapsed / 1000);
+	log_msg = "write_data_perm done in: " + numeric_to_fixed(time_elapsed / 1000, 3);
 	logger.log(log_msg, LOG_DEBUG);
 };
 
