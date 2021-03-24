@@ -3476,6 +3476,21 @@ ExcelManager::set_dbcol_val(std::string & val, DbCol * db, int is_string){
 };
 
 
+bool
+ExcelManager::check_is_number(const std::string & val){
+
+	char* se;
+	double t;
+
+	// try to convert the value to numeric
+	t = strtod(val.c_str(), &se);
+	if (!*se) {/* valid number */
+		return true;
+	}
+	return false;
+};
+
+
 int
 ExcelManager::get_last_column_in_table(
 	const pugi::xml_node node,
@@ -3969,6 +3984,12 @@ ExcelManager::parse_header(
 		}
 		else if (xl_cell.attribute("t").value() == std::string("inlineStr")){
 			xl_col_name = xl_cell.child("is").child("t").child_value();
+			is_numeric = false;
+		}
+
+		// check if the value is actualy a number to avoid issues with text cells other than shared
+		// strings or inline strings
+		if (!check_is_number(xl_col_name)){
 			is_numeric = false;
 		}
 
