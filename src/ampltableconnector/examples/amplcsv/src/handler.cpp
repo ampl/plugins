@@ -58,7 +58,7 @@ funcadd(AmplExports *ae){
 
 Handler::Handler(){
 
-	version = "amplcsv - alpha 0.0.1";
+	version = "amplcsv - alpha 0.0.2";
 
 	ampl_args_map["no_header"] = false;
 	ampl_args_map["overwrite_header"] = false;
@@ -644,6 +644,7 @@ Handler::validate_header(std::vector<std::string> & header){
 		std::string tmp_str = header[i];
 		if (quotestrings){
 			tmp_str = try_unquote_string(tmp_str, quotechar);
+			header[i] = tmp_str;
 		}
 
 		// log columns that were found by the table handler
