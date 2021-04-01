@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
- static char Version[] = "\n@(#) AMPL ODBC driver, version 20131212.\n";
+ static char Version[] = "\n@(#) AMPL ODBC driver, version 20190307.\n";
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1614,10 +1614,7 @@ get_types(DRV_desc *ds, HInfo *h)
 		if (h->verbose)
 			printf("%s is not supported\n", st->sqlname);
 		}
-	if (!(ds->ttype = sql_type(h, SQL_TIMESTAMP, &ds->tprec))) {
-		h->TI->Errmsg = "Could not find SQL synonym for SQL_TIMESTAMP.";
-		return 1;
-		}
+	ds->ttype = sql_type(h, SQL_TIMESTAMP, &ds->tprec);
 	return 0;
 	}
 
@@ -1728,10 +1725,8 @@ Write_odbc(AmplExports *ae, TableInfo *TI)
 	colname_adjust(&h, TI);
 
 	if (!(tname = Connect(&h, &ds, &rc, 0))
-	 || (!ds->ntype && get_types(ds, &h))) {
-		cleanup(&h);
-		return rc;
-		}
+	 || (!ds->ntype && get_types(ds, &h)))
+		goto done;
 
 	sw = 0;
 	tsq = 0;
@@ -1787,8 +1782,14 @@ Write_odbc(AmplExports *ae, TableInfo *TI)
 		slen[i] = k;
 		L += strlen(quoted_colnames[i1]) + 5;
 		}
-	if (nts)
+	if (nts) {
+		if (!ds->ttype) {
+			TI->Errmsg = "Could not find SQL synonym for SQL_TIMESTAMP.";
+			rc = DB_Error;
+			goto done;
+			}
 		L += nts*strlen(ds->ttype);
+		}
 	dt = (char*)TM(2*L+tnlen+16);
 	ct = dt+tnlen+16;
 	it = ct + L;
@@ -2160,7 +2161,7 @@ Read_odbc(AmplExports *ae, TableInfo *TI)
 	UWORD u;
 	char **cd, *dsn, nbuf[512], *s, *sbuf, *tname;
 	double *dd, t;
-	int *ct, dbq, i, j, k, mix, nk[4], nt, *p, *z, *zt;
+	int *ct, dbq, i, j, k, mix, mix1, nk[4], nt, *p, *z, *zt;
 	int a = TI->arity;	/* number of indexing columns */
 	int nc = TI->ncols;	/* number of data columns desired */
 	int nf = a + nc;	/* total number of columns of interest */
@@ -2344,10 +2345,13 @@ Read_odbc(AmplExports *ae, TableInfo *TI)
 				SQLBindCol(hs, u, sqlc[k], ptr, dbc->prec, (SQLLEN*)&dbc->len)))
 			goto badret;
 		}
-	if (h.oldquotes)
+	ct = h.coltypes;
+	if (h.oldquotes) {
 		mix = 3;
+		ct = 0;
+		}
 	else if ((mix = h.nsmix) == 2) {
-		if ((ct = h.coltypes)) {
+		if (ct) {
 			for(i = mix = 0; i < nf; ++i) {
 				if (ct[i] == 3) {
 					dbc = dbc0 + p[i];
@@ -2375,7 +2379,8 @@ Read_odbc(AmplExports *ae, TableInfo *TI)
 					}
 				break;
 			 case 1:
-				db->sval[0] = scrunch(&h, cd[dbc->myoffset], db->dval, mix);
+				mix1 = ct && ct[i] == 1 ? 0 : mix;
+				db->sval[0] = scrunch(&h, cd[dbc->myoffset], db->dval, mix1);
 				break;
 			 case 2:
 				ts = td + dbc->myoffset;
@@ -2418,7 +2423,7 @@ Read_odbc(AmplExports *ae, TableInfo *TI)
 funcadd(AmplExports *ae)
 {
 	static char tname[] = "odbc\n"
-	"AMPL ODBC handler (20131212): expected 2-8 strings before \":[...]\":\n"
+	"AMPL ODBC handler (20190307): expected 2-8 strings before \":[...]\":\n"
 	"  'ODBC', connection_spec ['ext_name'] [option [option...]]\n"
 	"Connection_spec gives a connection to the external table.  If the table's\n"
 	"external name differs from the AMPL table name, the external name must be\n"

@@ -176,3 +176,16 @@ control-C.  Thanks to Victor Zverovich for diagnosing this issue.
   amplodbc.c:  fix a glitch in strcmpv() that caused it to sort on
 string addresses rather than string values.  Thanks to
 peter.jackson@rtdmsolutions.com for pointing this out.
+
+20151130
+  amplodbc.c:  fix a glitch in reading columns with the "Strcol:"
+attribute:  strings that looked like numbers were read as numbers.
+
+20190307
+  amplodbc.c:  only issue error message "Could not find SQL synonym
+for SQL_TIMESTAMP" if the synonym is needed.
+  README: various updates.
+
+20190517
+  TABLES.RME:  fix a typo on line 124:  change "->" to "<-", so the
+line becomes "FOOD <- [FOOD] cost, f_min, f_max;".

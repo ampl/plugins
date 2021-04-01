@@ -1,40 +1,41 @@
-Copyright (C) 2000 Lucent Technologies.  All Rights Reserved.
+Copyright (C) 2017 AMPL Optimization.  All Rights Reserved.
 
-File TABLES.RME describes table declarations, the "read table"
-and "write table" commands, and table handlers; it applies
-to AMPL versions >= 20000209.  Student versions of AMPL that
-work with tables are available in the system-dependent
-subdirectories of http://www.netlib.org/ampl/student and its
-mirrors (such as http://netlib.sandia.gov/ampl/student ).
-For more details, including examples, see
+File TABLES.RME describes table declarations, the "read table" and
+"write table" commands, and table handlers; it applies to AMPL
+versions >= 20000209.  Student/demo versions of AMPL that work with
+tables are available from the AMPL web site, https://ampl.com .  For
+more details, including examples, see
 
-	http://www.ampl.com/ampl/NEW/tables.html
+	https://ampl.com/NEW/tables.html
 
 Note that the current version of AMPL is available in option version
 (i.e., $version) and in the builtin parameter _version.
 
-File ampltabl.dll provides a "standard" ODBC table handler for use
-under Microsoft Windows (W9x, NT, XP, etc.).  It works with Microsoft
-Access, Microsoft Excel, and other "databases" that are accessible via
-ODBC.  (Source for ampltabl.dll appears in file amplodbc.c.  Simple
-changes to this file may permit creating ODBC table handlers on other
-systems, but amplodbc.c is not the best place to start learning about
-writing table handlers.  Files simpbit.c and fullbit.c, studied as
-indicated below, should be better starting places.)
+File ampltabl.dll and its 64-bit variant, ampltabl_64.dll, provide a
+"standard" ODBC table handler.  Files ampltabl.zip and ampltabl_64.zip
+contain ampltabl.dll variants that work with Microsoft Windows; they
+work with Microsoft Access, Microsoft Excel, and other "databases"
+that are accessible via ODBC.  (Source for ampltabl.dll appears in
+file amplodbc.c.  Compiled versions of ampltabl.dll for some other
+platforms are available from the AMPL web site.)  For learning about
+writing table handlers, amplodbc.c is not the best place to start.
+Files simpbit.c and fullbit.c, discussed below, should be better
+starting places.
 
-The sample makefiles assume that ../solvers is your "solvers"
-directory, which contains some necessary header files.
+The assignment "S = ../solvers" in the sample makefiles provides an
+assumption that the parent directory ../solvers  is your "solvers"
+directory, which contains some necessary header files.  This
+assumption can be overridden by an explicit "S=..." when invoking
+"make" or "nmake".
 
 Table handlers are provided by the imported-function mechanism, which
 is discussed briefly in the section on "User-defined functions" in
-"Hooking Your Solver to AMPL", to which there are pointers in
-
-	http://www.ampl.com/ampl/hooking.html
+"Hooking Your Solver to AMPL", https://ampl.com/REFS/hooking2.pdf .
 
 See also the platform-specific information in directory
 /netlib/ampl/solvers/funclink, e.g.,
 
-	http://www.netlib.org/ampl/solvers/funclink
+	https://ampl.com/netlib/ampl/solvers/funclink
 
 While testing your handlers, you may find it helpful to use AMPL's
 commands for loading and unloading shared libraries and removing
@@ -42,14 +43,12 @@ files, which are summarized below.
 
 When it starts execution, AMPL tries to import functions and table
 handlers from shared libraries named ampltabl.dll and amplfunc.dll.
-The former is sought in one of the platform-specific standard places,
-whereas the latter is sought in the invocation directory, i.e., the
-directory that AMPL finds current when it starts to run.  The idea is
-that one can install a "standard" ampltabl.dll that is loaded no
-matter what the invocation directory, whereas the amplfunc.dll (if
-any) that is loaded depends on the invocation directory.  Table
-handlers can also come from libraries loaded explicitly with the
-"load" and "reload" commands.
+By default, they are sought in the directory where the AMPL binary was
+found and in the invocation directory, i.e., the directory that AMPL
+finds current when it starts to run.  One can use AMPL's option
+ampl_include to specify nondefault places to look.  Table handlers can
+also come from libraries loaded explicitly with the "load" and
+"reload" commands.
 
 Two "instructive" examples of table handlers are provided here:
 

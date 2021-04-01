@@ -121,7 +121,7 @@ with inout.  Similarly, ": \[i ~ Name\] inout" is taken to mean
 
 	model diet.mod;
 	table foods IN 'foods.tab':
-		FOOD -> [FOOD] cost, f_min, f_max;
+		FOOD <- [FOOD] cost, f_min, f_max;
 
 is equivalent to
 
