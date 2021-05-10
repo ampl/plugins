@@ -159,9 +159,9 @@ void
 ExcelManager::log_missing_column(int col){
 
 	std::string msg;
-	msg = "Could not find column ";
+	msg = "Could not find column \'";
 	msg += TI->colnames[col];
-	msg += " in spreadsheet table header";
+	msg += "\' in spreadsheet table header";
 	logger.log(msg, LOG_ERROR);
 };
 
@@ -710,9 +710,7 @@ ExcelReadManager::manage_data(){
 	// check the headers of the table and adjust last_col
 	result = check_columns(node, first_row, first_col, last_col);
 
-	if (result == -2){
-		msg = "Could not parse header";
-		logger.log(msg, LOG_ERROR);
+	if (result == -2 || result == -3){
 		return 1;
 	}
 	else if (result != -1){
@@ -830,6 +828,10 @@ ExcelWriteManager::run(){
 
 	result = manage_shared_strings();
 	if (result){
+		return DB_Error;
+	}
+
+	if (!validate_table_utf8_compatible()){
 		return DB_Error;
 	}
 
@@ -1017,9 +1019,16 @@ ExcelManager::check_columns(
 ){
 	// get the columns names in the row
 	std::map<std::string, std::string> excel_col_map;
-	parse_header(first_col, last_col, first_row, node, excel_col_map);
+	int res = parse_header(first_col, last_col, first_row, node, excel_col_map);
+
+	if (res){
+		// error in logger
+		return -3;
+	}
 
 	if (excel_col_map.size() == 0){
+		std::string msg = "Parse header found 0 columns.";
+		logger.log(msg, LOG_ERROR);
 		return -2;
 	}
 
@@ -3467,6 +3476,21 @@ ExcelManager::set_dbcol_val(std::string & val, DbCol * db, int is_string){
 };
 
 
+bool
+ExcelManager::check_is_number(const std::string & val){
+
+	char* se;
+	double t;
+
+	// try to convert the value to numeric
+	t = strtod(val.c_str(), &se);
+	if (!*se) {/* valid number */
+		return true;
+	}
+	return false;
+};
+
+
 int
 ExcelManager::get_last_column_in_table(
 	const pugi::xml_node node,
@@ -3922,7 +3946,7 @@ write_indexing_sets(
 
 
 
-void
+int
 ExcelManager::parse_header(
 
 	const std::string & first_col,
@@ -3963,18 +3987,39 @@ ExcelManager::parse_header(
 			is_numeric = false;
 		}
 
+		// check if the value is actualy a number to avoid issues with text cells other than shared
+		// strings or inline strings
+		if (!check_is_number(xl_col_name)){
+			is_numeric = false;
+		}
+
 		if (!xl_col_name.empty()){
 			last_col = iter_col;
 			if (is_numeric){
 				xl_col_name = "ampl-numeric-" + xl_col_name;
 			}
-			xl_col_map[xl_col_name] = iter_col;
-			//~ nempty = 0;
 
-			if (verbose == 73){
-				printf("Found column %s\n", xl_col_name.c_str());
+			if (xl_col_map.find(xl_col_name) != xl_col_map.end()){
+				std::string msg = "Column \'" + xl_col_name;
+				msg += "\' at cell \'";
+				msg += iter_col;
+				msg += row_id;
+				msg += "\' already defined at cell \'";
+				msg += xl_col_map[xl_col_name];
+				msg += row_id;
+				msg += "\'";
+				logger.log(msg, LOG_ERROR);
+				return 1;
 			}
 
+			xl_col_map[xl_col_name] = iter_col;
+
+			if (verbose >= 3){
+				std::string msg = "Found column \'";
+				msg += xl_col_name;
+				msg += "\'";
+				logger.log(msg, LOG_DEBUG);
+			}
 		}
 		else{
 			//~ nempty += 1;
@@ -3996,6 +4041,7 @@ ExcelManager::parse_header(
 
 		ecm.next(iter_col);
 	}
+	return 0;
 };
 
 
@@ -5168,8 +5214,54 @@ ExcelWriteManager::get_new_range(std::string & new_range){
 };
 
 
+bool
+ExcelWriteManager::validate_table_utf8_compatible(){
 
+	unsigned char* temp_string;
 
+	int ampl_ncols = TI->arity + TI->ncols;
+	DbCol *db;
+
+	// validate header
+	for (int j = 0; j < ampl_ncols; j++){
+
+		temp_string = reinterpret_cast<unsigned char *>(TI->colnames[j]);
+
+		if (utf8_check(temp_string)){
+
+			std::string msg = "Could not write invalid utf-8 column name \'";
+			msg += TI->colnames[j];
+			msg += "\' to spreadsheet";
+			logger.log(msg, LOG_ERROR);
+			return false;
+		}
+	}
+
+	// validate data
+	for (int i = 0; i < TI->nrows; i++){
+
+		db = TI->cols;
+
+		for (int j = 0; j < ampl_ncols; j++){
+
+			if (db->sval && db->sval[i]){
+
+				temp_string = reinterpret_cast<unsigned char *>(db->sval[i]);
+
+				if (utf8_check(temp_string)){
+
+					std::string msg = "Could not write invalid utf-8 table value \'";
+					msg += db->sval[i];
+					msg += "\' to spreadsheet";
+					logger.log(msg, LOG_ERROR);
+					return false;
+				}
+			}
+			db++;
+		}
+	}
+	return true;
+}
 
 
 

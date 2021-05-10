@@ -70,7 +70,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.9";
+const std::string version = "0.1.11";
 
 
 const char* row_attr = "r";
@@ -281,6 +281,8 @@ class ExcelManager
 	// node is an xml node that holds the spreadsheet rows as children
 	// remaining parameters define the bounds of the header in the table
 	// returns -1 if all columns are found or the index of the missing column
+	// return -2 if no columns found
+	// return -3 if a duplicate column is found
 	int check_columns(
 		const pugi::xml_node &node,
 		const int first_row,
@@ -321,7 +323,7 @@ class ExcelManager
 	);
 
 
-	void
+	int
 	parse_header(
 		const std::string & first_col,
 		std::string & last_col,
@@ -404,6 +406,8 @@ class ExcelManager
 
 	std::string numeric_to_scientific(real num);
 
+	// check if the characters in a string represent a valid number
+	bool check_is_number(const std::string & val);
 
 	// common log messages
 	void log_table_coords(
@@ -754,7 +758,7 @@ public ExcelManager{
 		const std::string & last_col
 	);
 
-
+	bool validate_table_utf8_compatible();
 };
 
 

@@ -289,6 +289,29 @@ enum {                      /* bits in flags field of TableInfo */
 //~ #define TM(len) (*ae->Tempmem)(TI->TMI, len)
 void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len);
 
+
+void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+);
+
+
+void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+){
+	ae->Add_table_handler(DbRead, DbWrite, handler_info, flags, Vinfo);
+};
+
+
 // Simple replacement for the to_string function since we are building for
 // -std=c++03
 template <class T> std::string numeric_to_string(T num) {
@@ -362,6 +385,28 @@ enum DBE { /* return values from (*DbRead)(...) and (*DbWrite)(...) */
            DBE_Refuse = 1, /* Refuse to handle this table. */
            DBE_Error = 2   /* Error reading or writing table. */
 };
+
+
+class FileHandler {
+
+private:
+	AmplExports *ae;
+	Logger logger;
+	FILE* f;
+	bool closed;
+
+public:
+	FileHandler(
+		AmplExports *ae,
+		Logger & logger,
+		const std::string & filename,
+		const std::string & mode
+	);
+	~FileHandler();
+	void ampl_fprintf(const char *format, ...);
+	void close();
+};
+
 
 // base class with attributes and methods usefull both to the reader and writer
 class Connector {
@@ -519,6 +564,11 @@ class Connector {
 
     //
     void allocate_row_size(int size);
+
+	FileHandler get_file_handler(
+		const std::string & filename,
+		const std::string & mode
+	);
 };
 
 std::string get_file_extension(const std::string &filepath) {
@@ -646,7 +696,8 @@ void Connector::add_row() {
     DbCol *db = TI->cols;
     if ((*TI->AddRows)(TI, db, 1)) {
         log_msg = "Error with AddRows";
-        logger.log(log_msg, LOG_ERROR);
+        logger.log(log_msg, LOG_WARNING);
+        // we only log a warning to preserve the original error message from AMPL
         throw DBE_Error;
     }
     tmp_row.clear();
@@ -808,6 +859,8 @@ void Connector::parse_arguments() {
     bool has_alias = false;
     bool has_file = false;
 
+	int verbose_level = 0;
+
     // parse remaining args and check for verbose
     for (int i = 1; i < TI->nstrings; i++) {
 
@@ -821,19 +874,19 @@ void Connector::parse_arguments() {
             if (arg_string == "verbose") {
                 // set basic level of verbose (warnings)
                 log_msg = "verbose level set to 1";
-                logger.log(log_msg, LOG_WARNING);
-                logger.set_level(1);
+                logger.log(log_msg, LOG_INFO);
+                verbose_level = 1;
             }
             // check if the string is a potential file of the given extensions
             else if (is_handler_extensions(arg_string)) {
                 if (!has_file) {
                     filepath = arg_string;
                     has_file = true;
-                    log_msg = "filepath: " + arg_string;
-                    logger.log(log_msg, LOG_WARNING);
+                    log_msg = "file: " + arg_string;
+                    logger.log(log_msg, LOG_INFO);
                 } else {
                     log_msg = "ignoring argument: " + arg_string;
-                    logger.log(log_msg, LOG_WARNING);
+                    logger.log(log_msg, LOG_INFO);
                 }
             }
             // check if arg_string is in the keys of ampl_args_map
@@ -867,19 +920,18 @@ void Connector::parse_arguments() {
 
                 // check verbose
                 if (key == "verbose") {
-                    int verbose_level = std::atoi(val.c_str());
+                    verbose_level = std::atoi(val.c_str());
                     if (verbose_level > 0) {
                         log_msg = "verbose: " + val;
-                        logger.log(log_msg, LOG_WARNING);
-                        logger.set_level(verbose_level);
+                        logger.log(log_msg, LOG_INFO);
                     }
                 }
                 // add valid keys to ampl_kargs_map for posterior validation
                 else if (ampl_kargs_map.find(key) != ampl_kargs_map.end()) {
                     ampl_kargs_map[key] = val;
                     used_kargs.push_back(key);
-                    log_msg = key + " set to " + val;
-                    logger.log(log_msg, LOG_WARNING);
+                    log_msg = "parse_arguments: \'" + key + "\' set to \'" + val + "\'";
+                    logger.log(log_msg, LOG_DEBUG);
                 }
                 // discard keys that were not declared
                 else {
@@ -897,9 +949,12 @@ void Connector::parse_arguments() {
     }
 
     // print previous messages in logger (if requested)
-    if (logger.level > 0) {
-        logger.print_log();
-    }
+	if (verbose_level != 0){
+		logger.set_level(verbose_level);
+		if (logger.level > 0) {
+			logger.print_log();
+		}
+	}
 };
 
 void Connector::validate_arguments() {
@@ -945,10 +1000,10 @@ void Connector::validate_filepath() {
         if (handler_extensions.size() > 0) {
             filepath += ".";
             filepath += handler_extensions[0];
-            log_msg = "filepath updated: " + filepath;
+            log_msg = "No file declared. Using \'" + filepath + "\'";
             logger.log(log_msg, LOG_WARNING);
         } else {
-            log_msg = "Could not add extension to filepath: " + filepath;
+            log_msg = "Could not add extension to file \'" + filepath + "\'";
             logger.log(log_msg, LOG_WARNING);
         }
     }
@@ -1056,6 +1111,62 @@ std::string Connector::get_map_karg(const std::string &key,
 };
 
 void Connector::allocate_row_size(int size) { tmp_row.reserve(size); };
+
+
+FileHandler Connector::get_file_handler(
+	const std::string & filename,
+	const std::string & mode
+){
+	return FileHandler(ae, logger, filename, mode);
+};
+
+
+FileHandler::FileHandler(
+	AmplExports *ae,
+	Logger & logger,
+	const std::string & filename,
+	const std::string & mode
+){
+	this->ae = ae;
+	this->logger = logger;
+	f = fopen(filename.c_str(), mode.c_str());
+	closed = false;
+
+	if (f == NULL){
+		std::string log_msg = "FileHandler: could not open " + filename;
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	}
+};
+
+void
+FileHandler::close(){
+	fclose(f);
+	closed = true;
+};
+
+
+FileHandler::~FileHandler(){
+	if (!closed){
+		fclose(f);
+	}
+};
+
+
+void
+FileHandler::ampl_fprintf(const char *format, ...) {
+
+	va_list va;
+	va_start(va, format);
+	int res = ae->VfprintF(f, format, va);
+	va_end(va);
+	if (res <= 0){
+		std::string log_msg = "FileHandler: ampl_fprintf error: " + numeric_to_string(res);
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	};
+};
+
 
 } // namespace ampl
 
