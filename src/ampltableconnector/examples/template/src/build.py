@@ -8,7 +8,7 @@ dll = "template.dll"
 # compile
 params = [
 	"g++",
-	"-std=c++03",
+	"-std=c++11",
 	"-I../../../include/",
 	"-O2",
 	# ~ "-Wall",

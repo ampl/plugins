@@ -6,12 +6,24 @@
 
 using namespace amplt;
 
+static std::string name = "amplcsv";
+static std::string version = "beta 0.0.3";
+
 class Handler:
 public Connector{
 
 	public:
 
-	Handler();
+	Handler(AmplExports *ae, TableInfo *TI) : Connector(ae, TI){
+
+	handler_version = name + " - " + version;
+
+	sep = ",";
+	quotechar = "";
+	quotestrings = false;
+	has_header = true;
+	use_header = true;
+};
 
 	// separator between elements in csv
 	std::string sep; 
@@ -34,6 +46,8 @@ public Connector{
 	void write_inout();
 	void register_handler_names();
 	void register_handler_extensions();
+	void register_handler_args();
+	void register_handler_kargs();
 	void generate_table();
 	void validate_arguments();
 
@@ -90,3 +104,17 @@ std::string try_unquote_string(std::string str, const std::string & quotechar);
 std::istream& safeGetline(std::istream& is, std::string& t);
 
 std::string get_csv_row(std::istream& is);
+
+
+
+std::string doc = name + "\n" + name + "-" + version + "\n" +
+"All the cool things.\n"
+"Lots of them.\n"
+;
+
+
+
+
+
+
+

@@ -5,11 +5,9 @@ static int
 Read_Basic(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	BasicHandler cn;
+	Handler cn(ae, TI);
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -25,12 +23,10 @@ static int
 Write_Basic(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	BasicHandler cn;
+	Handler cn(ae, TI);
 	cn.is_writer = true;
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -46,17 +42,14 @@ Write_Basic(AmplExports *ae, TableInfo *TI){
 void
 funcadd(AmplExports *ae){
 
-	// write a description of the handlers
-	static char info[] = "handler name\n"
-		"Write table handler description and help\n";
-
 	// Inform AMPL about the handlers
-	ae->Add_table_handler(Read_Basic, Write_Basic, info, 0, 0);
+	add_table_handler(ae, Read_Basic, Write_Basic, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
+// Adapt the functions bellow to meet your requirements
 
 void
-BasicHandler::read_in(){
+Handler::read_in(){
 
 	log_msg = "<read_in>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -85,8 +78,8 @@ BasicHandler::read_in(){
 		numeric_values.push_back(2 * (i + 1));
 	}
 
-	// tell AMPL the expected size of each row (number of columns of the table)
-	allocate_row_size(3);
+	// Before passing the data to AMPL you should always confirm the names and positions of the 
+	// columns in AMPL. See write_out for an example on how to iterate the column names.
 
 	// iterate rows of data
 	for (int i = 0; i < n_data_rows; i++){
@@ -103,12 +96,12 @@ BasicHandler::read_in(){
 
 
 void
-BasicHandler::write_out(){
+Handler::write_out(){
 
 	log_msg = "<write_out>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	// This method should overwrite the external representation of the table with the data in AMPL's
+	// This method should replace the external representation of the table with the data in AMPL's
 	// table.
 	// The following code is an example on how to get the data from AMPL, printing the column names
 	// and the data in AMPL's representation of the table.
@@ -145,27 +138,18 @@ BasicHandler::write_out(){
 
 
 void
-BasicHandler::write_inout(){
+Handler::write_inout(){
 
 	log_msg = "<write_inout>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	// Unlike write_out() this method should update the external representation of the table with
-	// the data in AMPL's table.
-	// For an example on how to get the data from AMPL see write_out() .
-
-	// A detailed description of table handlers management is available at
-	// https://ampl.com/netlib/ampl/tables/index.html
-
-	// implement the method as needed and remove the following error
-	log_msg = "write_inout() not implemented";
-	logger.log(log_msg, LOG_ERROR);
-	throw DBE_Error;
+	// This method should update the external representation of the table with the data in AMPL's 
+	// table. For an example on how to get the data from AMPL see write_out() .
 };
 
 
 void
-BasicHandler::generate_table(){
+Handler::generate_table(){
 
 	log_msg = "<generate_table>";
 	logger.log(log_msg, LOG_DEBUG);
@@ -176,25 +160,37 @@ BasicHandler::generate_table(){
 
 
 void
-BasicHandler::register_handler_names(){
-
-	log_msg = "<register_handler_names>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	handler_names.push_back("basichandler");
-	handler_names.push_back("basichandler.dll");
-};
-
-
-void
-BasicHandler::register_handler_extensions(){
+Handler::register_handler_extensions(){
 
 	log_msg = "<register_handler_extensions>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	handler_extensions.push_back("bas");
+	// We assume that content for this handler has the extension ".bas". amplt will automatically
+	// search for files in the table handler declaration and put it in the variable filepath. 
+	handler_extensions = {"bas"};
 };
 
 
+void
+Handler::register_handler_args(){
 
+	log_msg = "<register_handler_args>";
+	logger.log(log_msg, LOG_DEBUG);
+};
+
+
+void
+Handler::register_handler_kargs(){
+
+	log_msg = "<register_handler_kargs>";
+	logger.log(log_msg, LOG_DEBUG);
+};
+
+
+void
+Handler::validate_arguments(){
+
+	log_msg = "<validate_arguments>";
+	logger.log(log_msg, LOG_DEBUG);
+};
 

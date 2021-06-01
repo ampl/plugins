@@ -12,610 +12,55 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 /**
  * A single header library developed to simplify the implementation of table handlers for the AMPL 
- * language https://ampl.com/
- * http://www.netlib.org/ampl/tables/
+ * modeling language
+ *   https://ampl.com/
+ * The framework is based on the code available at
+ *   http://www.netlib.org/ampl/tables/
  * General principles of table handlers are available at
- * https://ampl.com/BOOK/CHAPTERS/13-tables.pdf
+ *   https://ampl.com/BOOK/CHAPTERS/13-tables.pdf
  * In particular, a table handler should be able to:
- * - read data from an external table
- * - write data to an external table
- * - update an external table
- * However this is depends implementation
+ * - read data from an external table;
+ * - write data to an external table;
+ * - update an external table.
  * This file is structured in the following way:
- * - definitions from the original table handler interface, these 
- * - Connector class
- * - Logger class
+ * - definitions from funcadd.h
  * - miscelaneous utility functions
- * The implementation of a Table Handler can be summarized in the following steps:
- * 1 - override the register_handler_names function to tell AMPL how to identify the handler;
- * 2 - override the register_handler_extensions function to check if a file was provided by the user;
- * 3 - override the generate_table function to create a table from scratch if none was provided by 
- * the user (or throw an error if it's not possible);
- * 4 - provide the 
- * 
- * 
+ * - a Logger class
+ * - a Connector class
+ * A template is provided in
+ *   /examples/template/src/
+ * With the files handler.hpp and handler.cpp provided in the template we can be summarized the 
+ * implementation of a Table Handler in the following steps:
+ * - update the name and version variables to tell AMPL how to identify the handler;
+ * - update the doc variables with a description of the options of the handler. This will be 
+ *   available to the user with the command "print _handler_desc["handler_name"];";
+ * - implement the register_handler_extensions function to check if a file was provided by the user;
+ * - implement the register_handler_args function to to tell the parser what keywords to search for;
+ * - implement the register_handler_kargs function to to tell the parser what keywords of the form
+ *   key=val to search for;
+ * - implement the generate_table function to create a table from scratch if none was provided by 
+ *   the user (or throw an error if it's not possible);
+ * - implement the validate_arguments function to validate the user arguments provided by the 
+ *   parser;
+ * - implement the read_in, write_out and write_inout to comunicate with the database. In the
+ *   considered functions the read/write/update operations are performed row by row.
+ * A simple read/write example is provided in 
+ *   /examples/basic/src/
+ * A more detailed example is provided in amplcsv.
  */
+
 
 namespace amplt {
 
 std::string amplt_version = "0.0.0";
 
-/**
- * Main class used to read, write and update tables.
-*/
-class Connector {
-
-  private:
-	/**
-	 * Auxiliary vector to keep string data in memory before passing it to AMPL.
-	*/
-	std::vector<std::string> tmp_row;
-
-	// pointers to AMPL
-	TableInfo *TI;
-	AmplExports *ae;
-
-  public:
-	/**
-	 * Name of the table.
-	*/
-	std::string table_name;
-
-	/**
-	 * Path for the file (or something else) to read/write/update.
-	*/
-	std::string filepath;
-
-	/**
-	 * Inout keyword of the table, can be IN, OUT or INOUT.
-	*/
-	std::string inout;
-
-	/**
-	 * Names that will identify this table handler in the table declaration.
-	*/
-	std::vector<std::string> handler_names;
-
-	/**
-	 * File extensions accepted by the handler.
-	*/
-	std::vector<std::string> handler_extensions;
-
-	// structures to parse the arguments provided by the user in AMPL's table declaration
-
-	/**
-	 * Vector with the args provided by the user in the table handler declaration.
-	*/
-	std::vector<std::string> user_args;
-
-	/**
-	 * Vector with the kargs provided by the user in the table handler declaration.
-	*/
-	std::vector<std::string> user_kargs;
-
-	// args - vector of strings of individual arguments passed by AMPL, if an
-	// argument "arg" is found in the table declaration then ampl_args_map[arg]
-	// is set to true
-	std::map<std::string, bool> ampl_args_map;
-	// kargs_map - map of the arguments separated by an "=". An argument of the
-	// form "key=val" will be automatically processed and accessed with
-	// kargs_map[key] = val.
-	std::map<std::string, std::string> ampl_kargs_map;
-
-	// in order to have a single parser for the reader/writer we need to be able
-	// to identify both
-	bool is_writer;
-
-	// for errors and messages to users
-	std::string log_msg;
-	Logger logger;
-
-	Connector(){
-		is_writer = false;
-	};
-	virtual ~Connector(){};
-
-	/**
-	 * Add pointers to comunicate with AMPL and initialyze the logger.
-	*/
-	void add_ampl_connections(AmplExports *ae, TableInfo *TI){
-
-		this->ae = ae;
-		this->TI = TI;
-
-		if (ae == NULL) {
-			std::cout << "Connector: could not add ampl exports." << std::endl;
-			throw DBE_Error;
-		}
-
-		if (TI == NULL) {
-			std::cout << "Connector: could not add table info." << std::endl;
-			throw DBE_Error;
-		}
-		// pass connections to the logger
-		logger.add_info(ae, TI);
-
-		// log the name and version of the handler
-		log_msg = version;
-		logger.log(log_msg, LOG_INFO);
-
-		register_handler_names();
-		register_handler_extensions();
-	};
-
-	/**
-	 * Check if any of the string args provide by the user end with any of the previously defined
-	 * file extensions.
-	*/
-	bool is_handler_extensions(const std::string &arg){
-
-		log_msg = "<is_handler_extensions>";
-		logger.log(log_msg, LOG_DEBUG);
-
-		// no extensions to validate
-		if (handler_extensions.size() == 0) {
-			return false;
-		}
-
-		std::string extension = get_file_extension(arg);
-
-		// not a potential extension
-		if (extension.empty()) {
-			return false;
-		}
-
-		for (std::size_t i = 0; i < handler_extensions.size(); i++) {
-			if (extension == handler_extensions[i]) {
-				return true;
-			}
-		}
-		return false;
-	};
-
-	// parses all the arguments passed by ampl to the structures args, kargs_map
-	// and kargs. Filters the verbose flag and updates the level in the logger.
-	// Launches warnings for redundant/unused arguments.
-	void parse_arguments(){
-
-		log_msg = "<parse_arguments>";
-		logger.log(log_msg, LOG_DEBUG);
-
-		// at least the table handler must be declared
-		if (TI->nstrings == 0) {
-			log_msg = "No table handler declared.\n";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Refuse;
-		}
-
-		// first string must be the table handler
-		bool found = false;
-		std::string tmp_str = TI->strings[0];
-		for (std::size_t i = 0; i < handler_names.size(); i++) {
-			if (compare_strings_lower(handler_names[i], tmp_str)) {
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			log_msg = "No table handler declaration found.\n";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Refuse;
-		}
-
-		// get the name of the table
-		table_name = TI->tname;
-		if (table_name.size() == 0) {
-			log_msg = "Could not get the name of the table.\n";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		// log table name
-		log_msg = "table: " + table_name;
-		logger.log(log_msg, LOG_INFO);
-
-		// check value for inout
-		if ((TI->flags & DBTI_flags_IN) && (TI->flags & DBTI_flags_OUT)) {
-			inout = "INOUT";
-		} else if (TI->flags & DBTI_flags_IN) {
-			inout = "IN";
-		} else if (TI->flags & DBTI_flags_OUT) {
-			inout = "OUT";
-		} else {
-			log_msg = "unsuported inout flag";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		// log inout
-		log_msg = "inout: " + inout;
-		logger.log(log_msg, LOG_INFO);
-
-		bool has_alias = false;
-		bool has_file = false;
-
-		int verbose_level = 0;
-
-		// parse remaining args and check for verbose
-		for (int i = 1; i < TI->nstrings; i++) {
-
-			std::string arg_string = TI->strings[i];
-			size_t eq_pos = std::string(TI->strings[i]).find("=");
-
-			// single argument
-			if (eq_pos == std::string::npos) {
-
-				// check verbose
-				if (arg_string == "verbose") {
-					// set basic level of verbose (warnings)
-					log_msg = "verbose level set to 1";
-					logger.log(log_msg, LOG_INFO);
-					verbose_level = 1;
-				}
-				// check if the string is a potential file of the given extensions
-				else if (is_handler_extensions(arg_string)) {
-					if (!has_file) {
-						filepath = arg_string;
-						has_file = true;
-						log_msg = "file: " + arg_string;
-						logger.log(log_msg, LOG_INFO);
-					} else {
-						log_msg = "ignoring argument: " + arg_string;
-						logger.log(log_msg, LOG_INFO);
-					}
-				}
-				// check if arg_string is in the keys of ampl_args_map
-				// if so set its value to true
-				else if (ampl_args_map.find(arg_string) != ampl_args_map.end()) {
-					ampl_args_map[arg_string] = true;
-					user_args.push_back(arg_string);
-				}
-				// check for an alias
-				else {
-					if (!has_alias) {
-						table_name = arg_string;
-						has_alias = true;
-						log_msg = "using alias: " + arg_string;
-						logger.log(log_msg, LOG_WARNING);
-					}
-					// already has alias, ignore argument
-					else {
-						log_msg = "ignoring argument: " + arg_string;
-						logger.log(log_msg, LOG_WARNING);
-					}
-				}
-			}
-			// key, value arguments with "=" separator
-			else {
-				std::string key = arg_string.substr(0, eq_pos);
-
-				if (eq_pos < arg_string.size() - 1) {
-
-					std::string val = arg_string.substr(eq_pos + 1);
-
-					// check verbose
-					if (key == "verbose") {
-						verbose_level = std::atoi(val.c_str());
-						if (verbose_level > 0) {
-							log_msg = "verbose: " + val;
-							logger.log(log_msg, LOG_INFO);
-						}
-					}
-					// add valid keys to ampl_kargs_map for posterior validation
-					else if (ampl_kargs_map.find(key) != ampl_kargs_map.end()) {
-						ampl_kargs_map[key] = val;
-						user_kargs.push_back(key);
-						log_msg = "parse_arguments: \'" + key + "\' set to \'" + val + "\'";
-						logger.log(log_msg, LOG_DEBUG);
-					}
-					// discard keys that were not declared
-					else {
-						log_msg = "key: " + key + " with value: " + val +
-								  " was not declared, ignoring: " + arg_string;
-						logger.log(log_msg, LOG_WARNING);
-					}
-				}
-				// discard incomplete statements like "something="
-				else {
-					log_msg = "Could not parse " + arg_string;
-					logger.log(log_msg, LOG_WARNING);
-				}
-			}
-		}
-
-		// print previous messages in logger (if requested)
-		if (verbose_level != 0){
-			logger.set_level(verbose_level);
-			if (logger.level > 0) {
-				logger.print_log();
-			}
-		}
-	};
-
-	/**
-	 * Check if a path to an external file was defined, otherwise construct a
-	 * path based on the table name and the provided extensions.
-	*/
-	void validate_filepath(){
-
-		log_msg = "<validate_filepath>";
-		logger.log(log_msg, LOG_DEBUG);
-
-		if (filepath.empty()) {
-			filepath = table_name;
-
-			// see if we can add extension
-			if (handler_extensions.size() > 0) {
-				filepath += ".";
-				filepath += handler_extensions[0];
-				log_msg = "No file declared. Using \'" + filepath + "\'";
-				logger.log(log_msg, LOG_WARNING);
-			} else {
-				log_msg = "Could not add extension to file \'" + filepath + "\'";
-				logger.log(log_msg, LOG_WARNING);
-			}
-		}
-	};
-
-	// Table info functions
-
-	// returns the numer of arity columns in AMPL's table
-	int nkeycols() { return TI->arity; };
-
-	// returns the number of non arity (data) columns in AMPL's table
-	int ndatacols() { return TI->ncols; };
-
-	// returns the total number of columns in AMPL's table
-	int ncols() { return TI->arity + TI->ncols; };
-
-	// returns the number of rows in AMPL's table
-	int nrows() { return TI->nrows; };
-
-	void set_col_val(double val, int col) {
-		TI->cols[col].sval[0] = 0;
-		TI->cols[col].dval[0] = val;
-	};
-
-	void set_col_val(const std::string &val, int col) {
-		tmp_row.push_back(val);
-		TI->cols[col].sval[0] = const_cast<char *>(tmp_row.back().c_str());
-	};
-
-	void set_col_missing_val(int col) {
-		TI->cols[col].sval[0] = TI->Missing;
-	};
-
-	bool is_numeric_val(int row, int col) {
-		return !is_char_val(row, col);
-	};
-
-	bool is_missing(int row, int col) {
-
-		if (TI->cols[col].sval && TI->cols[col].sval[row] &&
-			TI->cols[col].sval[row] == TI->Missing) {
-			return true;
-		}
-		return false;
-	};
-
-	double get_numeric_val(int row, int col){
-		return TI->cols[col].dval[row];
-	};
-	char *get_char_val(int row, int col){
-		return TI->cols[col].sval[row];
-	};
-
-	bool is_char_val(int row, int col){
-
-		if (TI->cols[col].sval && TI->cols[col].sval[row]) {
-			return true;
-		}
-		return false;
-	};
-
-	char *get_col_name(int col){
-		return TI->colnames[col];
-	};
-
-	void add_row(){
-		// pass data to AMPL
-		DbCol *db = TI->cols;
-		if ((*TI->AddRows)(TI, db, 1)) {
-			log_msg = "Error with AddRows";
-			logger.log(log_msg, LOG_WARNING);
-			// we only log a warning to preserve the original error message from AMPL
-			throw DBE_Error;
-		}
-		tmp_row.clear();
-	};
-
-	// AMPL Export functions
-
-	int ampl_fprintf(FILE *stream, const char *format, ...){
-
-		va_list va;
-		va_start(va, format);
-		int res = ae->VfprintF(stream, format, va);
-		va_end(va);
-		return res;
-	};
-
-	int ampl_printf(const char *format, ...){
-
-		va_list va;
-		va_start(va, format);
-		int res = ampl_vfprintf(ae->StdOut, format, va);
-		va_end(va);
-		return res;
-	};
-
-	int ampl_sprintf(char *str, const char *format, ...){
-
-		va_list va;
-		va_start(va, format);
-		int res = ampl_vsprintf(str, format, va);
-		va_end(va);
-		return res;
-	};
-
-	int ampl_vfprintf(FILE *stream, const char *format, va_list arg){
-		return ae->VfprintF(stream, format, arg);
-	};
-
-	int ampl_vsprintf(char *buffer, const char *format, va_list arg){
-		return ae->VsprintF(buffer, format, arg);
-	};
-
-	double ampl_strtod(const char *str, char **endptr){
-		return ae->Strtod(str, endptr);
-	};
-
-	// parse and validate arguments, ensure the external table is found
-	void prepare(){
-
-		log_msg = "<prepare>";
-		logger.log(log_msg, LOG_DEBUG);
-
-		parse_arguments();
-		validate_arguments();
-		validate_filepath();
-
-		// check if filepath exists
-		if (!check_file_exists(filepath)) {
-
-			if (!is_writer) {
-				log_msg = "Cannot find source to read data.";
-				logger.log(log_msg, LOG_ERROR);
-				throw DBE_Error;
-			} else {
-				// write as an OUT table as there is nothing to update
-				inout = "OUT";
-				generate_table();
-
-				log_msg = "generating file: " + filepath;
-				logger.log(log_msg, LOG_WARNING);
-			}
-		}
-	};
-
-	// read data from external table
-	// additional methods could be added here, if needed
-	void run(){
-
-		log_msg = "<run>";
-		logger.log(log_msg, LOG_DEBUG);
-
-		if (!is_writer) {
-			read_in();
-		} else {
-			if (inout == "OUT") {
-				write_out();
-			} else if (inout == "INOUT") {
-				write_inout();
-			}
-		}
-	};
-
-	// read data from external table
-	virtual void read_in() = 0;
-
-	// overwrite external table
-	virtual void write_out() = 0;
-
-	// update external table
-	virtual void write_inout() = 0;
-
-	// if the external table does not exist we need a function to create it
-	virtual void generate_table() = 0;
-
-	// let AMPL know how to invoke this handler
-	virtual void register_handler_names() = 0;
-
-	// define what type of file extensions will be accepted
-	virtual void register_handler_extensions() = 0;
-
-	// Validates the structures derived from the parsing.
-	virtual void validate_arguments(){
-
-		log_msg = "<validate_arguments>";
-		logger.log(log_msg, LOG_DEBUG);
-	};
-
-	// functions to convert types from ampl_kargs_map
-	bool get_bool_karg(const std::string &key){
-
-		if (ampl_kargs_map[key] == "true") {
-			return true;
-		} else if (ampl_kargs_map[key] == "false") {
-			return false;
-		} else {
-			log_msg =
-				"invalid value for argument: " + key + "=" + ampl_kargs_map[key];
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-	};
-
-
-	int get_int_karg(const std::string &key){
-
-		std::string val = ampl_kargs_map[key];
-		return std::atoi(val.c_str());
-	};
-	double get_double_karg(const std::string &key){
-
-		std::string val = ampl_kargs_map[key];
-		char *se;
-		double t;
-
-		// check if val is a number
-		t = ampl_strtod(val.c_str(), &se);
-		if (!*se) { /* valid number */
-			return t;
-		} else {
-			log_msg = "Error in parameter " + key + "=" + val +
-					  ". Could not convert " + val + " to double";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-	};
-
-	std::string get_map_karg(const std::string &key,
-							 std::vector<std::string> &orig,
-							 std::vector<std::string> &dest){
-
-		std::string val = ampl_kargs_map[key];
-
-		assert(orig.size() == dest.size());
-
-		for (std::size_t i = 0; i < orig.size(); i++) {
-			if (orig[i] == val) {
-				return dest[i];
-			}
-		}
-
-		log_msg =
-			"Error in parameter " + key + "=" + val + ". Invalid option " + val;
-		logger.log(log_msg, LOG_ERROR);
-		throw DBE_Error;
-	};
-
-	//
-	void allocate_row_size(int size){ tmp_row.reserve(size); };
-
-	FileHandler get_file_handler(
-		const std::string & filename,
-		const std::string & mode
-	){
-		return FileHandler(ae, logger, filename, mode);
-	};
-};
-
-
-
+// Definitions from funcadd.h
+// These definitions provide the pointers to interact with AMPL and should not be changed
 
 typedef struct cryptblock cryptblock;
 
@@ -887,59 +332,46 @@ enum {                      /* bits in flags field of TableInfo */
 	   /* offers them. */
 };
 
-// macro to allocate memory in AMPLs internal structures (if needed)
-//~ #define TM(len) (*ae->Tempmem)(TI->TMI, len)
+// End of definitions from funcadd.h
+
+/** Function to allocate memory in AMPLs internal structures (if needed).
+ * Replaces the previous macro:
+ * define TM(len) (*ae->Tempmem)(TI->TMI, len)
+ */
 inline void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len);
 
-
-inline void add_table_handler(
-	AmplExports *ae,
-	int (*DbRead)(AmplExports *ae,TableInfo *TI),
-	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
-	char *handler_info,
-	int flags,
-	void *Vinfo
-);
-
-
-void add_table_handler(
-	AmplExports *ae,
-	int (*DbRead)(AmplExports *ae,TableInfo *TI),
-	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
-	char *handler_info,
-	int flags,
-	void *Vinfo
-){
-	ae->Add_table_handler(DbRead, DbWrite, handler_info, flags, Vinfo);
-};
-
-
-// Simple replacement for the to_string function since we are building for
-// -std=c++03
+/** Simple replacement of the to_string function if you are building for older versions of the std.
+ */
 template <class T> std::string numeric_to_string(T num) {
 	std::stringstream strs;
 	strs << num;
 	return strs.str();
 };
 
-// Convert numeric to string with ndecdig decimal digits
-// will be used mostly to print cpu times and such
+/** Convert numeric to string with ndecdig decimal digits.
+ * Will be used mostly to print cpu times and such.
+ */
 template <class T> std::string numeric_to_fixed(T num, int ndecdig) {
 	std::stringstream strs;
 	strs << std::fixed << std::setprecision(ndecdig) << num;
 	return strs.str();
 };
 
-// Gets the substring after the last dot in the given string
+/** Gets the substring after the last dot in the given string.
+ * Used to determine the string represents a file extension.
+ */
 inline std::string get_file_extension(const std::string &filepath);
 
-// Check if a file with a given name already exists.
+/**Check if a file with a given name already exists.
+ */
 inline bool check_file_exists(const std::string &filename);
 
-// Verifies if the lower case representation of 2 strings is identical
+/** Verifies if the lower case representation of 2 strings is identical.
+ */
 inline bool compare_strings_lower(const std::string &str1, const std::string &str2);
 
-// vector printing, might be helpfull
+/** Vector printing, might be helpfull for development/debug.
+ */
 template <class T> void print_vector(const std::vector<T> v) {
 
 	std::cout << "[";
@@ -953,9 +385,21 @@ template <class T> void print_vector(const std::vector<T> v) {
 	std::cout << std::endl;
 };
 
-// copies the file in source_path to dest_path
+/** Copies the file in source_path to dest_path.
+ */
 inline void copy_file(const std::string &source_path, const std::string &dest_path);
 
+
+/** Named enum with DB return values to use in try/catch exceptions.
+ */
+enum DBE { /* return values from (*DbRead)(...) and (*DbWrite)(...) */
+		   DBE_Done = 0,   /* Table read or written. */
+		   DBE_Refuse = 1, /* Refuse to handle this table. */
+		   DBE_Error = 2   /* Error reading or writing table. */
+};
+
+/** Log levels for the Logger Class.
+ */
 enum LOG_LEVELS {
 
 	LOG_ERROR = 0,
@@ -964,27 +408,41 @@ enum LOG_LEVELS {
 	LOG_DEBUG = 3,
 };
 
+/** A simple logger class. Level specifies the level from wich to print the messages.
+ * Successive messages are stored in the messages vector. The corresponding code of the error is
+ * stored in the code vector and should follow the LOG_LEVELS enum.
+ * Messages with error code LOG_ERROR should be issued before throwing an exception without sending
+ * further information to AMPL. Other LOG_LEVELS should be used as apropriate. 
+ */
 class Logger {
   private:
-	std::vector<std::string> messages;
-	std::vector<int> codes;
+
 	AmplExports *ae; // for AMPL printf
 	TableInfo *TI;   // for AMPL error message
 	int level;       // level to print info
-
+	std::vector<std::string> messages; // error messages
+	std::vector<int> codes; // code/level of the corresponding eror message
 
   public:
 
 	Logger(){
-		level = 0;
+		level = 0; // by default no messages are printed
 	};
 
-	void add_info(AmplExports *ae, TableInfo *TI){
+	void add_ampl_pointers(AmplExports *ae, TableInfo *TI){
 		this->ae = ae;
 		this->TI = TI;
 	};
+
+	int get_level(){ return level; };
+
 	void set_level(int level){ this->level = level; };
 
+	/**
+	 * Pass a message to the logger. Error messages are printed immendiatly as they should result
+	 * from an exception. Other messages are printed acording to their code and the level requested
+	 * by the user.
+	 */
 	void log(const std::string &msg, int code){
 
 		messages.push_back(msg);
@@ -1007,6 +465,10 @@ class Logger {
 		}
 	};
 
+	/**
+	 * Initially the level of the logger is 0. When we get the requested logger level from the user
+	 * we print the already existing messages accordingly.
+	 */
 	void print_log(){
 
 		for (std::size_t i = 0; i < codes.size(); i++) {
@@ -1024,14 +486,10 @@ class Logger {
 	};
 };
 
-// We need a named enum with DB return values to use in try/catch
-enum DBE { /* return values from (*DbRead)(...) and (*DbWrite)(...) */
-		   DBE_Done = 0,   /* Table read or written. */
-		   DBE_Refuse = 1, /* Refuse to handle this table. */
-		   DBE_Error = 2   /* Error reading or writing table. */
-};
-
-
+/** Auxiliary class to handle text files.
+ * The created object will use AMPL's fprintf in order to read/write numbers from/to text files and 
+ * close automaticaly if an exception is raised.
+ */
 class FileHandler {
 
 private:
@@ -1082,6 +540,770 @@ public:
 	};
 };
 
+/**
+ * Main class used to read, write and update tables.
+*/
+class Connector {
+
+  private:
+	/**
+	 * Auxiliary vector to keep string data in memory before passing it to AMPL.
+	*/
+	std::vector<std::string> tmp_row;
+
+	// pointers to AMPL
+	TableInfo *TI;
+	AmplExports *ae;
+
+	/** Sets the size of tmp_row from the number of columns in AMPL's table.
+	 */
+	void allocate_row_size(int size){ tmp_row.reserve(size); };
+
+  public:
+
+	/**
+	 * Current version of the handler.
+	 */
+	std::string handler_version;
+
+	/**
+	 * Name of the table.
+	*/
+	std::string table_name;
+
+	/**
+	 * Path for the file (or something else) to read/write/update.
+	*/
+	std::string filepath;
+
+	/**
+	 * Inout keyword of the table, can be IN, OUT or INOUT.
+	*/
+	std::string inout;
+
+	/**
+	 * Names that will identify this table handler in the table declaration.
+	*/
+	std::vector<std::string> handler_names;
+
+	/**
+	 * File extensions accepted by the handler.
+	*/
+	std::vector<std::string> handler_extensions;
+
+	/**
+	 * Vector with the args provided by the user in the table handler declaration.
+	*/
+	std::unordered_set<std::string> user_args;
+
+	/**
+	 * Vector with the kargs provided by the user in the table handler declaration. For every 
+	 * provided string of the type "key=val" we will set user_kargs[key] = val.
+	*/
+	std::unordered_map<std::string, std::string> user_kargs;
+
+	/**
+	 * Set with the args that the user is allowed to provide in the table handler declaration. This 
+	 * structure should be filled in the table handler constructor.
+	 */
+	std::unordered_set<std::string> allowed_args;
+
+	/**
+	 * Set with the kargs keys that the user is allowed to provide in the table handler declaration.
+	 * This structure should be filled in the table handler constructor.
+	 */
+	std::unordered_set<std::string> allowed_kargs;
+
+	/**
+	 * In order to have a single parser for the reader/writer we need to be able to tell one from the other.
+	 */
+	bool is_writer;
+
+	/** Verbosed level specified by the user.
+	 */
+	int requested_verbose;
+
+	// for errors and messages to users
+	std::string log_msg;
+	Logger logger;
+
+	/**
+	 * Add pointers to comunicate with AMPL.
+	*/
+	Connector(AmplExports *ae, TableInfo *TI){
+		this->ae = ae;
+		this->TI = TI;
+
+		if (ae == NULL || TI == NULL) {
+			std::cout << "Connector: could not add ampl pointers." << std::endl;
+			throw DBE_Error;
+		}
+		is_writer = false; // by default we assume the table handler is not a writer
+	};
+	virtual ~Connector(){};
+
+	/**
+	 * Helper function that encapsulates the necessary steps to read/write/update a table.
+	*/
+	void run(){
+
+		// pass connections to the logger
+		logger.add_ampl_pointers(ae, TI);
+
+		// log the name and version of the handler
+		log_msg = handler_version;
+		logger.log(log_msg, LOG_INFO);
+
+		register_handler_names();
+		register_handler_extensions();
+		register_handler_args();
+		register_handler_kargs();
+		prepare();
+		process_table();
+	};
+
+	/**
+	 * Check if any of the string args provide by the user end with any of the previously defined
+	 * file extensions.
+	*/
+	bool is_handler_extensions(const std::string &arg){
+
+		log_msg = "<is_handler_extensions>";
+		logger.log(log_msg, LOG_DEBUG);
+
+		// no extensions to validate
+		if (handler_extensions.size() == 0) {
+			return false;
+		}
+
+		std::string extension = get_file_extension(arg);
+
+		// not a potential extension
+		if (extension.empty()) {
+			return false;
+		}
+
+		for (std::size_t i = 0; i < handler_extensions.size(); i++) {
+			if (extension == handler_extensions[i]) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	/** Parses all the arguments passed by ampl's table declaration into the structures user_args 
+	 * and user_kargs according to the definitions in allowed_args and allowed_kargs.
+	 * Filters the verbose flag and updates the level in the logger.
+	 * Launches warnings for redundant/unused arguments.
+	 * The parser will automatically separate the strings provided by the user by the semicolon ";"
+	 * and equal "=" symbols so they shoul not be used in allowed_args and allowed_kargs.
+	 */
+	void parse_arguments(){
+
+		log_msg = "<parse_arguments>";
+		logger.log(log_msg, LOG_DEBUG);
+
+		// at least the table handler must be declared
+		if (TI->nstrings == 0) {
+			log_msg = "No table handler declared.\n";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Refuse;
+		}
+
+		// first string must be the table handler
+		bool found = false;
+		std::string tmp_str = TI->strings[0];
+		for (std::size_t i = 0; i < handler_names.size(); i++) {
+			if (compare_strings_lower(handler_names[i], tmp_str)) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			log_msg = "No table handler declaration found.\n";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Refuse;
+		}
+
+		// get the name of the table
+		table_name = TI->tname;
+		if (table_name.size() == 0) {
+			log_msg = "Could not get the name of the table.\n";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		// log table name
+		log_msg = "table: " + table_name;
+		logger.log(log_msg, LOG_INFO);
+
+		// check value for inout
+		if ((TI->flags & DBTI_flags_IN) && (TI->flags & DBTI_flags_OUT)) {
+			inout = "INOUT";
+		} else if (TI->flags & DBTI_flags_IN) {
+			inout = "IN";
+		} else if (TI->flags & DBTI_flags_OUT) {
+			inout = "OUT";
+		} else {
+			log_msg = "unsuported inout flag";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		// log inout
+		log_msg = "inout: " + inout;
+		logger.log(log_msg, LOG_INFO);
+
+		requested_verbose = 0;
+
+		// parse remaining args
+		for (int i = 1; i < TI->nstrings; i++) {
+
+			std::string mystr = TI->strings[i];
+
+			size_t first = 0;
+			size_t last = mystr.find(";");
+
+			while (last != std::string::npos){
+
+				std::string temp = mystr.substr(first, last);
+				process_string(temp);
+
+				first = last + 1;
+				last = mystr.find(";", first);
+			}
+			std::string temp = mystr.substr(first);
+			process_string(temp);
+		}
+
+		// print previous messages in logger (if requested)
+		if (requested_verbose != 0){
+			logger.set_level(requested_verbose);
+			if (logger.get_level() > 0) {
+				logger.print_log();
+			}
+		}
+	};
+
+	/** Check if a given string is a potential karg, i.e. has the form "key=val".
+	 */
+	bool is_karg(std::string & str){
+		if (str.find("=") == std::string::npos){
+			return false;
+		}
+		return true;
+	};
+
+	/** Check if a given string represents an arg or karg and dispatch it acordingly.
+	 */
+	void process_string(std::string & str){
+		if (is_karg(str)){
+			process_karg(str);
+		}
+		else{
+			process_arg(str);
+		}
+	};
+
+	/**
+	 * Given a string that represents an arg checks if the string:
+	 *   - is "verbose";
+	 *   - has a file extension provided in register_handler_extensions;
+	 *   - is in allowed_args;
+	 *   - represents an alias.
+	 * If the string is in allowed_args it will be included in used_args.
+	 * Only the first string with a file extension will be accepted, posterior ones will be 
+	 * discarded with a warning.
+	 * If the string is not "verbose", is not in allowed_args and does not represent a file 
+	 * extension it will be interpreted as an alias. Only the first alias will be accepted, 
+	 * posterior ones will be discarded with a warning.
+	 */
+	void process_arg(std::string & arg_string){
+
+		bool has_alias = false;
+		bool has_file = false;
+
+		// check verbose
+		if (arg_string == "verbose") {
+			// set basic level of verbose (warnings)
+			log_msg = "verbose level set to 1";
+			logger.log(log_msg, LOG_INFO);
+			requested_verbose = 1;
+		}
+		// check if the string is a potential file of the given extensions
+		else if (is_handler_extensions(arg_string)) {
+			if (!has_file) {
+				filepath = arg_string;
+				has_file = true;
+				log_msg = "file: " + arg_string;
+				logger.log(log_msg, LOG_INFO);
+			} else {
+				log_msg = "ignoring argument: " + arg_string;
+				logger.log(log_msg, LOG_INFO);
+			}
+		}
+		// check if arg_string is in allowed_args
+		else if (allowed_args.find(arg_string) != allowed_args.end()) {
+			user_args.insert(arg_string);
+		}
+		// check for an alias
+		else {
+			if (!has_alias) {
+				table_name = arg_string;
+				has_alias = true;
+				log_msg = "using alias: " + arg_string;
+				logger.log(log_msg, LOG_WARNING);
+			}
+			// already has alias, ignore argument
+			else {
+				log_msg = "ignoring argument: " + arg_string;
+				logger.log(log_msg, LOG_WARNING);
+			}
+		}
+	};
+
+	/** Given a string that represents a karg "key=val":
+	 *   - splits the string by the "=" character into a key and a value;
+	 *   - checks if the key is verbose or in allowed_kargs. If the key is in allowed_kargs sets
+	 *     user_kargs[key] = val.
+	 */
+	void process_karg(std::string & karg_string){
+
+		size_t eq_pos = karg_string.find("=");
+		std::string key = karg_string.substr(0, eq_pos);
+
+		if (eq_pos < karg_string.size() - 1) {
+
+			std::string val = karg_string.substr(eq_pos + 1);
+
+			// check verbose
+			if (key == "verbose") {
+				requested_verbose = std::atoi(val.c_str());
+				if (requested_verbose > 0) {
+					log_msg = "verbose: " + val;
+					logger.log(log_msg, LOG_INFO);
+				}
+			}
+			// add valid keys to user_kargs for posterior validation
+			else if (allowed_kargs.find(key) != allowed_kargs.end()) {
+				user_kargs[key] = val;
+				log_msg = "parse_arguments: \'" + key + "\' set to \'" + val + "\'";
+				logger.log(log_msg, LOG_INFO);
+			}
+			// discard keys that were not declared
+			else {
+				log_msg = "key: " + key + " with value: " + val +
+						  " was not declared, ignoring: " + karg_string;
+				logger.log(log_msg, LOG_WARNING);
+			}
+		}
+		// discard incomplete statements like "something="
+		else {
+			log_msg = "Could not parse " + karg_string;
+			logger.log(log_msg, LOG_WARNING);
+		}
+	};
+
+	/**
+	 * Check if a path to an external file was defined, otherwise construct a
+	 * path based on the table name and the provided extensions.
+	*/
+	void validate_filepath(){
+
+		log_msg = "<validate_filepath>";
+		logger.log(log_msg, LOG_DEBUG);
+
+		if (filepath.empty()) {
+			filepath = table_name;
+
+			// see if we can add extension
+			if (handler_extensions.size() > 0) {
+				filepath += ".";
+				filepath += handler_extensions[0];
+				log_msg = "No file declared. Using \'" + filepath + "\'";
+				logger.log(log_msg, LOG_WARNING);
+			} else {
+				log_msg = "Could not add extension to file \'" + filepath + "\'";
+				logger.log(log_msg, LOG_WARNING);
+			}
+		}
+	};
+
+	// Table info functions
+
+	/** Returns the number of arity (key) columns in AMPL's table.
+	 */
+	size_t nkeycols() { return TI->arity; };
+
+	/** Returns the number of non arity (data) columns in AMPL's table.
+	 */
+	size_t ndatacols() { return TI->ncols; };
+
+	/** Returns the total number of columns in AMPL's table.
+	 */
+	size_t ncols() { return TI->arity + TI->ncols; };
+
+	/** Returns the number of rows in AMPL's table.
+	 */
+	size_t nrows() { return TI->nrows; };
+
+	/**
+	 * Sets the value of column in position "col" in AMPL's table to the double "val". 
+	 */
+	void set_col_val(double val, int col) {
+		TI->cols[col].sval[0] = 0;
+		TI->cols[col].dval[0] = val;
+	};
+
+	/**
+	 * Sets the value of column in position "col" in AMPL's table to the string "val".
+	 */
+	void set_col_val(const std::string &val, int col) {
+		tmp_row.push_back(val);
+		TI->cols[col].sval[0] = const_cast<char *>(tmp_row.back().c_str());
+	};
+
+	/**
+	 * Sets the value of column in position "col" in AMPL's table to missing.
+	 */
+	void set_col_missing_val(int col) {
+		TI->cols[col].sval[0] = TI->Missing;
+	};
+
+	/** 
+	 * Check if value of a given row at a given column in AMPL's table is numeric.
+	 */
+	bool is_numeric_val(int row, int col) {
+		return !is_char_val(row, col);
+	};
+
+	/**
+	 * Check if value of a given row at a given column in AMPL's table is missing.
+	 */
+	bool is_missing(int row, int col) {
+
+		if (TI->cols[col].sval && TI->cols[col].sval[row] &&
+			TI->cols[col].sval[row] == TI->Missing) {
+			return true;
+		}
+		return false;
+	};
+
+	/**
+	 * Get the numerical value of a given row at a given column in AMPL's table.
+	 */
+	double get_numeric_val(int row, int col){
+		return TI->cols[col].dval[row];
+	};
+
+	/**
+	 * Gets a pointer to the char value of a given row at a given column in AMPL's table.
+	 */
+	char *get_char_val(int row, int col){
+		return TI->cols[col].sval[row];
+	};
+
+	/**
+	 * Check if value of a given row at a given column in AMPL's table is a char.
+	 */
+	bool is_char_val(int row, int col){
+
+		if (TI->cols[col].sval && TI->cols[col].sval[row]) {
+			return true;
+		}
+		return false;
+	};
+
+	/**
+	 * Gets a pointer the the first char of the name of column in position col in AMPL's table. 
+	 */
+	char *get_col_name(int col){
+		return TI->colnames[col];
+	};
+
+	/**
+	 * After we fill all the values of a row with the set_col_value functions we pass the values to
+	 * AMPL with this function.
+	 */
+	void add_row(){
+		// pass data to AMPL
+		DbCol *db = TI->cols;
+		if ((*TI->AddRows)(TI, db, 1)) {
+			log_msg = "Error with AddRows.";
+			logger.log(log_msg, LOG_WARNING);
+			// we only log a warning to preserve the original error message from AMPL
+			throw DBE_Error;
+		}
+		tmp_row.clear();
+	};
+
+	// End of table info functions
+
+	// AMPL Exports functions
+	// Replacement functions for fprintf, printf, sprintf, vfprintf, vsprintf and strtod.
+	// These functions should be used instead of of standart library ones to prevent errors derived
+	// from diferent compiler implementations.
+
+	int ampl_fprintf(FILE *stream, const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ae->VfprintF(stream, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_printf(const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ampl_vfprintf(ae->StdOut, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_sprintf(char *str, const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ampl_vsprintf(str, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_vfprintf(FILE *stream, const char *format, va_list arg){
+		return ae->VfprintF(stream, format, arg);
+	};
+
+	int ampl_vsprintf(char *buffer, const char *format, va_list arg){
+		return ae->VsprintF(buffer, format, arg);
+	};
+
+	double ampl_strtod(const char *str, char **endptr){
+		return ae->Strtod(str, endptr);
+	};
+
+	// End of AMPL Exports functions
+
+	/** Parse and validate arguments, ensure the external table is found.
+	 */
+	void prepare(){
+
+		log_msg = "<prepare>";
+		logger.log(log_msg, LOG_DEBUG);
+
+		parse_arguments();
+		validate_arguments();
+		validate_filepath();
+
+		// check if filepath exists
+		if (!check_file_exists(filepath)) {
+
+			if (!is_writer) {
+				log_msg = "Cannot find source to read data.";
+				logger.log(log_msg, LOG_ERROR);
+				throw DBE_Error;
+			} else {
+				// write as an OUT table as there is nothing to update
+				inout = "OUT";
+				generate_table();
+
+				log_msg = "generating file: " + filepath;
+				logger.log(log_msg, LOG_WARNING);
+			}
+		}
+	};
+
+	/** Decide if we will read, write or update the data.
+	 * We also allocate the size of row in case of a read. 
+	 */
+	void process_table(){
+
+		log_msg = "<process_table>";
+		logger.log(log_msg, LOG_DEBUG);
+
+		if (!is_writer) {
+			allocate_row_size(ncols());
+			read_in();
+		} else {
+			if (inout == "OUT") {
+				write_out();
+			} else if (inout == "INOUT") {
+				write_inout();
+			}
+		}
+	};
+
+	/** Read data from an external an table.
+	 */
+	virtual void read_in() = 0;
+
+	/** Write data into an external table.
+	 */
+	virtual void write_out() = 0;
+
+	/**	Update external table.
+	 */
+	virtual void write_inout() = 0;
+
+	/** If the external table does not exist we need a function to create one.
+	 * If it's not possible to create the table from scratch we should log an appropriate message 
+	 * and throw DBE_Error.
+	 */
+	virtual void generate_table() = 0;
+
+	/** In order to tell AMPL how to invoke this handler fill the vector handler_names with 
+	 * something like:
+	 * 
+	 * handler_names = {"somename"};
+	 * 
+	 * The parser will automatically detect if the table handler was invoked correctly in a table 
+	 * declaration such as:
+	 * 
+	 * table mytable IN "somename" 
+	 * 
+	 * Note that the search for the table handler name is not case sensitive.
+	 */
+	virtual void register_handler_names() = 0;
+
+	/** Define what type of file extensions will be accepted. For example, if you set
+	 * 
+	 * handler_extensions = {"txt"};
+	 * 
+	 * the parser will search for strings with that extension and assign it to the variable 
+	 * filepath.
+	 */
+	virtual void register_handler_extensions() = 0;
+
+	/** Tell the parser wich keywords to search for in the table declaration.
+	 */
+	virtual void register_handler_args() = 0;
+
+	/** Tell the parser which key/value pairs (of the form key=type) in the table declaration.
+	 */
+	virtual void register_handler_kargs() = 0;
+
+	/** Validates the structures derived from the parsing. You should look at user_args and 
+	 * user_kargs to see the input from the user and procedd acordingly.
+	 */
+	virtual void validate_arguments() = 0;
+
+	// Functions to convert arguments from user_kargs
+
+	/** Given a string key checks if it is a key of user_kargs and returns bolean true or false if 
+	 * the value of the map of the key is string "true" or "false".
+	 * Throws DBE_Error if the value of the key is not "true" or "false" and sets the appropriate
+	 * message in the logger.
+	 */
+	bool get_bool_karg(const std::string &key){
+
+		if (user_kargs[key] == "true") {
+			return true;
+		} else if (user_kargs[key] == "false") {
+			return false;
+		} else {
+			log_msg =
+				"invalid value for argument: " + key + "=" + user_kargs[key];
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+	};
+
+	/**Given a string key checks if it is a key of user_kargs and returns the convertion of the 
+	 * corresponding value to integer.
+	 */
+	int get_int_karg(const std::string &key){
+
+		std::string val = user_kargs[key];
+		return std::atoi(val.c_str());
+	};
+
+	/** Given a string key checks if it is a key of user_kargs and returns the corresponding double
+	 * value associated.
+	 * Throws DBE_Error if it's not possible to convert the value to double and sets the appropriate
+	 * message in the logger.
+	 */
+	double get_double_karg(const std::string &key){
+
+		std::string val = user_kargs[key];
+		char *se;
+		double t;
+
+		// check if val is a number
+		t = ampl_strtod(val.c_str(), &se);
+		if (!*se) { /* valid number */
+			return t;
+		} else {
+			log_msg = "Error in parameter " + key + "=" + val +
+					  ". Could not convert " + val + " to double";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+	};
+
+	/** Given a string key, a vector of strings orig and a vector of strings dest gets the value val
+	 * of key in user_kargs, searches.for val in the orig vector and if val is found returns the
+	 * element in the same position at the dest vector.
+	 * Throws DBE_Error if the value of the key is not found in the vector orig and sets the 
+	 * appropriate message in the logger.
+	 */
+	std::string get_map_karg(const std::string &key,
+							 std::vector<std::string> &orig,
+							 std::vector<std::string> &dest){
+
+		std::string val = user_kargs[key];
+
+		assert(orig.size() == dest.size());
+
+		for (std::size_t i = 0; i < orig.size(); i++) {
+			if (orig[i] == val) {
+				return dest[i];
+			}
+		}
+
+		log_msg =
+			"Error in parameter " + key + "=" + val + ". Invalid option " + val;
+		logger.log(log_msg, LOG_ERROR);
+		throw DBE_Error;
+	};
+
+	// End of functions to convert arguments from user_kargs
+
+	/** Provide a FileHandler object to be used with the Connector class.
+	 */
+	FileHandler get_file_handler(
+		const std::string & filename,
+		const std::string & mode
+	){
+		return FileHandler(ae, logger, filename, mode);
+	};
+};
+
+/** Pass the implemented read and write functions to AMPL.
+ * You will not need to call this function if you use the provided template.
+ */
+inline void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+);
+
+// Function implementations
+
+void add_table_handler(
+	AmplExports *ae,
+	int (*DbRead)(AmplExports *ae,TableInfo *TI),
+	int (*DbWrite)(AmplExports *ae, TableInfo *TI),
+	char *handler_info,
+	int flags,
+	void *Vinfo
+){
+	ae->Add_table_handler(DbRead, DbWrite, handler_info, flags, Vinfo);
+};
+
 std::string get_file_extension(const std::string &filepath) {
 
 	if (filepath.find_last_of(".") != std::string::npos) {
@@ -1121,9 +1343,11 @@ void copy_file(const std::string &source_path, const std::string &dest_path) {
 void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len){
 	return ae->Tempmem(TI->TMI, len);
 };
-
+// End of function implementations
 } // namespace ampl
 
+/** AMPL expects a funcadd function to bridge AMPL and the external connector.
+ */
 #define funcadd amplt::funcadd_ASL
 
 #endif

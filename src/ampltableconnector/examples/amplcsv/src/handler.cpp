@@ -1,15 +1,12 @@
 #include "handler.hpp"
 
-
 static int
 Read_AMPLcsv(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	Handler cn;
+	Handler cn(ae, TI);
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -25,12 +22,10 @@ static int
 Write_AMPLcsv(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	Handler cn;
+	Handler cn(ae, TI);
 	cn.is_writer = true;
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -47,34 +42,26 @@ void
 funcadd(AmplExports *ae){
 
 	// write a description of the handlers
-	static char info[] = "amplcsv\n"
-		"Write table handler description and help\n";
+	//~ static char info[] = "amplcsv\n"
+		//~ "Write table handler description and help\n";
+	//~ static char info[] = {doc};
 
 	// Inform AMPL about the handlers
 	//~ ae->Add_table_handler(Read_AMPLcsv, Write_AMPLcsv, info, 0, 0);
-	add_table_handler(ae, Read_AMPLcsv, Write_AMPLcsv, info, 0, 0);
+	add_table_handler(ae, Read_AMPLcsv, Write_AMPLcsv, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
 
-Handler::Handler(){
+//~ Handler::Handler(AmplExports *ae, TableInfo *TI){
 
-	version = "amplcsv - alpha 0.0.2";
+	//~ handler_version = name + " - " + version;
 
-	ampl_args_map["no_header"] = false;
-	ampl_args_map["overwrite_header"] = false;
-
-	// set the values for ampl_kargs_map as apropriate
-	ampl_kargs_map["sep"] = ",";
-	ampl_kargs_map["quote"] = "none";
-
-	// you can use the values from tha maps directly or convert them to attributes latter
-	sep = ",";
-	quotechar = "";
-	quotestrings = false;
-	has_header = true;
-	use_header = true;
-};
-
+	//~ sep = ",";
+	//~ quotechar = "";
+	//~ quotestrings = false;
+	//~ has_header = true;
+	//~ use_header = true;
+//~ };
 
 void
 Handler::read_in(){
@@ -118,12 +105,10 @@ Handler::read_in(){
 	// a direct correspondence in perm
 	else{
 		nfields = ncols();
-		for (int i = 0; i < ncols(); i++){
+		for (size_t i = 0; i < ncols(); i++){
 			perm.push_back(i);
 		}
 	}
-
-	allocate_row_size(nfields);
 
 	// iterate rows of file
 	while (true) {
@@ -206,87 +191,6 @@ Handler::write_out(){
 	write_data_perm(f, perm);
 };
 
-/*
-void
-Handler::write_out(){
-
-	log_msg = "<write_out>";
-	logger.log(log_msg, LOG_DEBUG);
-
-
-	// overwrite data without including header
-	if (!has_header){
-
-		FILE *f;
-		f = fopen(filepath.c_str(), "w");
-
-		if (!f){
-			log_msg = "write_out: could not open " + filepath;
-			log_msg += " to write data.";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		write_data_ampl(f);
-		fclose(f);
-		return;
-	}
-
-	std::vector<std::string> header;
-
-	// overwrite data
-	if (!use_header){
-
-		FILE *f;
-		f = fopen(filepath.c_str(), "w");
-
-		if (!f){
-			log_msg = "write_out: could not open " + filepath;
-			log_msg += " to write data.";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		header = get_header_ampl();
-		write_header(f, header);
-		write_data_ampl(f);
-		fclose(f);
-		return;
-	}
-
-	// read header from the data file
-	header = get_header_csv();
-
-	FILE *f;
-	f = fopen(filepath.c_str(), "w");
-
-	if (!f){
-		log_msg = "write_out: could not open " + filepath;
-		log_msg += " to write data.";
-		logger.log(log_msg, LOG_ERROR);
-		throw DBE_Error;
-	}
-
-
-	// file might be empty (just created)
-	if (header.size() == 0){
-		header = get_header_ampl();
-		write_header(f, header);
-		write_data_ampl(f);
-		fclose(f);
-		return;
-	}
-
-	std::vector<int> perm = validate_header(header);
-
-	write_header(f, header);
-	write_data_perm(f, perm);
-	fclose(f);
-};
-*/
-
-
-
 std::vector<std::string>
 Handler::get_header_ampl(){
 
@@ -294,7 +198,7 @@ Handler::get_header_ampl(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	std::vector<std::string> header;
-	for (int j = 0; j < ncols(); j++){
+	for (size_t j = 0; j < ncols(); j++){
 		header.push_back(get_col_name(j));
 	}
 	return header;
@@ -338,7 +242,7 @@ Handler::write_header(FileHandler & f, std::vector<std::string> & header){
 	log_msg = "<write_header>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	for (int j = 0; j < header.size(); j++){
+	for (size_t j = 0; j < header.size(); j++){
 
 		if (quotestrings){
 			f.ampl_fprintf ("%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
@@ -366,8 +270,8 @@ Handler::write_data_ampl(FileHandler & f){
 	std::clock_t c_start = std::clock();
 
 	// write data iterating by rows and columns
-	for (int i = 0; i < nrows(); i++){
-		for (int j = 0; j < ncols(); j++){
+	for (size_t i = 0; i < nrows(); i++){
+		for (size_t j = 0; j < ncols(); j++){
 
 			// check if element is a string
 			if (is_char_val(i, j)){
@@ -414,9 +318,9 @@ Handler::write_data_perm(FileHandler & f, std::vector<int>& perm){
 
 	std::clock_t c_start = std::clock();
 
-	for (int i = 0; i < nrows(); i++){
+	for (size_t i = 0; i < nrows(); i++){
 
-		for (int j = 0; j < perm.size(); j++){
+		for (size_t j = 0; j < perm.size(); j++){
 
 			if (perm[j] != -1){
 
@@ -498,7 +402,7 @@ Handler::write_inout(){
 	else{
 		nfields = ncols();
 		init_nfields = ncols();
-		for (int i = 0; i < ncols(); i++){
+		for (size_t i = 0; i < ncols(); i++){
 			perm.push_back(i);
 		}
 	}
@@ -549,10 +453,8 @@ Handler::register_handler_names(){
 	log_msg = "<register_handler_names>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	handler_names.push_back("amplcsv");
-	handler_names.push_back("amplcsv.dll");
+	handler_names ={"amplcsv", "amplcsv.dll"};
 };
-
 
 void
 Handler::register_handler_extensions(){
@@ -560,10 +462,26 @@ Handler::register_handler_extensions(){
 	log_msg = "<register_handler_extensions>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	handler_extensions.push_back("csv");
-	handler_extensions.push_back("txt");
+	handler_extensions = {"csv", "txt"};
 };
 
+void
+Handler::register_handler_args(){
+
+	log_msg = "<register_handler_args>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	allowed_args = {"overwrite"};
+};
+
+void
+Handler::register_handler_kargs(){
+
+	log_msg = "<register_handler_kargs>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	allowed_kargs ={"sep", "quote", "header"};
+};
 
 std::vector<std::string>
 Handler::parse_row(const std::string & str, int row_size){
@@ -632,7 +550,7 @@ Handler::validate_header(std::vector<std::string> & header){
 	std::vector<int> perm;
 
 	// get a map for the columns in AMPL's table
-	for (int i = 0; i < ncols(); i++){
+	for (size_t i = 0; i < ncols(); i++){
 		std::string temp_str = get_col_name(i);
 		ampl_col_map[temp_str] = i;
 	}
@@ -678,7 +596,7 @@ Handler::validate_header(std::vector<std::string> & header){
 	}
 
 	// confirm all ampl columns are in the external table
-	for (int i = 0; i < ncols(); i++){
+	for (size_t i = 0; i < ncols(); i++){
 		std::string temp_str = get_col_name(i);
 		if (csv_col_map.find(temp_str) == csv_col_map.end()){
 			// If a key column is missing we throw an error
@@ -748,13 +666,57 @@ Handler::validate_arguments(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	// check if ampl_args_map was changed by the user
-	for (std::size_t i = 0; i < used_args.size(); i++){
-		if (used_args[i] == "no_header"){
-			has_header = false;
+	//~ for (std::size_t i = 0; i < user_args.size(); i++){
+	for (const auto& elem: user_args){
+		if (elem == "overwrite"){
 			use_header = false;
 		}
-		if (used_args[i] == "overwrite_header"){
-			use_header = false;
+	}
+
+	// check if ampl_kargs_map was changed by the user
+	std::string key;
+	std::vector<std::string> user_options;
+	std::vector<std::string> handler_vals;
+
+	//~ for (std::size_t i = 0; i < user_kargs.size(); i++){
+
+	for(const auto it: user_kargs){
+
+		key = it.first;
+
+		if (key == "sep"){
+			user_options.clear();
+			handler_vals.clear();
+
+			user_options = {",", ";", ":", "space", "tab"};
+			handler_vals = {",", ";", ":", " ", "\t"};
+
+			sep = get_map_karg(key, user_options, handler_vals);
+		}
+		else if (key == "quote"){
+			user_options.clear();
+			handler_vals.clear();
+
+			user_options = {"none", "single", "double"};
+			handler_vals = {"", "'", "\""};
+
+			quotechar = get_map_karg(key, user_options, handler_vals);
+
+			// if we define quotechar quotestrings is set to true
+			if (user_kargs[key] == "single" || user_kargs[key] == "double"){
+				quotestrings = true;
+			}
+		}
+		else if (key == "header"){
+			has_header = get_bool_karg(key);
+
+			if (!has_header){
+				use_header = false;
+			}
+		}
+		else{ // should never get here
+			log_msg = "Discarding argument: " + key + "=";
+		logger.log(log_msg, LOG_WARNING);
 		}
 	}
 
@@ -768,70 +730,10 @@ Handler::validate_arguments(){
 		logger.log(log_msg, LOG_INFO);
 	}
 
-	// check if ampl_kargs_map was changed by the user
-	std::string key;
-	std::vector<std::string> user_options;
-	std::vector<std::string> handler_vals;
-
-	for (std::size_t i = 0; i < used_kargs.size(); i++){
-
-		key = used_kargs[i];
-
-		if (key == "sep"){
-			user_options.clear();
-			handler_vals.clear();
-
-			user_options.push_back(",");
-			user_options.push_back(";");
-			user_options.push_back(":");
-			user_options.push_back("space");
-			user_options.push_back("tab");
-
-			handler_vals.push_back(",");
-			handler_vals.push_back(";");
-			handler_vals.push_back(":");
-			handler_vals.push_back(" ");
-			handler_vals.push_back("\t");
-
-			//~ // for recent versions of C++
-			//~ user_options = {",", ";", ":", "space", "tab"};
-			//~ handler_vals = {",", ";", ":", " ", "\t"};
-
-			sep = get_map_karg(key, user_options, handler_vals);
-		}
-		else if (key == "quote"){
-			user_options.clear();
-			handler_vals.clear();
-
-			user_options.push_back("none");
-			user_options.push_back("single");
-			user_options.push_back("double");
-
-			handler_vals.push_back("");
-			handler_vals.push_back("'");
-			handler_vals.push_back("\"");
-
-			//~ // for recent versions of C++
-			//~ user_options = {"none", "single", "double"};
-			//~ handler_vals = {"", "'", "\""};
-
-			quotechar = get_map_karg(key, user_options, handler_vals);
-
-			// if we define quotechar quotestrings is set to true
-			if (ampl_kargs_map[key] == "single" || ampl_kargs_map[key] == "double"){
-				quotestrings = true;
-			}
-		}
-		else{
-			log_msg = "Discarding argument: " + key + "=";
-		logger.log(log_msg, LOG_WARNING);
-		}
-	}
-
 	log_msg = "sep: \'" + sep + "\'";
 	logger.log(log_msg, LOG_INFO);
 
-	if (ampl_kargs_map["quote"] != "none"){
+	if (user_kargs["quote"] != "none"){
 		log_msg = "quote: \'" + quotechar + "\'";
 		logger.log(log_msg, LOG_INFO);
 	}
@@ -975,11 +877,11 @@ Handler::get_used_keys_map(std::vector<int>& perm){
 	std::map<std::vector<std::string>, int> used_keys_map;
 	std::vector<std::string> temp_keys;
 
-	for (int i = 0; i < nrows(); i++){
+	for (size_t i = 0; i < nrows(); i++){
 
 		temp_keys.clear();
 
-		for (int j = 0; j < perm.size(); j++){
+		for (size_t j = 0; j < perm.size(); j++){
 
 			if (perm[j] != -1){
 
@@ -1061,7 +963,7 @@ Handler::write_remaining_rows(
 		if (used_keys_map.find(temp_keys) == used_keys_map.end()){
 
 			if (row.size() < perm.size()){
-				for (int i = 0; i < perm.size() - row.size(); i++){
+				for (size_t i = 0; i < perm.size() - row.size(); i++){
 					str += sep;
 				}
 			}

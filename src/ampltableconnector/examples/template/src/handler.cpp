@@ -2,14 +2,12 @@
 
 
 static int
-Read_Basic(AmplExports *ae, TableInfo *TI){
+Read_Template(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	Handler cn;
+	Handler cn(ae, TI);
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -22,15 +20,13 @@ Read_Basic(AmplExports *ae, TableInfo *TI){
 
 
 static int
-Write_Basic(AmplExports *ae, TableInfo *TI){
+Write_Template(AmplExports *ae, TableInfo *TI){
 
 	int res = DBE_Done;
-	Handler cn;
+	Handler cn(ae, TI);
 	cn.is_writer = true;
 
 	try{
-		cn.add_ampl_connections(ae, TI);
-		cn.prepare();
 		cn.run();
 	}
 	catch (DBE e){
@@ -46,19 +42,11 @@ Write_Basic(AmplExports *ae, TableInfo *TI){
 void
 funcadd(AmplExports *ae){
 
-	// write a description of the handlers
-	static char info[] = "handler name\n"
-		"Write table handler description and help\n";
-
 	// Inform AMPL about the handlers
-	ae->Add_table_handler(Read_Basic, Write_Basic, info, 0, 0);
+	add_table_handler(ae, Read_Template, Write_Template, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
-
-Handler::Handler(){
-	// provide default values for atributes
-};
-
+// Adapt the functions bellow to meet your requirements
 
 void
 Handler::read_in(){
@@ -93,14 +81,6 @@ Handler::generate_table(){
 
 
 void
-Handler::register_handler_names(){
-
-	log_msg = "<register_handler_names>";
-	logger.log(log_msg, LOG_DEBUG);
-};
-
-
-void
 Handler::register_handler_extensions(){
 
 	log_msg = "<register_handler_extensions>";
@@ -108,5 +88,25 @@ Handler::register_handler_extensions(){
 };
 
 
+void
+Handler::register_handler_args(){
+
+	log_msg = "<register_handler_args>";
+	logger.log(log_msg, LOG_DEBUG);
+};
 
 
+void
+Handler::register_handler_kargs(){
+
+	log_msg = "<register_handler_kargs>";
+	logger.log(log_msg, LOG_DEBUG);
+};
+
+
+void
+Handler::validate_arguments(){
+
+	log_msg = "<validate_arguments>";
+	logger.log(log_msg, LOG_DEBUG);
+};
