@@ -39,6 +39,9 @@ include(CPack)
 include(CTest)
 enable_testing()
 
+# c++11 support
+set (CMAKE_CXX_STANDARD 11)
+
 add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
 add_subdirectory(test/tables)
