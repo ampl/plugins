@@ -688,7 +688,7 @@ Handler::validate_arguments(){
 			user_options.clear();
 			handler_vals.clear();
 
-			user_options = {",", ";", ":", "space", "tab"};
+			user_options = {"comma", "semicolon", "colon", "space", "tab"};
 			handler_vals = {",", ";", ":", " ", "\t"};
 
 			sep = get_map_karg(key, user_options, handler_vals);
