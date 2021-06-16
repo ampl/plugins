@@ -7,7 +7,7 @@
 using namespace amplt;
 
 static std::string name = "amplcsv";
-static std::string version = "beta 0.0.3";
+static std::string version = "beta 0.0.4";
 
 class Handler:
 public Connector{
@@ -34,10 +34,10 @@ public Connector{
 	// weather or not to read/write the header
 	bool has_header;
 
-	// Weather or not to quote/unquote strings when writing/reading, defaults to false
+	// Whether or not to quote/unquote strings when writing/reading, defaults to false
 	bool quotestrings;
 
-	// Weather or not to use the existing csv header (OUT only)
+	// Whether or not to use the existing csv header (OUT only)
 	bool use_header;
 
 	// override functions
@@ -154,7 +154,7 @@ std::string doc = name + "\n" + name + "-" + version + "\n"
 "        table foo IN \"amplcsv\" \"sep=tab\": keycol <- [keycol], valcol;\n"
 "\n"
 "quote=option:\n"
-"    Weather or not to quote strings when writing data to a file or unquote strings when reading\n"
+"    Whether or not to quote strings when writing data to a file or unquote strings when reading\n"
 "    data from a file. Available options: \"none\" (default), \"single\" for single quotes and\n"
 "    \"double\" for double quotes.\n"
 "\n"
@@ -162,7 +162,7 @@ std::string doc = name + "\n" + name + "-" + version + "\n"
 "        table foo IN \"amplcsv\" \"quote=double\": keycol <- [keycol], valcol;\n"
 "\n"
 "header=option:\n"
-"    Weather or not to read/write the header from the .csv file (defaults to true). If the option\n"
+"    Whether or not to read/write the header from the .csv file (defaults to true). If the option\n"
 "    \"header=false\"  is specified, amplcsv will assume that the external table does not have a\n"
 "    header and that the order of the columns in AMPL and in the .csv file is the same.\n"
 "\n"
