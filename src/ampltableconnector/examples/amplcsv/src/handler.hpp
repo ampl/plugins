@@ -7,7 +7,7 @@
 using namespace amplt;
 
 static std::string name = "amplcsv";
-static std::string version = "beta 0.0.4";
+static std::string version = "beta 0.0.5";
 
 class Handler:
 public Connector{

@@ -507,8 +507,7 @@ public:
 	){
 		this->ae = ae;
 		this->logger = logger;
-		f = fopen(filename.c_str(), mode.c_str());
-		closed = false;
+		f = ampl_fopen(filename.c_str(), mode.c_str());
 
 		if (f == NULL){
 			std::string log_msg = "FileHandler: could not open " + filename;
@@ -517,9 +516,7 @@ public:
 		}
 	};
 	~FileHandler(){
-		if (!closed){
-			fclose(f);
-		}
+		close();
 	};
 	void ampl_fprintf(const char *format, ...){
 
@@ -534,9 +531,20 @@ public:
 		};
 	};
 
+	FILE* ampl_fopen(const char * filename, const char * mode){
+		return ae->Fopen(filename, mode);
+	};
+
+	int ampl_fclose(FILE * stream){
+		int res = ae->Fclose(stream);
+		return res;
+	};
+
 	void close(){
-		fclose(f);
-		closed = true;
+		if (f){
+			ampl_fclose(f);
+			f = NULL;
+		}
 	};
 };
 
@@ -1043,6 +1051,15 @@ class Connector {
 	// Replacement functions for fprintf, printf, sprintf, vfprintf, vsprintf and strtod.
 	// These functions should be used instead of of standart library ones to prevent errors derived
 	// from diferent compiler implementations.
+
+	FILE* ampl_fopen(const char * filename, const char * mode){
+		return ae->Fopen(filename, mode);
+	};
+
+	int ampl_fclose(FILE * stream){
+		int res = ae->Fclose(stream);
+		return res;
+	};
 
 	int ampl_fprintf(FILE *stream, const char *format, ...){
 
