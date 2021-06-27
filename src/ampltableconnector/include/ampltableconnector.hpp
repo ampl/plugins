@@ -1111,22 +1111,25 @@ class Connector {
 
 		parse_arguments();
 		validate_arguments();
-		validate_filepath();
 
-		// check if filepath exists
-		if (!check_file_exists(filepath)) {
+		if(handler_extensions.size() > 0){
+			validate_filepath();
 
-			if (!is_writer) {
-				log_msg = "Cannot find source to read data.";
-				logger.log(log_msg, LOG_ERROR);
-				throw DBE_Error;
-			} else {
-				// write as an OUT table as there is nothing to update
-				inout = "OUT";
-				generate_table();
+			// check if filepath exists
+			if (!check_file_exists(filepath)) {
 
-				log_msg = "generating file: " + filepath;
-				logger.log(log_msg, LOG_WARNING);
+				if (!is_writer) {
+					log_msg = "Cannot find source to read data.";
+					logger.log(log_msg, LOG_ERROR);
+					throw DBE_Error;
+				} else {
+					// write as an OUT table as there is nothing to update
+					inout = "OUT";
+					generate_table();
+
+					log_msg = "generating file: " + filepath;
+					logger.log(log_msg, LOG_WARNING);
+				}
 			}
 		}
 	};
