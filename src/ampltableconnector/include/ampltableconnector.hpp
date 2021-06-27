@@ -774,7 +774,7 @@ class Connector {
 
 			while (last != std::string::npos){
 
-				std::string temp = mystr.substr(first, last);
+				std::string temp = mystr.substr(first, last - first);
 				process_string(temp);
 
 				first = last + 1;
