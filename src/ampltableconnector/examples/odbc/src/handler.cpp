@@ -451,6 +451,9 @@ Handler::write_out(){
 		CHECK_ERROR2(retcode, "SQLExecute()", hstmt,
 					SQL_HANDLE_STMT);
 	}
+	if (!autocommit){
+		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
+	}
 };
 
 
@@ -1188,7 +1191,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"DRIVER", "DATABASE", "USER", "PASSWORD"};
+	allowed_kargs = {"DRIVER", "DATABASE", "USER", "PASSWORD", "autocommit"};
 };
 
 
@@ -1216,6 +1219,9 @@ Handler::validate_arguments(){
 		}
 		else if (key == "SQL"){
 			sql = it.second;
+		}
+		else if (key == "autocommit"){
+			autocommit = get_bool_karg(key);
 		}
 	}
 };
@@ -1246,10 +1252,11 @@ Handler::alloc_and_connect(){
 				hdbc, SQL_HANDLE_DBC);
 
 	// Set Auto Commit
-	retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT,
-										0, 0);
-    CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
-                                                        hdbc, SQL_HANDLE_DBC);
+	if (!autocommit){
+		retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, 0, 0);
+		CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
+															hdbc, SQL_HANDLE_DBC);
+	}
 
 	std::string connstr = get_conn_string();
 	std::cout << "connstr: " << connstr << std::endl;

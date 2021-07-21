@@ -25,6 +25,8 @@ public Connector{
 	std::string user;
 	std::string password;
 	std::string sql;
+	bool autocommit;
+
 
 	SQLHENV henv; // Environment
 	SQLHDBC hdbc; // Connection handle
@@ -86,6 +88,7 @@ public Connector{
 		hdbc = NULL;
 		hstmt = NULL;
 		retcode = 0;
+		autocommit = false;
 	};
 
 	~Handler();
