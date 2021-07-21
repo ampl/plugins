@@ -1240,12 +1240,6 @@ Handler::alloc_and_connect(){
 	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_DBC)",
 				henv, SQL_HANDLE_DBC);
 
-	// Set autocommit to false
-    retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT,
-        (SQLPOINTER)false, 0);
-    CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
-                                                        hdbc, SQL_HANDLE_DBC);
-
 	// Set Login Timeout
 	retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
 	CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_LOGIN_TIMEOUT)",
@@ -1253,9 +1247,9 @@ Handler::alloc_and_connect(){
 
 	// Set Auto Commit
 	retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT,
-										(SQLPOINTER)true, 0);
-	CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
-				hdbc, SQL_HANDLE_DBC);
+										0, 0);
+    CHECK_ERROR2(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
+                                                        hdbc, SQL_HANDLE_DBC);
 
 	std::string connstr = get_conn_string();
 	std::cout << "connstr: " << connstr << std::endl;
