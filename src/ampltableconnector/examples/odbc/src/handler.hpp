@@ -26,6 +26,7 @@ public Connector{
 	std::string password;
 	std::string sql;
 	bool autocommit;
+	bool append;
 
 
 	SQLHENV henv; // Environment
@@ -53,6 +54,7 @@ public Connector{
 	std::string get_stmt_insert();
 	std::string get_stmt_select();
 	std::string get_stmt_update();
+	std::string get_stmt_delete();
 
 	std::string get_conn_string();
 
@@ -89,6 +91,7 @@ public Connector{
 		hstmt = NULL;
 		retcode = 0;
 		autocommit = false;
+		append = false;
 	};
 
 	~Handler();

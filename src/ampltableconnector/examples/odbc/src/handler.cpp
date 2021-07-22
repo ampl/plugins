@@ -245,7 +245,16 @@ Handler::get_stmt_insert(){
 
 	std::string stmt = "INSERT INTO ";
 	stmt += table_name;
-	stmt += " VALUES (";
+	stmt += " (";
+
+	for (size_t i = 0; i < ncols(); i++){
+		stmt += get_col_name(i);
+		if (i + 1 < ncols()){
+			stmt += ", ";
+		}
+	}
+
+	stmt += ") VALUES (";
 	for (size_t i = 0; i < ncols(); i++){
 		stmt += "?";
 		if (i + 1 < ncols()){
@@ -285,8 +294,14 @@ Handler::get_stmt_update(){
 	return stmt;
 };
 
+std::string
+Handler::get_stmt_delete(){
 
-
+	std::string stmt = "DELETE FROM ";
+	stmt += table_name;
+	stmt += ";";
+	return stmt;
+};
 
 
 std::string
@@ -328,6 +343,19 @@ Handler::write_out(){
 	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
 				hstmt, SQL_HANDLE_STMT);
 
+	// Delete existing rows
+	if (!append){
+		std::string selectstr = get_stmt_delete();
+		std::cout << "selectstr: " << selectstr << std::endl;
+
+		retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
+		CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+				hstmt, SQL_HANDLE_STMT);
+
+		std::cout << "Delete done." << std::endl;
+	}
+
+	// Get the insert statement
 	std::string selectstr = get_stmt_insert();
 	std::cout << "selectstr: " << selectstr << std::endl;
 
@@ -637,7 +665,7 @@ Handler::write_inout(){
 	//https://www.easysoft.com/developer/languages/c/examples/DescribeAndBindColumns.html
 
 	if (nrows() == 0){
-		std::cout << "No rows to write" << std::endl;
+		std::cout << "No rows to update" << std::endl;
 		return;
 	}
 
@@ -1191,7 +1219,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"DRIVER", "DATABASE", "USER", "PASSWORD", "autocommit"};
+	allowed_kargs = {"DRIVER", "DATABASE", "USER", "PASSWORD", "autocommit", "append"};
 };
 
 
@@ -1222,6 +1250,9 @@ Handler::validate_arguments(){
 		}
 		else if (key == "autocommit"){
 			autocommit = get_bool_karg(key);
+		}
+		else if (key == "append"){
+			append = get_bool_karg(key);
 		}
 	}
 };
