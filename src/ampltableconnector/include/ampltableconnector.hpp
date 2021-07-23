@@ -600,12 +600,12 @@ class Connector {
 	std::vector<std::string> handler_extensions;
 
 	/**
-	 * Vector with the args provided by the user in the table handler declaration.
+	 * Vector with the args parsed from the table handler declaration.
 	*/
 	std::unordered_set<std::string> user_args;
 
 	/**
-	 * Vector with the kargs provided by the user in the table handler declaration. For every 
+	 * Vector with the kargs parsed from the table handler declaration. For every 
 	 * provided string of the type "key=val" we will set user_kargs[key] = val.
 	*/
 	std::unordered_map<std::string, std::string> user_kargs;
@@ -621,6 +621,11 @@ class Connector {
 	 * This structure should be filled in the table handler constructor.
 	 */
 	std::unordered_set<std::string> allowed_kargs;
+
+	/**
+	 * Vector with all the args provided by the user in the table handler declaration.
+	*/
+	std::vector<std::string> ampl_args;
 
 	/**
 	 * In order to have a single parser for the reader/writer we need to be able to tell one from the other.
@@ -768,6 +773,7 @@ class Connector {
 		for (int i = 1; i < TI->nstrings; i++) {
 
 			std::string mystr = TI->strings[i];
+			ampl_args.push_back(mystr);
 
 			size_t first = 0;
 			size_t last = mystr.find(";");
@@ -1027,6 +1033,22 @@ class Connector {
 	 */
 	char *get_col_name(int col){
 		return TI->colnames[col];
+	};
+
+	/**
+	 * Get a pointer to the numerical values of a given column.
+	 * The number of elements in the column is nrows()
+	 */
+	double* get_col_double(int col){
+		return TI->cols[col].dval;
+	};
+
+	/**
+	 * Get a pointer to the char values of a given column.
+	 * The number of elements in the column is nrows()
+	 */
+	char** get_col_char(int col){
+		return TI->cols[col].sval;
 	};
 
 	/**
