@@ -781,13 +781,17 @@ class Connector {
 			while (last != std::string::npos){
 
 				std::string temp = mystr.substr(first, last - first);
-				process_string(temp);
+				if (!temp.empty()){
+					process_string(temp);
+				}
 
 				first = last + 1;
 				last = mystr.find(";", first);
 			}
 			std::string temp = mystr.substr(first);
-			process_string(temp);
+			if (!temp.empty()){
+				process_string(temp);
+			}
 		}
 
 		// print previous messages in logger (if requested)

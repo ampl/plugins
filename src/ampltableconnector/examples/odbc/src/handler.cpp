@@ -87,7 +87,7 @@ Handler::read_in(){
 				hstmt, SQL_HANDLE_STMT);
 
 	std::string selectstr;
-	if (sql.empty){
+	if (sql.empty()){
 		selectstr = get_stmt_select();
 	}
 	else{
