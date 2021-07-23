@@ -86,8 +86,13 @@ Handler::read_in(){
 	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
 				hstmt, SQL_HANDLE_STMT);
 
-	std::string selectstr = get_stmt_select();
-	//~ selectstr = "SELECT A, B, C, D, E FROM sizetest WHERE D = -2.1548818355347437;";
+	std::string selectstr;
+	if (sql.empty){
+		selectstr = get_stmt_select();
+	}
+	else{
+		selectstr = sql;
+	}
 	std::cout << "selectstr: " << selectstr << std::endl;
 
 	// Prepare Statement
@@ -302,27 +307,6 @@ Handler::get_stmt_delete(){
 	stmt += ";";
 	return stmt;
 };
-
-
-std::string
-Handler::get_conn_string(){
-
-	std::string connstr = "DRIVER=";
-	connstr += driver;
-	connstr += ";";
-	connstr += "DATABASE=";
-	connstr += database;
-	connstr += ";";
-	connstr += "USER=";
-	connstr += user;
-	connstr += ";";
-	connstr += "PASSWORD=";
-	connstr += password;
-	connstr += ";";
-
-	return connstr;
-};
-
 
 
 void
@@ -646,7 +630,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"DRIVER", "DATABASE", "USER", "PASSWORD", "autocommit", "append"};
+	allowed_kargs = {"autocommit", "append"};
 };
 
 
@@ -660,26 +644,31 @@ Handler::validate_arguments(){
 
 		std::string key = it.first;
 
-		if (key == "DRIVER"){
-			driver = it.second;
-		}
-		else if (key == "DATABASE"){
-			database = it.second;
-		}
-		else if (key == "USER"){
-			user = it.second;
-		}
-		else if (key == "PASSWORD"){
-			password = it.second;
-		}
-		else if (key == "SQL"){
-			sql = it.second;
-		}
-		else if (key == "autocommit"){
+		if (key == "autocommit"){
 			autocommit = get_bool_karg(key);
 		}
 		else if (key == "append"){
 			append = get_bool_karg(key);
+		}
+	}
+
+	std::string tempstr;
+	for (size_t i=0; i<ampl_args.size(); i++){
+
+		std::string arg = ampl_args[i];
+
+		tempstr = "DRIVER=";
+		if (!arg.compare(0, tempstr.size(), tempstr)){
+			driver = arg;
+		}
+
+		tempstr = "SQL=";
+		if (!arg.compare(0, tempstr.size(), tempstr)){
+			sql = arg.substr(tempstr.size());
+			if (inout != "IN"){
+				log_msg = "SQL declaration only accepted when reading data. Ignoring: " + arg;
+				logger.log(log_msg, LOG_WARNING);
+			}
 		}
 	}
 };
@@ -716,7 +705,7 @@ Handler::alloc_and_connect(){
 															hdbc, SQL_HANDLE_DBC);
 	}
 
-	std::string connstr = get_conn_string();
+	std::string connstr = driver;
 	std::cout << "connstr: " << connstr << std::endl;
 
 	retcode = SQLDriverConnect(hdbc, NULL, connstr.c_str(), SQL_NTS,

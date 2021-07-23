@@ -56,8 +56,6 @@ public Connector{
 	std::string get_stmt_update();
 	std::string get_stmt_delete();
 
-	std::string get_conn_string();
-
 	void alloc_and_connect();
 
 
