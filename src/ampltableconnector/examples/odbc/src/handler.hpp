@@ -21,13 +21,13 @@ public Connector{
 	private:
 
 	std::string driver;
-	std::string database;
-	std::string user;
-	std::string password;
+	//~ std::string database;
+	//~ std::string user;
+	//~ std::string password;
 	std::string sql;
+	std::string write;
 	bool autocommit;
-	bool append;
-
+	std::vector<int> amplcoltypes; // 0 numeric, 1 string, 2 mixed
 
 	SQLHENV henv; // Environment
 	SQLHDBC hdbc; // Connection handle
@@ -46,18 +46,26 @@ public Connector{
 	void register_handler_kargs();
 	void generate_table();
 	void validate_arguments();
+
 	void read_in();
 	void write_out();
-	void write_out2();
 	void write_inout();
 
+	std::string get_stmt_create();
 	std::string get_stmt_insert();
 	std::string get_stmt_select();
 	std::string get_stmt_update();
 	std::string get_stmt_delete();
+	std::string get_stmt_exists();
+	std::string get_stmt_drop();
 
 	void alloc_and_connect();
+	bool table_exists();
+	void table_create();
+	void table_delete();
+	void table_drop();
 
+	void analyze_columns();
 
 	void
 	CHECK_ERROR2(
@@ -88,8 +96,8 @@ public Connector{
 		hdbc = NULL;
 		hstmt = NULL;
 		retcode = 0;
+		write = "DELETE";
 		autocommit = false;
-		append = false;
 	};
 
 	~Handler();

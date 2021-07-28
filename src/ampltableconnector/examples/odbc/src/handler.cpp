@@ -79,13 +79,6 @@ Handler::read_in(){
 
 	//https://www.easysoft.com/developer/languages/c/examples/DescribeAndBindColumns.html
 
-	alloc_and_connect();
-
-	// Allocate a statement handle
-	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
-				hstmt, SQL_HANDLE_STMT);
-
 	std::string selectstr;
 	if (sql.empty()){
 		selectstr = get_stmt_select();
@@ -300,6 +293,24 @@ Handler::get_stmt_update(){
 };
 
 std::string
+Handler::get_stmt_exists(){
+	std::string stmt = "select case when exists((select * from information_schema.tables where table_name = '"; 
+	stmt += table_name;
+	stmt += "')) then 1 else 0 end;";
+
+	return stmt;
+};
+
+std::string
+Handler::get_stmt_drop(){
+	std::string stmt = "DROP TABLE "; 
+	stmt += table_name;
+	stmt += ";";
+
+	return stmt;
+};
+
+std::string
 Handler::get_stmt_delete(){
 
 	std::string stmt = "DELETE FROM ";
@@ -308,6 +319,32 @@ Handler::get_stmt_delete(){
 	return stmt;
 };
 
+std::string
+Handler::get_stmt_create(){
+
+	std::string stmt = "CREATE TABLE ";
+	stmt += table_name;
+	stmt += " (";
+
+	for (size_t i = 0; i < ncols(); i++){
+		stmt += get_col_name(i);
+
+		if (amplcoltypes[i] == 1){
+			stmt += " VARCHAR(255)";
+		}
+		else{
+			stmt += " DOUBLE";
+		}
+
+		if (i + 1 < ncols()){
+			stmt += ", ";
+		}
+	}
+
+	stmt += ");";
+
+	return stmt;
+};
 
 void
 Handler::write_out(){
@@ -318,25 +355,6 @@ Handler::write_out(){
 	if (nrows() == 0){
 		std::cout << "No rows to write" << std::endl;
 		return;
-	}
-
-	alloc_and_connect();
-
-	// Allocate a statement handle
-	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
-				hstmt, SQL_HANDLE_STMT);
-
-	// Delete existing rows
-	if (!append){
-		std::string selectstr = get_stmt_delete();
-		std::cout << "selectstr: " << selectstr << std::endl;
-
-		retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
-		CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
-				hstmt, SQL_HANDLE_STMT);
-
-		std::cout << "Delete done." << std::endl;
 	}
 
 	// Get the insert statement
@@ -366,20 +384,6 @@ Handler::write_out(){
 				SQL_HANDLE_STMT);
 
 	printf ("Number of Result Columns %i\n", numCols);
-
-	std::vector<int> amplcoltypes(ncols(), 0); // 0 numeric, 1 string, 2 mixed
-
-	for (int i=0; i<ncols(); i++){
-		if (is_numeric_val(0, i)){
-			amplcoltypes[i] = 0;
-		}
-		else{
-			amplcoltypes[i] = 1;
-		}
-	}
-
-	std::cout << "amplcoltypes: ";
-	print_vector(amplcoltypes);
 
 	// vectors to describe and bind parameters
 	std::vector<SQLCHAR *>      ColumnName(ncols());
@@ -479,13 +483,6 @@ Handler::write_inout(){
 		return;
 	}
 
-	alloc_and_connect();
-
-	// Allocate a statement handle
-	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
-				hstmt, SQL_HANDLE_STMT);
-
 	// Get the update statement
 	std::string selectstr = get_stmt_update();
 	std::cout << "selectstr: " << selectstr << std::endl;
@@ -494,20 +491,6 @@ Handler::write_inout(){
 	retcode = SQLPrepare (hstmt, selectstr.c_str(), SQL_NTS);
 	CHECK_ERROR2(retcode, "SQLPrepare(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
-
-	std::vector<int> amplcoltypes(ncols(), 0); // 0 numeric, 1 string, 2 mixed
-
-	for (int i=0; i<ncols(); i++){
-		if (is_numeric_val(0, i)){
-			amplcoltypes[i] = 0;
-		}
-		else{
-			amplcoltypes[i] = 1;
-		}
-	}
-
-	std::cout << "amplcoltypes: ";
-	print_vector(amplcoltypes);
 
 	// Permutation of columns derived from the update statement
 	std::vector<int> perm(ncols());
@@ -630,7 +613,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"autocommit", "append"};
+	allowed_kargs = {"autocommit", "write"};
 };
 
 
@@ -647,8 +630,8 @@ Handler::validate_arguments(){
 		if (key == "autocommit"){
 			autocommit = get_bool_karg(key);
 		}
-		else if (key == "append"){
-			append = get_bool_karg(key);
+		else if (key == "write"){
+			write = it.second;
 		}
 	}
 
@@ -665,10 +648,37 @@ Handler::validate_arguments(){
 		tempstr = "SQL=";
 		if (!arg.compare(0, tempstr.size(), tempstr)){
 			sql = arg.substr(tempstr.size());
-			if (inout != "IN"){
+			if (is_writer){
 				log_msg = "SQL declaration only accepted when reading data. Ignoring: " + arg;
 				logger.log(log_msg, LOG_WARNING);
 			}
+		}
+	}
+
+	if (inout != "IN"){
+		analyze_columns();
+	}
+
+	alloc_and_connect();
+	bool exists = table_exists();
+
+	if (!exists){
+		if (inout == "IN"){
+			std::cout << "No table to read from" << std::endl;
+			throw DBE_Error;
+		}
+		else{
+			table_create();
+			inout = "OUT";
+		}
+	}
+	else{
+		if (write == "DELETE"){
+			table_delete();
+		}
+		else if (write == "DROP"){
+			table_drop();
+			table_create();
 		}
 	}
 };
@@ -713,6 +723,13 @@ Handler::alloc_and_connect(){
 
 	std::cout << "SQLDriverConnect:" << retcode << std::endl;
 
+	// Allocate a statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+	CHECK_ERROR2(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
+				hstmt, SQL_HANDLE_STMT);
+
+
+
 
 	//~ CHECK_ERROR2(retcode, "SQLConnect(DSN:DATASOURCE;)",
 				//~ hdbc, SQL_HANDLE_DBC);
@@ -733,6 +750,136 @@ Handler::alloc_and_connect(){
 							   //~ (SQLCHAR*) NULL, 0, NULL, 0);
 	//~ CHECK_ERROR2(retcode, "SQLConnect(DSN:DATASOURCE;)",
 				//~ hdbc, SQL_HANDLE_DBC);
+};
+
+bool
+Handler::table_exists(){
+
+	log_msg = "<table_exists>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::string selectstr = get_stmt_exists();
+
+	std::cout << "selectstr: " << selectstr << std::endl;
+
+	retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
+	//~ retcode = SQLExecDirect(hstmt, selectstr.c_str(), SQL_NTS);
+	CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+			hstmt, SQL_HANDLE_STMT);
+
+	SQLUINTEGER count = 0;
+	SQLLEN sicount = 0;
+
+	retcode = SQLFetch(hstmt);
+
+	retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &count, 0, &sicount);
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+
+	std::cout << "count: " << count << std::endl;
+
+	if (count == 0){return false;}
+	else if (count == 1){return true;}
+	else{
+		std::cout << "Unexpected result value" << std::endl;
+		throw DBE_Error;
+	};
+
+	return true;
+};
+
+void
+Handler::table_create(){
+
+	log_msg = "<table_create>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::string selectstr = get_stmt_create();
+	std::cout << "selectstr: " << selectstr << std::endl;
+
+	retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
+	CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+			hstmt, SQL_HANDLE_STMT);
+
+	std::cout << "Create done." << std::endl;
+
+};
+
+void
+Handler::table_delete(){
+
+	log_msg = "<table_delete>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::string selectstr = get_stmt_delete();
+	std::cout << "selectstr: " << selectstr << std::endl;
+
+	retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
+	CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+			hstmt, SQL_HANDLE_STMT);
+
+	std::cout << "Delete done." << std::endl;
+};
+
+void
+Handler::table_drop(){
+
+	log_msg = "<table_drop>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	std::string selectstr = get_stmt_drop();
+	std::cout << "selectstr: " << selectstr << std::endl;
+
+	retcode = SQLExecDirect(hstmt, selectstr.c_str(), strlen(selectstr.c_str()));
+	CHECK_ERROR2(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+			hstmt, SQL_HANDLE_STMT);
+
+	std::cout << "Drop done." << std::endl;
+};
+
+void
+Handler::analyze_columns(){
+
+	amplcoltypes.resize(ncols(), 0);
+
+	for (size_t j = 0; j < ncols(); j++){
+
+		bool has_numeric = false;
+		bool has_char = false;
+
+		for (size_t i = 0; i < nrows(); i++){
+
+			if (is_missing(i, j)){
+				int debug = 0;
+			}
+			else if (is_numeric_val(i, j)){
+				has_numeric = true;
+			}
+			else{
+				has_char = true;
+			}
+		}
+
+		if (has_numeric && has_char){
+			amplcoltypes[j] = 2;
+			std::cout << "Column has numerical and string type" << std::endl;
+			throw DBE_Error;
+		}
+		else if (has_numeric){
+			amplcoltypes[j] = 0;
+		}
+		else if (has_char){
+			amplcoltypes[j] = 1;
+		}
+		else{
+			// column only has empty values, type is undefined
+			std::cout << "Could not deduce column type" << std::endl;
+			throw DBE_Error;
+		}
+	}
+
+	std::cout << "amplcoltypes: ";
+	print_vector(amplcoltypes);
 };
 
 void
