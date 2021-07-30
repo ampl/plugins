@@ -8,8 +8,20 @@
 
 using namespace amplt;
 
+//https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/c-data-types?view=sql-server-ver15
+std::unordered_set<SQLSMALLINT> sql_num_types ({
+	SQL_NUMERIC,
+	SQL_DECIMAL,
+	SQL_INTEGER,
+	SQL_SMALLINT,
+	SQL_FLOAT,
+	SQL_REAL,
+	SQL_DOUBLE
+});
+
+
 static std::string name = "eodbc";
-static std::string version = "-1";
+static std::string version = "0.0.0";
 
 static std::string doc = name + "\n" + name + "-" + version + "\n" +
 "ODBC experimental driver.\n"
@@ -21,10 +33,8 @@ public Connector{
 	private:
 
 	std::string driver;
-	//~ std::string database;
-	//~ std::string user;
-	//~ std::string password;
 	std::string sql;
+	std::string dsn;
 	std::string write;
 	bool autocommit;
 	std::vector<int> amplcoltypes; // 0 numeric, 1 string, 2 mixed
@@ -33,7 +43,6 @@ public Connector{
 	SQLHDBC hdbc; // Connection handle
 	SQLHSTMT hstmt;// Statement handle
 	SQLRETURN retcode; // Return status
-
 
 	// override functions
 	void register_handler_names(){
@@ -68,7 +77,7 @@ public Connector{
 	void analyze_columns();
 
 	void
-	CHECK_ERROR2(
+	check_error(
 		SQLRETURN e,
 		char *s,
 		SQLHANDLE h,
@@ -77,7 +86,7 @@ public Connector{
 
 
 	void
-	extract_error2(
+	extract_error(
     char *fn,
     SQLHANDLE handle,
     SQLSMALLINT type);
