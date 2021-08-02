@@ -179,7 +179,7 @@ Handler::read_in(){
 							  i+1,                    // Column number
 							  ColumnDataType[i],      // C Data Type
 							  ColumnData[i],          // Data buffer
-							  ColumnDataSize[i],      // Size of Data Buffer
+							  ColumnDataSize[i] + 1,      // Size of Data Buffer
 							  &ColumnDataLen[i]); // Size of data returned
 
 		check_error(retcode, "SQLBindCol()", hstmt, SQL_HANDLE_STMT);
