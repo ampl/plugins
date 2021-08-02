@@ -44,6 +44,10 @@ public Connector{
 	SQLHSTMT hstmt;// Statement handle
 	SQLRETURN retcode; // Return status
 
+	// vectors that require allocation (cleanup in the dtor) 
+	std::vector<SQLCHAR *> ColumnName;
+	std::vector<SQLCHAR *> ColumnData;
+
 	// override functions
 	void register_handler_names(){
 		log_msg = "<register_handler_names>";
@@ -111,3 +115,17 @@ public Connector{
 
 	~Handler();
 };
+
+template <class T>
+void clean_vector(std::vector<T> v) {
+	if (v.size() > 0){
+		for (int i=0; i<v.size(); i++){
+			if (v[i] != NULL){
+				delete v[i];
+			}
+		}
+	}
+	v.clear();
+};
+
+

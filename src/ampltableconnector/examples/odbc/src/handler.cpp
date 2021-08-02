@@ -50,6 +50,9 @@ funcadd(AmplExports *ae){
 
 Handler::~Handler(){
 
+	clean_vector(ColumnName);
+	clean_vector(ColumnData);
+
 	// Free handles
 	// Statement
 	if (hstmt != SQL_NULL_HSTMT){
@@ -108,13 +111,13 @@ Handler::read_in(){
 	int MAX_COL_NAME_LEN = 256;
 
 	// vectors to describe and bind columns
-	std::vector<SQLCHAR *>      ColumnName(numCols);
+	ColumnName.resize(numCols);
 	std::vector<SQLSMALLINT>    ColumnNameLen(numCols);
 	std::vector<SQLSMALLINT>    ColumnDataType(numCols);
 	std::vector<SQLULEN>        ColumnDataSize(numCols);
 	std::vector<SQLSMALLINT>    ColumnDataDigits(numCols);
 	std::vector<SQLSMALLINT>    ColumnDataNullable(numCols);
-	std::vector<SQLCHAR *>      ColumnData(numCols);
+	ColumnData.resize(numCols);
 	std::vector<SQLLEN>         ColumnDataLen(numCols);
 
 	std::vector<int> perm(numCols, -1);
@@ -412,13 +415,13 @@ Handler::write_out(){
 	logger.log(log_msg, LOG_INFO);
 
 	// vectors to describe and bind parameters
-	std::vector<SQLCHAR *>      ColumnName(ncols());
+	ColumnName.resize(ncols());
 	std::vector<SQLSMALLINT>    ColumnNameLen(ncols());
 	std::vector<SQLSMALLINT>    ColumnDataType(ncols());
 	std::vector<SQLULEN>        ColumnDataSize(ncols());
 	std::vector<SQLSMALLINT>    ColumnDataDigits(ncols());
 	std::vector<SQLSMALLINT>    ColumnDataNullable(ncols());
-	std::vector<SQLCHAR *>      ColumnData(ncols());
+	ColumnData.resize(ncols());
 	std::vector<double>         ColumnDataDouble(ncols());
 	std::vector<SQLLEN>         ColumnDataLen(ncols());
 
@@ -551,12 +554,12 @@ Handler::write_inout(){
 
 	char buff[100];
 
-	std::vector<SQLCHAR *>      CData(ncols());
+	ColumnData.resize(ncols());
 	std::vector<double>         DData(ncols());
 	std::vector<SQLLEN> PartIDInd(ncols(), 0);
 
 	for (int i=0; i<ncols(); i++){
-		CData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
+		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
 	}
 
 	for (int i=0; i<ncols(); i++){
@@ -588,7 +591,7 @@ Handler::write_inout(){
 							SQL_VARCHAR, 
 							2, 
 							0, 
-							CData[i], 
+							ColumnData[i], 
 							2, 
 							NULL);
 		}
@@ -610,7 +613,7 @@ Handler::write_inout(){
 				DData[j] = get_numeric_val(i, amplcol);
 			}
 			else if (amplcoltypes[amplcol] == 1){
-				strcpy(CData[j], get_char_val(i, amplcol));
+				strcpy(ColumnData[j], get_char_val(i, amplcol));
 			}
 		}
 		retcode = SQLExecute(hstmt);
@@ -1005,3 +1008,8 @@ Handler::extract_error(
 	logger.log(log_msg, LOG_ERROR);
 	throw DBE_Error;
 };
+
+
+
+
+
