@@ -38,6 +38,7 @@ public Connector{
 	std::string write;
 	bool autocommit;
 	std::vector<int> amplcoltypes; // 0 numeric, 1 string, 2 mixed
+	std::map<int, SQLSMALLINT> odbccoltypes;
 
 	SQLHENV henv; // Environment
 	SQLHDBC hdbc; // Connection handle
@@ -78,7 +79,9 @@ public Connector{
 	void table_delete();
 	void table_drop();
 
-	void analyze_columns();
+	void get_ampl_col_types();
+	void get_odbc_col_types();
+	//~ void clean_handle_stmt();
 
 	void
 	check_error(
@@ -119,7 +122,7 @@ public Connector{
 template <class T>
 void clean_vector(std::vector<T> v) {
 	if (v.size() > 0){
-		for (int i=0; i<v.size(); i++){
+		for (size_t i=0; i<v.size(); i++){
 			if (v[i] != NULL){
 				delete v[i];
 			}

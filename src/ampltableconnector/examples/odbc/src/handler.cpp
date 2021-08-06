@@ -81,6 +81,11 @@ Handler::read_in(){
 
 	//https://www.easysoft.com/developer/languages/c/examples/DescribeAndBindColumns.html
 
+	// Allocate a statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+	check_error(retcode, (char*)"SQLAllocHandle(SQL_HANDLE_STMT)",
+				hstmt, SQL_HANDLE_STMT);
+
 	std::string sqlstr;
 	if (sql.empty()){
 		sqlstr = get_stmt_select();
@@ -94,15 +99,15 @@ Handler::read_in(){
 	logger.log(log_msg, LOG_INFO);
 
 	// Prepare Statement
-	retcode = SQLPrepare (hstmt, sqlstr.c_str(), strlen(sqlstr.c_str()));
-	check_error(retcode, "SQLPrepare(SQL_HANDLE_ENV)",
+	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), strlen(sqlstr.c_str()));
+	check_error(retcode, (char*)"SQLPrepare(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 
 	SQLSMALLINT numCols;
 
 	// Retrieve number of columns
 	retcode = SQLNumResultCols (hstmt, &numCols);
-	check_error(retcode, "SQLNumResultCols()", hstmt, SQL_HANDLE_STMT);
+	check_error(retcode, (char*)"SQLNumResultCols()", hstmt, SQL_HANDLE_STMT);
 
 	sprintf (buff, "Number of Result Columns %i", numCols);
 	log_msg = buff;
@@ -125,7 +130,7 @@ Handler::read_in(){
 
 	sprintf(buff, "Column\tColName\tColNameLen\tSQLDataType\tDataSize\tDecimalDigits\tNullable");
 	log_msg = buff;
-	logger.log(log_msg, LOG_INFO);
+	logger.log(log_msg, LOG_DEBUG);
 
 	for (int i=0;i<numCols;i++) {
 		ColumnName[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
@@ -140,7 +145,7 @@ Handler::read_in(){
 					&ColumnDataDigits[i],     // Number of decimal digits
 					&ColumnDataNullable[i]);  // Whether column nullable
 
-		check_error(retcode, "SQLDescribeCol()", hstmt, SQL_HANDLE_STMT);
+		check_error(retcode, (char*)"SQLDescribeCol()", hstmt, SQL_HANDLE_STMT);
 
 		// Display column data
 		//~ printf("Column : %i\n", i+1);
@@ -155,7 +160,7 @@ Handler::read_in(){
 					(int)ColumnDataType[i], (int)ColumnDataSize[i],
 					(int)ColumnDataDigits[i], (int)ColumnDataNullable[i]);
 		log_msg = buff;
-		logger.log(log_msg, LOG_INFO);
+		logger.log(log_msg, LOG_DEBUG);
 
 		// Bind column, changing SQL data type to C data type
 		ColumnData[i] = (SQLCHAR *) malloc (ColumnDataSize[i]+1);
@@ -185,9 +190,9 @@ Handler::read_in(){
 							  ColumnDataSize[i] + 1,      // Size of Data Buffer
 							  &ColumnDataLen[i]); // Size of data returned
 
-		check_error(retcode, "SQLBindCol()", hstmt, SQL_HANDLE_STMT);
+		check_error(retcode, (char*)"SQLBindCol()", hstmt, SQL_HANDLE_STMT);
 
-		for (int j = 0; j < ncols(); j++){
+		for (size_t j = 0; j < ncols(); j++){
 			std::string ampl_col = get_col_name(j);
 			std::string odbc_col = (char*)ColumnName[i];
 			if (ampl_col == odbc_col){
@@ -202,7 +207,7 @@ Handler::read_in(){
 	//~ std::cout << "foundcol: ";
 	//~ print_vector(foundcol);
 
-	for (int j = 0; j < ncols(); j++){
+	for (size_t j = 0; j < ncols(); j++){
 		if (!foundcol[j]){
 			log_msg = "Cannot find column: ";
 			log_msg += get_col_name(j);
@@ -212,7 +217,7 @@ Handler::read_in(){
 	}
 
 	log_msg = "perm: [";
-	for (int i= 0; i<perm.size(); i++){
+	for (size_t i= 0; i<perm.size(); i++){
 		log_msg += std::to_string(perm[i]);
 		if (i < perm.size() - 1){
 			log_msg += ", ";
@@ -227,7 +232,7 @@ Handler::read_in(){
 	logger.log(log_msg, LOG_INFO);
 
 	retcode = SQLExecute (hstmt);
-	check_error(retcode, "SQLExecute()", hstmt, SQL_HANDLE_STMT);
+	check_error(retcode, (char*)"SQLExecute()", hstmt, SQL_HANDLE_STMT);
 
 	for (int i=0; ; i++) {
 		retcode = SQLFetch(hstmt);
@@ -237,7 +242,7 @@ Handler::read_in(){
 			break;
 		}
 
-		check_error(retcode, "SQLFetch()", hstmt, SQL_HANDLE_STMT);
+		check_error(retcode, (char*)"SQLFetch()", hstmt, SQL_HANDLE_STMT);
 
 		for (int j = 0; j < numCols; j++) {
 			if (ColumnDataType[j] == SQL_C_DOUBLE) {
@@ -392,6 +397,8 @@ Handler::write_out(){
 
 	char buff[1000];
 
+	get_odbc_col_types();
+
 	// Get the insert statement
 	std::string sqlstr = get_stmt_insert();
 	log_msg = "SQL: ";
@@ -399,15 +406,15 @@ Handler::write_out(){
 	logger.log(log_msg, LOG_INFO);
 
 	// Prepare Statement
-	retcode = SQLPrepare (hstmt, sqlstr.c_str(), strlen(sqlstr.c_str()));
-	check_error(retcode, "SQLPrepare(SQL_HANDLE_ENV)",
+	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), strlen(sqlstr.c_str()));
+	check_error(retcode, (char*)"SQLPrepare(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 
 	SQLSMALLINT NumParams;
 
 	// Retrieve number of parameters
 	retcode = SQLNumParams(hstmt, &NumParams);
-	check_error(retcode, "SQLNumParams()", hstmt,
+	check_error(retcode, (char*)"SQLNumParams()", hstmt,
 				SQL_HANDLE_STMT);
 
 	sprintf(buff, "Number of Result Parameters %i", NumParams);
@@ -434,6 +441,7 @@ Handler::write_out(){
 
 	// assert ncols() == NumParams
 
+	/*
 	// describe parameters
 	sprintf(buff, "Parameter\tData Type\tbytesRemaining\tDecimalDigits\tNullable");
 	log_msg = buff;
@@ -449,18 +457,19 @@ Handler::write_out(){
 								   &DecimalDigits[i],
 								   &Nullable[i]);
 
-		check_error(retcode, "SQLDescribeParam()", hstmt, SQL_HANDLE_STMT);
+		check_error(retcode, (char*)"SQLDescribeParam()", hstmt, SQL_HANDLE_STMT);
 
 		//~ printf("\nSQLDescribeParam() OK\n");
 		//~ printf("Data Type : %i, bytesRemaining : %i, DecimalDigits : %i, Nullable %i\n",
 									//~ (int)DataType[i], (int)bytesRemaining[i],
 									//~ (int)DecimalDigits[i], (int)Nullable[i]);
-		sprintf(buff, "%i\t%i\t%i\t%i\ti", i+1,
+		sprintf(buff, "%i\t%i\t%i\t%i\t%i", i+1,
 									(int)DataType[i], (int)bytesRemaining[i],
 									(int)DecimalDigits[i], (int)Nullable[i]);
 		log_msg = buff;
 		logger.log(log_msg, LOG_INFO);
 	}
+	*/
 
 	// bind parameters
 	for (int i=0; i<NumParams; i++){
@@ -472,33 +481,49 @@ Handler::write_out(){
 										SQL_DOUBLE, 0, 0, (unsigned char*)&ColumnDataDouble[i], 0, NULL);
 		}
 		else if (amplcoltypes[i] == 1){
-			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-										SQL_VARCHAR, 2, 0, ColumnData[i], 2, NULL);
+
+			if (odbccoltypes[i] == SQL_CHAR || odbccoltypes[i] == SQL_VARCHAR){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
+										SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+			}
+			else if (
+					odbccoltypes[i] == SQL_TYPE_DATE || 
+					odbccoltypes[i] == SQL_TYPE_TIME || 
+					odbccoltypes[i] == SQL_TYPE_TIMESTAMP
+				){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
+										SQL_TIMESTAMP, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+										
+			}
+			else{
+				std::cout << "Cannot map column with type " << odbccoltypes[i] << std::endl;
+			}
 		}
 		else{
 			std::cout << "Cannot Bind mixed parameter" << std::endl;
 			throw DBE_Error;
 		}
-		std::string tmp = "SQLBindParameter(";
-		tmp += std::to_string(i+1);
-		tmp += ")";
-		check_error(retcode, tmp.c_str(), hstmt, SQL_HANDLE_STMT);
+		//~ std::string tmp = "SQLBindParameter(";
+		//~ tmp += std::to_string(i+1);
+		//~ tmp += ")";
+		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
 	}
 
 	log_msg = "Starting write...";
 	logger.log(log_msg, LOG_INFO);
 
-	for (int i=0; i<nrows(); i++){
-		for (int j=0; j<ncols(); j++){
+	for (size_t i=0; i<nrows(); i++){
+		for (size_t j=0; j<ncols(); j++){
 			if (amplcoltypes[j] == 0){
 				ColumnDataDouble[j] = get_numeric_val(i, j);
 			}
 			else if (amplcoltypes[j] == 1){
-				strcpy(ColumnData[j], get_char_val(i, j));
+				strcpy((char*)ColumnData[j], get_char_val(i, j));
+				//~ std::cout << ColumnData[i] << std::endl;
 			}
 		}
 		retcode = SQLExecute(hstmt);
-		check_error(retcode, "SQLExecute()", hstmt,
+		check_error(retcode, (char*)"SQLExecute()", hstmt,
 					SQL_HANDLE_STMT);
 	}
 	if (!autocommit){
@@ -520,28 +545,30 @@ Handler::write_inout(){
 		return;
 	}
 
+	get_odbc_col_types();
+
 	// Get the update statement
 	std::string sqlstr = get_stmt_update();
 	log_msg = "SQL: " + sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
 	// Prepare Statement
-	retcode = SQLPrepare (hstmt, sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, "SQLPrepare(SQL_HANDLE_ENV)",
+	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
+	check_error(retcode, (char*)"SQLPrepare(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 
 	// Permutation of columns derived from the update statement
 	std::vector<int> perm(ncols());
 
-	for (int i=0; i<ndatacols(); i++){
+	for (size_t i=0; i<ndatacols(); i++){
 		perm[i] = i + nkeycols();
 	}
-	for (int i=0; i<nkeycols(); i++){
+	for (size_t i=0; i<nkeycols(); i++){
 		perm[i + ndatacols()] = i;
 	}
 
 	log_msg = "perm: [";
-	for (int i= 0; i<perm.size(); i++){
+	for (size_t i= 0; i<perm.size(); i++){
 		log_msg += std::to_string(perm[i]);
 		if (i < perm.size() - 1){
 			log_msg += ", ";
@@ -552,17 +579,16 @@ Handler::write_inout(){
 
 	int MAX_COL_NAME_LEN = 256;
 
-	char buff[100];
-
 	ColumnData.resize(ncols());
 	std::vector<double>         DData(ncols());
 	std::vector<SQLLEN> PartIDInd(ncols(), 0);
 
-	for (int i=0; i<ncols(); i++){
+	for (size_t i=0; i<ncols(); i++){
 		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
 	}
 
-	for (int i=0; i<ncols(); i++){
+	/*
+	for (size_t i=0; i<ncols(); i++){
 
 		int amplcol = perm[i];
 
@@ -595,17 +621,57 @@ Handler::write_inout(){
 							2, 
 							NULL);
 		}
-		std::string tmp = "SQLBindParameter(";
-		tmp += std::to_string(i+1);
-		tmp += ")";
-		check_error(retcode, tmp.c_str(), hstmt, SQL_HANDLE_STMT);
+		//~ std::string tmp = "SQLBindParameter(";
+		//~ tmp += std::to_string(i+1);
+		//~ tmp += ")";
+		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
 	}
+	*/
+
+	// bind parameters
+	for (size_t i=0; i<ncols(); i++){
+
+		int amplcol = perm[i];
+
+		if (amplcoltypes[amplcol] == 0){
+			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
+										SQL_DOUBLE, 0, 0, (unsigned char*)&DData[i], 0, NULL);
+		}
+		else if (amplcoltypes[amplcol] == 1){
+
+			if (odbccoltypes[amplcol] == SQL_CHAR || odbccoltypes[amplcol] == SQL_VARCHAR){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
+										SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+			}
+			else if (
+					odbccoltypes[amplcol] == SQL_TYPE_DATE || 
+					odbccoltypes[amplcol] == SQL_TYPE_TIME || 
+					odbccoltypes[amplcol] == SQL_TYPE_TIMESTAMP
+				){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
+										SQL_TIMESTAMP, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+										
+			}
+			else{
+				std::cout << "Cannot map column with type " << odbccoltypes[i] << std::endl;
+			}
+		}
+		else{
+			std::cout << "Cannot Bind mixed parameter" << std::endl;
+			throw DBE_Error;
+		}
+		//~ std::string tmp = "SQLBindParameter(";
+		//~ tmp += std::to_string(i+1);
+		//~ tmp += ")";
+		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
+	}
+
 
 	log_msg = "Starting update...";
 	logger.log(log_msg, LOG_INFO);
 
-	for (int i=0; i<nrows(); i++){
-		for (int j=0; j<ncols(); j++){
+	for (size_t i=0; i<nrows(); i++){
+		for (size_t j=0; j<ncols(); j++){
 
 			int amplcol = perm[j];
 
@@ -613,11 +679,11 @@ Handler::write_inout(){
 				DData[j] = get_numeric_val(i, amplcol);
 			}
 			else if (amplcoltypes[amplcol] == 1){
-				strcpy(ColumnData[j], get_char_val(i, amplcol));
+				strcpy((char*)ColumnData[j], get_char_val(i, amplcol));
 			}
 		}
 		retcode = SQLExecute(hstmt);
-		check_error(retcode, "SQLExecute()", hstmt,
+		check_error(retcode, (char*)"SQLExecute()", hstmt,
 					SQL_HANDLE_STMT);
 	}
 
@@ -708,10 +774,11 @@ Handler::validate_arguments(){
 	}
 
 	if (inout != "IN"){
-		analyze_columns();
+		get_ampl_col_types();
 	}
 
 	alloc_and_connect();
+
 	bool exists = table_exists();
 
 	if (!exists){
@@ -746,29 +813,29 @@ Handler::alloc_and_connect(){
 
 	// Allocate environment
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
-	check_error(retcode, "SQLAllocHandle(SQL_HANDLE_ENV)",
+	check_error(retcode, (char*)"SQLAllocHandle(SQL_HANDLE_ENV)",
 				henv, SQL_HANDLE_ENV);
 
 	// Set ODBC Verion
 	retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,
 										(SQLPOINTER*)SQL_OV_ODBC3, 0);
-	check_error(retcode, "SQLSetEnvAttr(SQL_ATTR_ODBC_VERSION)",
+	check_error(retcode, (char*)"SQLSetEnvAttr(SQL_ATTR_ODBC_VERSION)",
 				henv, SQL_HANDLE_ENV);
 
 	// Allocate Connection
 	retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
-	check_error(retcode, "SQLAllocHandle(SQL_HANDLE_DBC)",
+	check_error(retcode, (char*)"SQLAllocHandle(SQL_HANDLE_DBC)",
 				henv, SQL_HANDLE_DBC);
 
 	// Set Login Timeout
 	retcode = SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
-	check_error(retcode, "SQLSetConnectAttr(SQL_LOGIN_TIMEOUT)",
+	check_error(retcode, (char*)"SQLSetConnectAttr(SQL_LOGIN_TIMEOUT)",
 				hdbc, SQL_HANDLE_DBC);
 
 	// Set Auto Commit
 	if (!autocommit){
 		retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, 0, 0);
-		check_error(retcode, "SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
+		check_error(retcode, (char*)"SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
 															hdbc, SQL_HANDLE_DBC);
 	}
 
@@ -785,16 +852,25 @@ Handler::alloc_and_connect(){
 	log_msg += connstr;
 	logger.log(log_msg, LOG_INFO);
 
-	retcode = SQLDriverConnect(hdbc, NULL, connstr.c_str(), SQL_NTS,
+	retcode = SQLDriverConnect(hdbc, NULL, (SQLCHAR*)connstr.c_str(), SQL_NTS,
 					 NULL, 0, NULL, SQL_DRIVER_COMPLETE);
-	check_error(retcode, "SQLDriverConnect(DATASOURCE)",
+	check_error(retcode, (char*)"SQLDriverConnect(DATASOURCE)",
                 hdbc, SQL_HANDLE_DBC);
-
 
 	// Allocate a statement handle
 	SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-	check_error(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
+	check_error(retcode, (char*)"SQLAllocHandle(SQL_HANDLE_STMT)",
 				hstmt, SQL_HANDLE_STMT);
+
+
+
+
+
+
+	//~ // Allocate a statement handle
+	//~ SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+	//~ check_error(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
+				//~ hstmt, SQL_HANDLE_STMT);
 
 
 
@@ -831,20 +907,20 @@ Handler::table_exists(){
 	log_msg = "SQL: " + sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
-	retcode = SQLExecDirect(hstmt, sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, "SQLExecDirect(SQL_HANDLE_ENV)", hstmt, SQL_HANDLE_STMT);
+	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
+	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)", hstmt, SQL_HANDLE_STMT);
 
 	SQLUINTEGER count = 0;
 	SQLLEN sicount = 0;
 
 	retcode = SQLFetch(hstmt);
-	check_error(retcode, "SQLFetch()", hstmt, SQL_HANDLE_STMT);
+	check_error(retcode, (char*)"SQLFetch()", hstmt, SQL_HANDLE_STMT);
 
 	retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &count, 0, &sicount);
-	check_error(retcode, "SQLGetData()", hstmt, SQL_HANDLE_STMT);
+	check_error(retcode, (char*)"SQLGetData()", hstmt, SQL_HANDLE_STMT);
 
 	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
-	check_error(retcode, "SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	if (count == 0){return false;}
 	else if (count == 1){return true;}
@@ -868,9 +944,12 @@ Handler::table_create(){
 	log_msg = "SQL: " + sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
-	retcode = SQLExecDirect(hstmt, sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
+	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 			hstmt, SQL_HANDLE_STMT);
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
 void
@@ -883,9 +962,12 @@ Handler::table_delete(){
 	log_msg = "SQL: " + sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
-	retcode = SQLExecDirect(hstmt, sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
+	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 			hstmt, SQL_HANDLE_STMT);
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
 void
@@ -898,15 +980,18 @@ Handler::table_drop(){
 	log_msg = "SQL: " + sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
-	retcode = SQLExecDirect(hstmt, sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, "SQLExecDirect(SQL_HANDLE_ENV)",
+	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
+	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 			hstmt, SQL_HANDLE_STMT);
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
 void
-Handler::analyze_columns(){
+Handler::get_ampl_col_types(){
 
-	log_msg = "<analyze_columns>";
+	log_msg = "<get_ampl_col_types>";
 	logger.log(log_msg, LOG_DEBUG);
 
 	amplcoltypes.resize(ncols(), 0);
@@ -954,7 +1039,7 @@ Handler::analyze_columns(){
 	}
 
 	log_msg = "amplcoltypes: [";
-	for (int i= 0; i<amplcoltypes.size(); i++){
+	for (size_t i= 0; i<amplcoltypes.size(); i++){
 		log_msg += std::to_string(amplcoltypes[i]);
 		if (i < amplcoltypes.size() - 1){
 			log_msg += ", ";
@@ -1010,6 +1095,152 @@ Handler::extract_error(
 };
 
 
+void
+Handler::get_odbc_col_types(){
+
+	//https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlcolumns-function?view=sql-server-ver15
+
+	log_msg = "<get_odbc_col_types>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	int STR_LEN = 255;  
+	int REM_LEN = 255;
+
+	SQLCHAR szSchema[STR_LEN];  
+	SQLCHAR szCatalog[STR_LEN];  
+	SQLCHAR szColumnName[STR_LEN];  
+	SQLCHAR szTableName[STR_LEN];  
+	SQLCHAR szTypeName[STR_LEN];  
+	SQLCHAR szRemarks[REM_LEN];  
+	SQLCHAR szColumnDefault[STR_LEN];  
+	SQLCHAR szIsNullable[STR_LEN];  
+	  
+	SQLINTEGER ColumnSize;  
+	SQLINTEGER BufferLength;  
+	SQLINTEGER CharOctetLength;  
+	SQLINTEGER OrdinalPosition;  
+	  
+	SQLSMALLINT DataType;  
+	SQLSMALLINT DecimalDigits;  
+	SQLSMALLINT NumPrecRadix;  
+	SQLSMALLINT Nullable;  
+	SQLSMALLINT SQLDataType;  
+	SQLSMALLINT DatetimeSubtypeCode;  
+	  
+	// Declare buffers for bytes available to return  
+	SQLLEN cbCatalog;  
+	SQLLEN cbSchema;  
+	SQLLEN cbTableName;  
+	SQLLEN cbColumnName;  
+	SQLLEN cbDataType;  
+	SQLLEN cbTypeName;  
+	SQLLEN cbColumnSize;  
+	SQLLEN cbBufferLength;  
+	SQLLEN cbDecimalDigits;  
+	SQLLEN cbNumPrecRadix;  
+	SQLLEN cbNullable;  
+	SQLLEN cbRemarks;  
+	SQLLEN cbColumnDefault;  
+	SQLLEN cbSQLDataType;  
+	SQLLEN cbDatetimeSubtypeCode;  
+	SQLLEN cbCharOctetLength;  
+	SQLLEN cbOrdinalPosition;  
+	SQLLEN cbIsNullable;  
+
+	retcode = SQLColumns(hstmt, NULL, 0, NULL, 0, (SQLCHAR*)table_name.c_str(), SQL_NTS, NULL, 0); 
+	check_error(retcode, (char*)"SQLColumns(SQL_HANDLE_STMT)", hstmt, SQL_HANDLE_STMT);
+
+	SQLBindCol(hstmt, 1, SQL_C_CHAR, szCatalog, STR_LEN,&cbCatalog);  
+	SQLBindCol(hstmt, 2, SQL_C_CHAR, szSchema, STR_LEN, &cbSchema);  
+	SQLBindCol(hstmt, 3, SQL_C_CHAR, szTableName, STR_LEN,&cbTableName);  
+	SQLBindCol(hstmt, 4, SQL_C_CHAR, szColumnName, STR_LEN, &cbColumnName);  
+	SQLBindCol(hstmt, 5, SQL_C_SSHORT, &DataType, 0, &cbDataType);  
+	SQLBindCol(hstmt, 6, SQL_C_CHAR, szTypeName, STR_LEN, &cbTypeName);  
+	SQLBindCol(hstmt, 7, SQL_C_SLONG, &ColumnSize, 0, &cbColumnSize);  
+	SQLBindCol(hstmt, 8, SQL_C_SLONG, &BufferLength, 0, &cbBufferLength);  
+	SQLBindCol(hstmt, 9, SQL_C_SSHORT, &DecimalDigits, 0, &cbDecimalDigits);  
+	SQLBindCol(hstmt, 10, SQL_C_SSHORT, &NumPrecRadix, 0, &cbNumPrecRadix);  
+	SQLBindCol(hstmt, 11, SQL_C_SSHORT, &Nullable, 0, &cbNullable);
+	SQLBindCol(hstmt, 12, SQL_C_CHAR, szRemarks, REM_LEN, &cbRemarks);  
+	SQLBindCol(hstmt, 13, SQL_C_CHAR, szColumnDefault, STR_LEN, &cbColumnDefault);  
+	SQLBindCol(hstmt, 14, SQL_C_SSHORT, &SQLDataType, 0, &cbSQLDataType);  
+	SQLBindCol(hstmt, 15, SQL_C_SSHORT, &DatetimeSubtypeCode, 0, &cbDatetimeSubtypeCode);  
+	SQLBindCol(hstmt, 16, SQL_C_SLONG, &CharOctetLength, 0, &cbCharOctetLength);  
+	SQLBindCol(hstmt, 17, SQL_C_SLONG, &OrdinalPosition, 0, &cbOrdinalPosition);  
+	SQLBindCol(hstmt, 18, SQL_C_CHAR, szIsNullable, STR_LEN, &cbIsNullable);  
+
+	int pos = 0;
+	while (SQL_SUCCESS == retcode){
+		retcode = SQLFetch(hstmt);
+
+		//No more data?
+		if (retcode == SQL_NO_DATA) {
+			break;
+		}
+
+		//~ std::cout << (char*)szCatalog << ", ";
+		//~ std::cout << (char*)szSchema << ", ";
+		//~ std::cout << (char*)szTableName << ", ";
+		//~ std::cout << (char*)szColumnName << ", ";
+		//~ std::cout << DataType << ", ";
+		//~ std::cout << (char*)szTypeName << ", ";
+		//~ std::cout << ColumnSize << ", ";
+		//~ std::cout << BufferLength << ", ";
+		//~ std::cout << DecimalDigits << ", ";
+		//~ std::cout << NumPrecRadix << ", ";
+		//~ std::cout << Nullable << ", ";
+		//~ std::cout << (char*)szRemarks << ", ";
+		//~ std::cout << (char*)szColumnDefault << ", ";
+		//~ std::cout << SQLDataType << ", ";
+		//~ std::cout << DatetimeSubtypeCode << ", ";
+		//~ std::cout << CharOctetLength << ", ";
+		//~ std::cout << OrdinalPosition << ", ";
+		//~ std::cout << (char*)szIsNullable << ", ";
+		//~ std::cout << std::endl;
+
+		odbccoltypes[pos] = DataType;
+		pos += 1;
+
+		 /*  
+		 if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO)  
+			0;   // show_error();  
+		 if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)  
+			0;   // Process fetched data  
+		 else  
+			break;  
+		*/  
+	}
+
+	log_msg = "odbc table column types: [";
+	logger.log(log_msg, LOG_DEBUG);
 
 
+	for (auto const& x : odbccoltypes)
+	{
+		log_msg = "\t";
+		log_msg += std::to_string(x.first);
+		log_msg += " -> ";
+		log_msg += std::to_string(x.second);
+		logger.log(log_msg, LOG_DEBUG);
+	}
+
+	log_msg = "];";
+	logger.log(log_msg, LOG_DEBUG);
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
+};
+
+
+//~ void
+//~ Handler::clean_handle_stmt(){
+
+	//~ if (hstmt != SQL_NULL_HSTMT){
+		//~ SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+	//~ }
+
+	//~ retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+	//~ check_error(retcode, "SQLAllocHandle(SQL_HANDLE_STMT)",
+				//~ hstmt, SQL_HANDLE_STMT);
+//~ };
 
