@@ -1106,14 +1106,14 @@ Handler::get_odbc_col_types(){
 	int STR_LEN = 255;  
 	int REM_LEN = 255;
 
-	SQLCHAR szSchema[STR_LEN];  
-	SQLCHAR szCatalog[STR_LEN];  
-	SQLCHAR szColumnName[STR_LEN];  
-	SQLCHAR szTableName[STR_LEN];  
-	SQLCHAR szTypeName[STR_LEN];  
-	SQLCHAR szRemarks[REM_LEN];  
-	SQLCHAR szColumnDefault[STR_LEN];  
-	SQLCHAR szIsNullable[STR_LEN];  
+	SQLCHAR szSchema[255];
+	SQLCHAR szCatalog[255];
+	SQLCHAR szColumnName[255];
+	SQLCHAR szTableName[255];
+	SQLCHAR szTypeName[255];
+	SQLCHAR szRemarks[255];
+	SQLCHAR szColumnDefault[255];
+	SQLCHAR szIsNullable[255];
 	  
 	SQLINTEGER ColumnSize;  
 	SQLINTEGER BufferLength;  
