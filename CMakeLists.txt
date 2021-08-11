@@ -6,6 +6,8 @@ else()
   cmake_policy(VERSION 3.11)
 endif()
 
+message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
+
 # Use static MSVC runtime.
 # This should be done before the project command.
 function (override var file)

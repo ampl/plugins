@@ -1,9 +1,10 @@
 find_package(ODBC)
 
 if(ODBC_FOUND)
-	message("eodbc: ODBC found")
-	message(${ODBC_INCLUDE_DIR})
-	message(${ODBC_LIBRARIES})
+
+	message(STATUS "eodbc: ODBC found")
+	message(STATUS "ODBC_INCLUDE_DIR: ${ODBC_INCLUDE_DIR}")
+	message(STATUS "ODBC_LIBRARIES: ${ODBC_LIBRARIES}")
 
 	set(AMPLT_DIR ../../include)
 
@@ -36,5 +37,5 @@ if(ODBC_FOUND)
 	endif()
 
 else()
-	message("eodbc: Cannot find ODBC...")
+	message(STATUS "eodbc: Cannot find ODBC...")
 endif()
