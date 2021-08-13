@@ -102,7 +102,8 @@ public Connector{
     SQLHANDLE handle,
     SQLSMALLINT type);
 
-
+	std::unordered_set<SQLSMALLINT>
+	get_db_supported_types();
 
 
 
