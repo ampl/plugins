@@ -231,6 +231,8 @@ Handler::read_in(){
 	log_msg = "Starting read...";
 	logger.log(log_msg, LOG_INFO);
 
+	std::clock_t c_start = std::clock();
+
 	retcode = SQLExecute (hstmt);
 	check_error(retcode, (char*)"SQLExecute()", hstmt, SQL_HANDLE_STMT);
 
@@ -253,7 +255,10 @@ Handler::read_in(){
 		}
 		add_row();
 	}
-	log_msg = "Read done.";
+
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "Read done in " + numeric_to_fixed(time_elapsed / 1000, 3) + "s";
 	logger.log(log_msg, LOG_INFO);
 };
 
@@ -554,6 +559,8 @@ Handler::write_out(){
 	log_msg = "Starting write...";
 	logger.log(log_msg, LOG_INFO);
 
+	std::clock_t c_start = std::clock();
+
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
 			if (amplcoltypes[j] == 0){
@@ -571,7 +578,10 @@ Handler::write_out(){
 	if (!autocommit){
 		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
 	}
-	log_msg = "Write done.";
+
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "Write done in " + numeric_to_fixed(time_elapsed / 1000, 3) + "s";
 	logger.log(log_msg, LOG_INFO);
 };
 
@@ -712,6 +722,8 @@ Handler::write_inout(){
 	log_msg = "Starting update...";
 	logger.log(log_msg, LOG_INFO);
 
+	std::clock_t c_start = std::clock();
+
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
 
@@ -733,7 +745,9 @@ Handler::write_inout(){
 		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
 	}
 
-	log_msg = "Update done.";
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "Update done in " + numeric_to_fixed(time_elapsed / 1000, 3) + "s";
 	logger.log(log_msg, LOG_INFO);
 };
 
@@ -815,7 +829,8 @@ Handler::validate_arguments(){
 		}
 	}
 
-	if (inout != "IN"){
+	//~ if (inout != "IN"){
+	if (is_writer){
 		get_ampl_col_types();
 	}
 
@@ -824,13 +839,14 @@ Handler::validate_arguments(){
 	bool exists = table_exists();
 
 	if (!exists){
-		if (inout == "IN"){
-			std::cout << "No table to read from" << std::endl;
-			throw DBE_Error;
-		}
-		else{
+		if (is_writer){
 			table_create();
 			inout = "OUT";
+		}
+		else{
+			log_msg = "Could not find table " + table_name;
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
 		}
 	}
 	else{
