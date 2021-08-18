@@ -476,13 +476,16 @@ Handler::write_out(){
 	std::vector<SQLSMALLINT>    ColumnDataDigits(ncols());
 	std::vector<SQLSMALLINT>    ColumnDataNullable(ncols());
 	ColumnData.resize(ncols());
-	std::vector<double>         ColumnDataDouble(ncols());
+	//~ std::vector<double>         ColumnDataDouble(ncols());
 	std::vector<SQLLEN>         ColumnDataLen(ncols());
 
 	std::vector<SQLSMALLINT>    DataType(ncols());
 	std::vector<SQLULEN>        bytesRemaining(ncols());
 	std::vector<SQLSMALLINT>    DecimalDigits(ncols());
 	std::vector<SQLSMALLINT>    Nullable(ncols());
+
+	std::vector<double> DoubleData(ncols());
+	std::vector<int> IntData(ncols());
 
 	int MAX_COL_NAME_LEN = 256;
 
@@ -524,8 +527,17 @@ Handler::write_out(){
 		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
 
 		if (amplcoltypes[i] == 0){
-			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-										SQL_DOUBLE, 0, 0, (unsigned char*)&ColumnDataDouble[i], 0, NULL);
+			//~ retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
+										//~ SQL_DOUBLE, 0, 0, (unsigned char*)&ColumnDataDouble[i], 0, NULL);
+
+			if (odbccoltypes[i] == SQL_INTEGER || odbccoltypes[i] == SQL_SMALLINT){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
+											SQL_INTEGER, 0, 0, &IntData[i], 0, NULL);
+			}
+			else {
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
+											SQL_DOUBLE, 0, 0, &DoubleData[i], 0, NULL);
+			}
 		}
 		else if (amplcoltypes[i] == 1){
 
@@ -564,7 +576,13 @@ Handler::write_out(){
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
 			if (amplcoltypes[j] == 0){
-				ColumnDataDouble[j] = get_numeric_val(i, j);
+
+				if (odbccoltypes[j] == SQL_INTEGER || odbccoltypes[j] == SQL_SMALLINT){
+					IntData[j] = get_numeric_val(i, j);
+				}
+				else{
+					DoubleData[j] = get_numeric_val(i, j);
+				}
 			}
 			else if (amplcoltypes[j] == 1){
 				strcpy((char*)ColumnData[j], get_char_val(i, j));
@@ -632,53 +650,13 @@ Handler::write_inout(){
 	int MAX_COL_NAME_LEN = 256;
 
 	ColumnData.resize(ncols());
-	std::vector<double>         DData(ncols());
+	std::vector<double> DoubleData(ncols());
+	std::vector<int> IntData(ncols());
 	std::vector<SQLLEN> PartIDInd(ncols(), 0);
 
 	for (size_t i=0; i<ncols(); i++){
 		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
 	}
-
-	/*
-	for (size_t i=0; i<ncols(); i++){
-
-		int amplcol = perm[i];
-
-		if (amplcoltypes[amplcol] == 0){
-			//~ std::cout << "\tnumeric col" << std::endl;
-			retcode = SQLBindParameter(
-							hstmt,
-							i+1,
-							SQL_PARAM_INPUT,
-							SQL_C_DOUBLE,
-							SQL_DOUBLE,
-							0,
-							0,
-							(unsigned char*)&DData[i],
-							0,
-							NULL
-						);
-		}
-		else if (amplcoltypes[amplcol] == 1){
-			//~ std::cout << "\tchar col" << std::endl;
-			retcode = SQLBindParameter(
-							hstmt, 
-							i+1, 
-							SQL_PARAM_INPUT, 
-							SQL_C_CHAR,
-							SQL_VARCHAR, 
-							2, 
-							0, 
-							ColumnData[i], 
-							2, 
-							NULL);
-		}
-		//~ std::string tmp = "SQLBindParameter(";
-		//~ tmp += std::to_string(i+1);
-		//~ tmp += ")";
-		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
-	}
-	*/
 
 	// bind parameters
 	for (size_t i=0; i<ncols(); i++){
@@ -686,8 +664,15 @@ Handler::write_inout(){
 		int amplcol = perm[i];
 
 		if (amplcoltypes[amplcol] == 0){
-			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-										SQL_DOUBLE, 0, 0, (unsigned char*)&DData[i], 0, NULL);
+
+			if (odbccoltypes[amplcol] == SQL_INTEGER || odbccoltypes[amplcol] == SQL_SMALLINT){
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
+											SQL_INTEGER, 0, 0, &IntData[i], 0, NULL);
+			}
+			else {
+				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
+											SQL_DOUBLE, 0, 0, &DoubleData[i], 0, NULL);
+			}
 		}
 		else if (amplcoltypes[amplcol] == 1){
 
@@ -705,7 +690,7 @@ Handler::write_inout(){
 										
 			}
 			else{
-				std::cout << "Cannot map column with type " << odbccoltypes[i] << std::endl;
+				std::cout << "Cannot Bind column with type " << odbccoltypes[i] << std::endl;
 			}
 		}
 		else{
@@ -730,12 +715,24 @@ Handler::write_inout(){
 			int amplcol = perm[j];
 
 			if (amplcoltypes[amplcol] == 0){
-				DData[j] = get_numeric_val(i, amplcol);
+
+				if (odbccoltypes[amplcol] == SQL_INTEGER || odbccoltypes[amplcol] == SQL_SMALLINT){
+					IntData[j] = get_numeric_val(i, amplcol);
+				}
+				else{
+					DoubleData[j] = get_numeric_val(i, amplcol);
+				}
 			}
 			else if (amplcoltypes[amplcol] == 1){
 				strcpy((char*)ColumnData[j], get_char_val(i, amplcol));
 			}
 		}
+
+		//~ print_vector(IntData);
+		//~ print_vector(DoubleData);
+		//~ print_vector(ColumnData);
+
+
 		retcode = SQLExecute(hstmt);
 		check_error(retcode, (char*)"SQLExecute()", hstmt,
 					SQL_HANDLE_STMT);
