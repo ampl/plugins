@@ -16,6 +16,7 @@ params = [
 	"-g",
 	"-c",
 	"-fPIC",
+
 	"-fpermissive",
 	"handler.cpp",
 ]

@@ -23,6 +23,8 @@ std::unordered_set<SQLSMALLINT> sql_num_types ({
 	SQL_DOUBLE
 });
 
+static int MAX_COL_NAME_LEN = 255;
+
 
 static std::string name = "eodbc";
 static std::string version = "0.0.0";
@@ -42,7 +44,8 @@ public Connector{
 	std::string write;
 	bool autocommit;
 	std::vector<int> amplcoltypes; // 0 numeric, 1 string, 2 mixed
-	std::map<int, SQLSMALLINT> odbccoltypes;
+	std::map<int, SQLSMALLINT> t_num_types; // odbc table numeric type for each column (0 indexed)
+	std::map<int, std::string> t_str_types; // odbc table string type for each column (0 indexed)
 
 	SQLHENV henv; // Environment
 	SQLHDBC hdbc; // Connection handle
@@ -90,7 +93,7 @@ public Connector{
 	void
 	check_error(
 		SQLRETURN e,
-		char *s,
+		const char *s,
 		SQLHANDLE h,
 		SQLSMALLINT t
 	);
@@ -98,15 +101,26 @@ public Connector{
 
 	void
 	extract_error(
-    char *fn,
+    const char *fn,
     SQLHANDLE handle,
     SQLSMALLINT type);
 
 	std::unordered_set<SQLSMALLINT>
 	get_db_supported_types();
 
+	std::unordered_map<std::string, int>
+	get_table_types();
 
 
+	std::string get_timestamp_info(TIMESTAMP_STRUCT* ts);
+	std::string get_date_info(tagDATE_STRUCT* ts);
+	std::string get_time_info(tagTIME_STRUCT* ts);
+
+	void set_date_info(std::string & date_str, SQL_DATE_STRUCT & DateData);
+	void set_time_info(std::string & date_str, SQL_TIME_STRUCT & DateData);
+	void set_timestamp_info(std::string & date_str, SQL_TIMESTAMP_STRUCT & DateData);
+
+	void describe_cols(int ncols);
 
 
 	public:
