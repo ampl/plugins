@@ -775,23 +775,28 @@ class Connector {
 			std::string mystr = TI->strings[i];
 			ampl_args.push_back(mystr);
 
-			size_t first = 0;
-			size_t last = mystr.find(";");
-
-			while (last != std::string::npos){
-
-				std::string temp = mystr.substr(first, last - first);
-				if (!temp.empty()){
-					process_string(temp);
-				}
-
-				first = last + 1;
-				last = mystr.find(";", first);
+			if (!mystr.empty()){
+				process_string(mystr);
 			}
-			std::string temp = mystr.substr(first);
-			if (!temp.empty()){
-				process_string(temp);
-			}
+
+
+			//~ size_t first = 0;
+			//~ size_t last = mystr.find(";");
+
+			//~ while (last != std::string::npos){
+
+				//~ std::string temp = mystr.substr(first, last - first);
+				//~ if (!temp.empty()){
+					//~ process_string(temp);
+				//~ }
+
+				//~ first = last + 1;
+				//~ last = mystr.find(";", first);
+			//~ }
+			//~ std::string temp = mystr.substr(first);
+			//~ if (!temp.empty()){
+				//~ process_string(temp);
+			//~ }
 		}
 
 		// print previous messages in logger (if requested)
