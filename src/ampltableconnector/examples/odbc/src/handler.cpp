@@ -763,7 +763,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"autocommit", "write"};
+	allowed_kargs = {"autocommit", "write", "DRIVER", "SQL", "DSN"};
 };
 
 
@@ -781,34 +781,70 @@ Handler::validate_arguments(){
 			autocommit = get_bool_karg(key);
 		}
 		else if (key == "write"){
-			write = it.second;
-		}
-	}
+			std::string val = it.second;
 
-	std::string tempstr;
-	for (size_t i=0; i<ampl_args.size(); i++){
-
-		std::string arg = ampl_args[i];
-
-		tempstr = "DRIVER=";
-		if (!arg.compare(0, tempstr.size(), tempstr)){
-			driver = arg;
-		}
-
-		tempstr = "SQL=";
-		if (!arg.compare(0, tempstr.size(), tempstr)){
-			sql = arg.substr(tempstr.size());
-			if (is_writer){
-				log_msg = "SQL declaration only accepted when reading data. Ignoring: " + arg;
+			if (inout != "OUT"){
+				log_msg = "Option 'write' applies only to OUT table declarations. Ignoring option '";
+				log_msg += key;
+				log_msg += "=";
+				log_msg += val;
+				log_msg += "'.";
 				logger.log(log_msg, LOG_WARNING);
 			}
+			else if (compare_strings_lower(val, "append") || compare_strings_lower(val, "delete") || compare_strings_lower(val, "drop")){
+				write = val;
+				log_msg = "Option '";
+				log_msg += key;
+				log_msg += "' set to '";
+				log_msg += val;
+				log_msg += "'.";
+				logger.log(log_msg, LOG_INFO);
+			}
+			else{
+				log_msg = "Invalid argument '";
+				log_msg += val;
+				log_msg += "' for argument '";
+				log_msg += key;
+				log_msg += "'.";
+				logger.log(log_msg, LOG_ERROR);
+				throw DBE_Error;
+			}
 		}
-
-		tempstr = "DSN=";
-		if (!arg.compare(0, tempstr.size(), tempstr)){
-			dsn = arg;
+		else if (key == "DRIVER"){
+			driver = "DRIVER=" + it.second;
+		}
+		else if (key == "DSN"){
+			driver = "DSN=" + it.second;
+		}
+		else if (key == "SQL"){
+			sql = it.second;
 		}
 	}
+
+	//~ std::string tempstr;
+	//~ for (size_t i=0; i<ampl_args.size(); i++){
+
+		//~ std::string arg = ampl_args[i];
+
+		//~ tempstr = "DRIVER=";
+		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
+			//~ driver = arg;
+		//~ }
+
+		//~ tempstr = "SQL=";
+		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
+			//~ sql = arg.substr(tempstr.size());
+			//~ if (is_writer){
+				//~ log_msg = "SQL declaration only accepted when reading data. Ignoring: " + arg;
+				//~ logger.log(log_msg, LOG_WARNING);
+			//~ }
+		//~ }
+
+		//~ tempstr = "DSN=";
+		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
+			//~ dsn = arg;
+		//~ }
+	//~ }
 
 	//~ if (inout != "IN"){
 	if (is_writer){
