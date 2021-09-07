@@ -791,14 +791,32 @@ Handler::validate_arguments(){
 				log_msg += "'.";
 				logger.log(log_msg, LOG_WARNING);
 			}
-			else if (compare_strings_lower(val, "append") || compare_strings_lower(val, "delete") || compare_strings_lower(val, "drop")){
-				write = val;
+			else if (compare_strings_lower(val, "append")){
 				log_msg = "Option '";
 				log_msg += key;
 				log_msg += "' set to '";
 				log_msg += val;
 				log_msg += "'.";
 				logger.log(log_msg, LOG_INFO);
+				write = "APPEND";
+			}
+			else if (compare_strings_lower(val, "delete")){
+				log_msg = "Option '";
+				log_msg += key;
+				log_msg += "' set to '";
+				log_msg += val;
+				log_msg += "'.";
+				logger.log(log_msg, LOG_INFO);
+				write = "DELETE";
+			}
+			else if (compare_strings_lower(val, "drop")){
+				log_msg = "Option '";
+				log_msg += key;
+				log_msg += "' set to '";
+				log_msg += val;
+				log_msg += "'.";
+				logger.log(log_msg, LOG_INFO);
+				write = "DROP";
 			}
 			else{
 				log_msg = "Invalid argument '";
@@ -1360,12 +1378,12 @@ Handler::get_db_supported_types(){
 	// Fetch each row, and display
 	while ((retcode = SQLFetch(hstmt)) == SQL_SUCCESS) {
 
-		std::cout << typeName;
-		std::cout << ", ";
-		std::cout << dataType;
-		std::cout << ", ";
-		std::cout << columnSize;
-		std::cout << std::endl;
+		//~ std::cout << typeName;
+		//~ std::cout << ", ";
+		//~ std::cout << dataType;
+		//~ std::cout << ", ";
+		//~ std::cout << columnSize;
+		//~ std::cout << std::endl;
 
 		db_supported_types.insert(dataType);
 	}
