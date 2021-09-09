@@ -241,25 +241,17 @@ Handler::read_in(){
 
 		for (int j = 0; j < numCols; j++) {
 
-			SQLSMALLINT cdt = ColumnDataType[j];
-
-			if (cdt == SQL_C_DOUBLE) {
-				set_col_val(*(double*)ColumnData[j], perm[j]);
+			if (ColumnDataLen[j] == SQL_NULL_DATA){
+				set_col_missing_val(perm[j]);
 			}
-			//~ else if (cdt == SQL_TYPE_TIMESTAMP){
-				//~ TIMESTAMP_STRUCT* ts = (TIMESTAMP_STRUCT*)ColumnData[j];
-				//~ set_col_val(get_timestamp_info(ts), perm[j]);
-			//~ }
-			//~ else if (cdt == SQL_TYPE_DATE){
-				//~ tagDATE_STRUCT* ts = (tagDATE_STRUCT*)ColumnData[j];
-				//~ set_col_val(get_date_info(ts), perm[j]);
-			//~ } 
-			//~ else if (cdt == SQL_TYPE_TIME){ 
-				//~ tagTIME_STRUCT* ts = (tagTIME_STRUCT*)ColumnData[j];
-				//~ set_col_val(get_time_info(ts), perm[j]);
-			//~ }
 			else{
-				set_col_val((char*)ColumnData[j], perm[j]);
+				SQLSMALLINT cdt = ColumnDataType[j];
+				if (cdt == SQL_C_DOUBLE) {
+					set_col_val(*(double*)ColumnData[j], perm[j]);
+				}
+				else{
+					set_col_val((char*)ColumnData[j], perm[j]);
+				}
 			}
 		}
 		add_row();
@@ -508,14 +500,14 @@ Handler::write_out(){
 
 		if (amplcoltypes[i] == 0){
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-										SQL_DOUBLE, 0, 0, &DoubleData[i], 0, NULL);
+										SQL_DOUBLE, 0, 0, &DoubleData[i], 0, &LenOrIndPtr[i]);
 			ctype = SQL_C_DOUBLE;
 			otype = SQL_DOUBLE;
 		}
 		else if (amplcoltypes[i] == 1){
 
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-										SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+										SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, &LenOrIndPtr[i]);
 			ctype = SQL_C_CHAR;
 			otype = SQL_VARCHAR;
 		}
@@ -544,17 +536,25 @@ Handler::write_out(){
 
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
-			if (amplcoltypes[j] == 0){
 
-				//~ if (t_num_types[j] == SQL_INTEGER || t_num_types[j] == SQL_SMALLINT){
-					//~ IntData[j] = get_numeric_val(i, j);
-				//~ }
-				//~ else{
-					DoubleData[j] = get_numeric_val(i, j);
-				//~ }
+			if (is_missing(i, j)){
+				LenOrIndPtr[j] = SQL_NULL_DATA;
 			}
-			else if (amplcoltypes[j] == 1){
-				strcpy((char*)ColumnData[j], get_char_val(i, j));
+			else{
+				if (amplcoltypes[j] == 0){
+
+						LenOrIndPtr[j] = NULL;
+					//~ if (t_num_types[j] == SQL_INTEGER || t_num_types[j] == SQL_SMALLINT){
+						//~ IntData[j] = get_numeric_val(i, j);
+					//~ }
+					//~ else{
+						DoubleData[j] = get_numeric_val(i, j);
+					//~ }
+				}
+				else if (amplcoltypes[j] == 1){
+					LenOrIndPtr[j] = SQL_NTS;
+					strcpy((char*)ColumnData[j], get_char_val(i, j));
+				}
 			}
 		}
 		retcode = SQLExecute(hstmt);
@@ -637,7 +637,9 @@ Handler::write_inout(){
 			odbc_types[i] = table_types[colname];
 		}
 		else{
-			std::cout << "Impossible!" << std::endl;
+			log_msg += "Cannot find column type";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
 		}
 	}
 
@@ -655,7 +657,8 @@ Handler::write_inout(){
 	ColumnData.resize(ncols());
 	std::vector<double> DoubleData(ncols());
 	std::vector<int> IntData(ncols());
-	std::vector<SQLLEN> PartIDInd(ncols(), 0);
+	//~ std::vector<SQLLEN> PartIDInd(ncols(), 0);
+	std::vector<SQLLEN> LenOrIndPtr(ncols());
 
 	for (size_t i=0; i<ncols(); i++){
 		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
@@ -670,17 +673,17 @@ Handler::write_inout(){
 
 			if (odbc_types[i] == SQL_INTEGER || odbc_types[i] == SQL_SMALLINT){
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
-											SQL_INTEGER, 0, 0, &IntData[i], 0, NULL);
+											SQL_INTEGER, 0, 0, &IntData[i], 0, &LenOrIndPtr[amplcol]);
 			}
 			else {
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-											SQL_DOUBLE, 0, 0, &DoubleData[i], 0, NULL);
+											SQL_DOUBLE, 0, 0, &DoubleData[i], 0, &LenOrIndPtr[amplcol]);
 			}
 		}
 		else if (amplcoltypes[amplcol] == 1){
 
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, NULL);
+									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, &LenOrIndPtr[amplcol]);
 		}
 		else{
 			std::cout << "Cannot Bind mixed parameter" << std::endl;
@@ -700,17 +703,24 @@ Handler::write_inout(){
 
 			int amplcol = perm[j];
 
-			if (amplcoltypes[amplcol] == 0){
-
-				if (odbc_types[i] == SQL_INTEGER || odbc_types[i] == SQL_SMALLINT){
-					IntData[j] = get_numeric_val(i, amplcol);
-				}
-				else{
-					DoubleData[j] = get_numeric_val(i, amplcol);
-				}
+			if (is_missing(i, j)){
+				LenOrIndPtr[amplcol] = SQL_NULL_DATA;
 			}
-			else if (amplcoltypes[amplcol] == 1){
-				strcpy((char*)ColumnData[j], get_char_val(i, amplcol));
+			else{
+				if (amplcoltypes[amplcol] == 0){
+
+					LenOrIndPtr[amplcol] = NULL;
+					if (odbc_types[i] == SQL_INTEGER || odbc_types[i] == SQL_SMALLINT){
+						IntData[j] = get_numeric_val(i, amplcol);
+					}
+					else{
+						DoubleData[j] = get_numeric_val(i, amplcol);
+					}
+				}
+				else if (amplcoltypes[amplcol] == 1){
+					LenOrIndPtr[amplcol] = SQL_NTS;
+					strcpy((char*)ColumnData[j], get_char_val(i, amplcol));
+				}
 			}
 		}
 
