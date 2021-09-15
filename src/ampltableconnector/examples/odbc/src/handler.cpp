@@ -630,7 +630,8 @@ Handler::write_inout(){
 	std::vector<int> odbc_types(ncols(), -1);
 
 	for (size_t i= 0; i<perm.size(); i++){
-		int col = perm[i];
+		//~ int col = perm[i];
+		int col = i;
 		std::string colname = get_col_name(col);
 
 		if (table_types.find(colname) != table_types.end()){
@@ -671,19 +672,19 @@ Handler::write_inout(){
 
 		if (amplcoltypes[amplcol] == 0){
 
-			if (odbc_types[i] == SQL_INTEGER || odbc_types[i] == SQL_SMALLINT){
+			if (odbc_types[amplcol] == SQL_INTEGER || odbc_types[amplcol] == SQL_SMALLINT){
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
-											SQL_INTEGER, 0, 0, &IntData[i], 0, &LenOrIndPtr[amplcol]);
+											SQL_INTEGER, 0, 0, &IntData[amplcol], 0, &LenOrIndPtr[amplcol]);
 			}
 			else {
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-											SQL_DOUBLE, 0, 0, &DoubleData[i], 0, &LenOrIndPtr[amplcol]);
+											SQL_DOUBLE, 0, 0, &DoubleData[amplcol], 0, &LenOrIndPtr[amplcol]);
 			}
 		}
 		else if (amplcoltypes[amplcol] == 1){
 
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[i], 0, &LenOrIndPtr[amplcol]);
+									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[amplcol], 0, &LenOrIndPtr[amplcol]);
 		}
 		else{
 			std::cout << "Cannot Bind mixed parameter" << std::endl;
@@ -701,28 +702,30 @@ Handler::write_inout(){
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
 
-			int amplcol = perm[j];
-
 			if (is_missing(i, j)){
-				LenOrIndPtr[amplcol] = SQL_NULL_DATA;
+				LenOrIndPtr[j] = SQL_NULL_DATA;
 			}
 			else{
-				if (amplcoltypes[amplcol] == 0){
+				if (amplcoltypes[j] == 0){
 
-					LenOrIndPtr[amplcol] = NULL;
-					if (odbc_types[i] == SQL_INTEGER || odbc_types[i] == SQL_SMALLINT){
-						IntData[j] = get_numeric_val(i, amplcol);
+					LenOrIndPtr[j] = NULL;
+					if (odbc_types[j] == SQL_INTEGER || odbc_types[j] == SQL_SMALLINT){
+						IntData[j] = get_numeric_val(i, j);
 					}
 					else{
-						DoubleData[j] = get_numeric_val(i, amplcol);
+						DoubleData[j] = get_numeric_val(i, j);
 					}
 				}
-				else if (amplcoltypes[amplcol] == 1){
-					LenOrIndPtr[amplcol] = SQL_NTS;
-					strcpy((char*)ColumnData[j], get_char_val(i, amplcol));
+				else if (amplcoltypes[j] == 1){
+					LenOrIndPtr[j] = SQL_NTS;
+					strcpy((char*)ColumnData[j], get_char_val(i, j));
 				}
 			}
 		}
+
+		//~ print_vector(DoubleData);
+		//~ print_vector(IntData);
+		//~ print_vector(ColumnData);
 
 		retcode = SQLExecute(hstmt);
 		check_error(retcode, (char*)"SQLExecute()", hstmt,
