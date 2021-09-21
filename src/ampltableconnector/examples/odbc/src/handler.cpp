@@ -620,7 +620,7 @@ Handler::write_inout(){
 
 	std::vector<std::string> sql_colnames = get_sql_colnames(sqlstr);
 
-	print_vector(sql_colnames);
+	//~ print_vector(sql_colnames);
 
 	// Prepare Statement
 	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
@@ -704,9 +704,6 @@ Handler::write_inout(){
 		}
 	}
 
-
-
-
 	log_msg = "odbc_types: [";
 	for (size_t i= 0; i<odbc_types.size(); i++){
 		log_msg += std::to_string(odbc_types[i]);
@@ -733,8 +730,6 @@ Handler::write_inout(){
 
 		int amplcol = perm[i];
 
-		std::cout << amplcol << std::endl;
-
 		if (amplcol == -1){
 			log_msg = "Cannot bind unknown column '";
 			log_msg += sql_colnames[i];
@@ -749,16 +744,13 @@ Handler::write_inout(){
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
 											SQL_INTEGER, 0, 0, &IntData[amplcol], 0, &LenOrIndPtr[amplcol]);
 
-				std::cout << "Binding param " << i << " to " << (int)SQL_INTEGER << std::endl;
-
+				log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_LONG, SQL_INTEGER);
 			}
 			else {
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
 											SQL_DOUBLE, 0, 0, &DoubleData[amplcol], 0, &LenOrIndPtr[amplcol]);
 
-				std::cout << "Binding param " << i << " to " << (int)SQL_DOUBLE << std::endl;
-
-
+				log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_DOUBLE, SQL_DOUBLE);
 			}
 		}
 		else if (amplcoltypes[amplcol] == 1){
@@ -766,12 +758,13 @@ Handler::write_inout(){
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
 									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[amplcol], 0, &LenOrIndPtr[amplcol]);
 
-			std::cout << "Binding param " << i << " to " << (int)SQL_VARCHAR << std::endl;
+			log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_CHAR, SQL_VARCHAR);
 		}
 		else{
 			std::cout << "Cannot Bind mixed parameter" << std::endl;
 			throw DBE_Error;
 		}
+		logger.log(log_msg, LOG_DEBUG);
 		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
 	}
 
@@ -783,11 +776,11 @@ Handler::write_inout(){
 
 	for (size_t i=0; i<nrows(); i++){
 
-		for (size_t j=0; j<ncols(); j++){
+		//~ for (size_t j=0; j<ncols(); j++){
 
-			IntData[j] = -10;
-			DoubleData[j] = -10;
-		}
+			//~ IntData[j] = -10;
+			//~ DoubleData[j] = -10;
+		//~ }
 
 		for (size_t j=0; j<ncols(); j++){
 
@@ -814,12 +807,12 @@ Handler::write_inout(){
 			}
 		}
 
-		std::cout << "double" << std::endl;
-		print_vector(DoubleData);
-		std::cout << "int" << std::endl;
-		print_vector(IntData);
-		print_vector(ColumnData);
-		print_vector(LenOrIndPtr);
+		//~ std::cout << "double" << std::endl;
+		//~ print_vector(DoubleData);
+		//~ std::cout << "int" << std::endl;
+		//~ print_vector(IntData);
+		//~ print_vector(ColumnData);
+		//~ print_vector(LenOrIndPtr);
 
 		retcode = SQLExecute(hstmt);
 		check_error(retcode, (char*)"SQLExecute()", hstmt,
@@ -1864,7 +1857,7 @@ Handler::get_sql_colnames(const std::string & sql){
 			}
 			instring = false;
 			count = 0;
-			print_vector(tempvec);
+			//~ print_vector(tempvec);
 			process_tokens(tempvec, colnames);
 			tempvec.clear();
 		}
@@ -1874,7 +1867,7 @@ Handler::get_sql_colnames(const std::string & sql){
 			}
 			instring = false;
 			count = 0;
-			print_vector(tempvec);
+			//~ print_vector(tempvec);
 			process_list(tempvec, colnames);
 			tempvec.clear();
 		}
@@ -1913,3 +1906,37 @@ Handler::process_list(const std::vector<std::string> & tokens, std::vector<std::
 		}
 	}
 };
+
+
+
+std::string Handler::get_SQLBindParameter_string(int paramnum, int amplcol, int ttype, int ctype, int sqltype){
+
+	std::string temp;
+
+	std::string msg = "Binding param ";
+	msg += std::to_string(paramnum);
+	msg += " (";
+	msg += get_col_name(amplcol);
+	msg += ") of type ";
+
+	if (odbc_types_map.find(ttype) != odbc_types_map.end()){
+		temp = odbc_types_map[ttype];
+	}
+	else{
+		temp = std::to_string(ttype);
+	}
+	msg += temp;
+	msg += " : ";
+	msg += c_types_map[ctype];
+	msg += " -> ";
+	msg += odbc_types_map[sqltype];
+	return msg;
+};
+
+
+
+
+
+
+
+

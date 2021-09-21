@@ -25,6 +25,29 @@ std::unordered_set<SQLSMALLINT> sql_num_types ({
 
 static int MAX_COL_NAME_LEN = 255;
 
+std::unordered_map<SQLSMALLINT, std::string> odbc_types_map({
+	{SQL_UNKNOWN_TYPE, "SQL_UNKNOWN_TYPE"},
+	{SQL_CHAR, "SQL_CHAR"},
+	{SQL_NUMERIC, "SQL_NUMERIC"},
+	{SQL_DECIMAL, "SQL_DECIMAL"},
+	{SQL_INTEGER, "SQL_INTEGER"},
+	{SQL_SMALLINT, "SQL_SMALLINT"},
+	{SQL_FLOAT, "SQL_FLOAT"},
+	{SQL_REAL, "SQL_REAL"},
+	{SQL_DOUBLE, "SQL_DOUBLE"},
+	{SQL_DATETIME, "SQL_DATETIME"},
+	{SQL_VARCHAR, "SQL_VARCHAR"},
+	{SQL_TYPE_DATE, "SQL_TYPE_DATE"},
+	{SQL_TYPE_TIME, "SQL_TYPE_TIME"},
+	{SQL_TYPE_TIMESTAMP, "SQL_TYPE_TIMESTAMP"}
+});
+
+
+std::unordered_map<SQLSMALLINT, std::string> c_types_map({
+	{SQL_C_LONG, "SQL_C_LONG"},
+	{SQL_C_DOUBLE, "SQL_C_DOUBLE"},
+	{SQL_C_CHAR, "SQL_C_CHAR"}
+});
 
 static std::string name = "eodbc";
 static std::string version = "0.0.0";
@@ -130,6 +153,9 @@ public Connector{
 
 	void
 	process_list(const std::vector<std::string> & tokens, std::vector<std::string> & colnames);
+
+	std::string
+	get_SQLBindParameter_string(int paramnum, int amplcol, int ttype, int ctype, int sqltype);
 
 	public:
 
