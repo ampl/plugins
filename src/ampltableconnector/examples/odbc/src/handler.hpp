@@ -122,6 +122,14 @@ public Connector{
 
 	void describe_cols(int ncols);
 
+	std::vector<std::string>
+	get_sql_colnames(const std::string & sql);
+
+	void
+	process_tokens(const std::vector<std::string> & tokens, std::vector<std::string> & colnames);
+
+	void
+	process_list(const std::vector<std::string> & tokens, std::vector<std::string> & colnames);
 
 	public:
 
@@ -149,5 +157,10 @@ void clean_vector(std::vector<T> v) {
 	}
 	v.clear();
 };
+
+
+
+
+
 
 

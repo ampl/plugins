@@ -421,11 +421,19 @@ Handler::get_stmt_create(){
 			stmt += tmp_str;
 		}
 
-		if (i + 1 < ncols()){
+		//~ if (i + 1 < ncols()){
+			stmt += ", ";
+		//~ }
+	}
+
+	stmt += "PRIMARY KEY (";
+	for (size_t i = 0; i < nkeycols(); i++){
+		stmt += get_col_name(i);
+		if (i + 1 < nkeycols()){
 			stmt += ", ";
 		}
 	}
-
+	stmt += ")";
 	stmt += ");";
 
 	return stmt;
@@ -593,28 +601,63 @@ Handler::write_inout(){
 		return;
 	}
 
+	char buff[1000];
+
 	std::unordered_map<std::string, int> table_types = get_table_types();
 	get_ampl_col_types();
 
-	// Get the update statement
-	std::string sqlstr = get_stmt_update();
-	log_msg = "SQL: " + sqlstr;
+	std::string sqlstr;
+	if (sql.empty()){
+		sqlstr = get_stmt_update();
+	}
+	else{
+		sqlstr = sql;
+	}
+
+	log_msg = "SQL: ";
+	log_msg += sqlstr;
 	logger.log(log_msg, LOG_INFO);
+
+	std::vector<std::string> sql_colnames = get_sql_colnames(sqlstr);
+
+	print_vector(sql_colnames);
 
 	// Prepare Statement
 	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
 	check_error(retcode, (char*)"SQLPrepare(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 
-	// Permutation of columns derived from the update statement
-	std::vector<int> perm(ncols());
+	SQLSMALLINT NumParams;
 
-	for (size_t i=0; i<ndatacols(); i++){
-		perm[i] = i + nkeycols();
+	// Retrieve number of parameters
+	retcode = SQLNumParams(hstmt, &NumParams);
+	check_error(retcode, (char*)"SQLNumParams()", hstmt,
+				SQL_HANDLE_STMT);
+
+	sprintf(buff, "Number of Result Parameters %i", (int)NumParams);
+	log_msg = buff;
+	logger.log(log_msg, LOG_INFO);
+
+	if ((int)NumParams != (int)sql_colnames.size()){
 	}
-	for (size_t i=0; i<nkeycols(); i++){
-		perm[i + ndatacols()] = i;
+
+	// Permutation of columns derived from the update statement
+	std::vector<int> perm((int)NumParams, -1);
+
+	for (size_t i=0; i<(int)NumParams; i++){
+		for (size_t j=0; j<ncols(); j++){
+			if (sql_colnames[i] == get_col_name(j)){
+				perm[i] = j;
+			}
+		}
 	}
+
+	//~ for (size_t i=0; i<ndatacols(); i++){
+		//~ perm[i] = i + nkeycols();
+	//~ }
+	//~ for (size_t i=0; i<nkeycols(); i++){
+		//~ perm[i + ndatacols()] = i;
+	//~ }
 
 	log_msg = "perm: [";
 	for (size_t i= 0; i<perm.size(); i++){
@@ -627,11 +670,11 @@ Handler::write_inout(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	// Get the odbc types of the columns in the update statement
-	std::vector<int> odbc_types(ncols(), -1);
+	std::vector<int> odbc_types((int)NumParams, -1);
 
 	for (size_t i= 0; i<perm.size(); i++){
 		//~ int col = perm[i];
-		int col = i;
+		int col = perm[i];
 		std::string colname = get_col_name(col);
 
 		if (table_types.find(colname) != table_types.end()){
@@ -643,6 +686,26 @@ Handler::write_inout(){
 			throw DBE_Error;
 		}
 	}
+
+	// Get the odbc types of the columns in the update statement
+	std::vector<int> ampl_odbc_types((int)NumParams, -1);
+
+	for (size_t i= 0; i<ncols(); i++){
+		int col = i;
+		std::string colname = get_col_name(col);
+
+		if (table_types.find(colname) != table_types.end()){
+			ampl_odbc_types[i] = table_types[colname];
+		}
+		else{
+			log_msg += "Cannot find column type";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+	}
+
+
+
 
 	log_msg = "odbc_types: [";
 	for (size_t i= 0; i<odbc_types.size(); i++){
@@ -666,25 +729,44 @@ Handler::write_inout(){
 	}
 
 	// bind parameters
-	for (size_t i=0; i<ncols(); i++){
+	for (size_t i=0; i<(int)NumParams; i++){
 
 		int amplcol = perm[i];
 
+		std::cout << amplcol << std::endl;
+
+		if (amplcol == -1){
+			log_msg = "Cannot bind unknown column '";
+			log_msg += sql_colnames[i];
+			log_msg += "'.";
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
 		if (amplcoltypes[amplcol] == 0){
 
-			if (odbc_types[amplcol] == SQL_INTEGER || odbc_types[amplcol] == SQL_SMALLINT){
+			if (ampl_odbc_types[amplcol] == SQL_INTEGER || ampl_odbc_types[amplcol] == SQL_SMALLINT){
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
 											SQL_INTEGER, 0, 0, &IntData[amplcol], 0, &LenOrIndPtr[amplcol]);
+
+				std::cout << "Binding param " << i << " to " << (int)SQL_INTEGER << std::endl;
+
 			}
 			else {
 				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
 											SQL_DOUBLE, 0, 0, &DoubleData[amplcol], 0, &LenOrIndPtr[amplcol]);
+
+				std::cout << "Binding param " << i << " to " << (int)SQL_DOUBLE << std::endl;
+
+
 			}
 		}
 		else if (amplcoltypes[amplcol] == 1){
 
 			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
 									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[amplcol], 0, &LenOrIndPtr[amplcol]);
+
+			std::cout << "Binding param " << i << " to " << (int)SQL_VARCHAR << std::endl;
 		}
 		else{
 			std::cout << "Cannot Bind mixed parameter" << std::endl;
@@ -700,16 +782,24 @@ Handler::write_inout(){
 	std::clock_t c_start = std::clock();
 
 	for (size_t i=0; i<nrows(); i++){
+
+		for (size_t j=0; j<ncols(); j++){
+
+			IntData[j] = -10;
+			DoubleData[j] = -10;
+		}
+
 		for (size_t j=0; j<ncols(); j++){
 
 			if (is_missing(i, j)){
 				LenOrIndPtr[j] = SQL_NULL_DATA;
 			}
 			else{
+
 				if (amplcoltypes[j] == 0){
 
 					LenOrIndPtr[j] = NULL;
-					if (odbc_types[j] == SQL_INTEGER || odbc_types[j] == SQL_SMALLINT){
+					if (ampl_odbc_types[j] == SQL_INTEGER || ampl_odbc_types[j] == SQL_SMALLINT){
 						IntData[j] = get_numeric_val(i, j);
 					}
 					else{
@@ -718,14 +808,18 @@ Handler::write_inout(){
 				}
 				else if (amplcoltypes[j] == 1){
 					LenOrIndPtr[j] = SQL_NTS;
+					//~ LenOrIndPtr[j] = NULL;
 					strcpy((char*)ColumnData[j], get_char_val(i, j));
 				}
 			}
 		}
 
-		//~ print_vector(DoubleData);
-		//~ print_vector(IntData);
-		//~ print_vector(ColumnData);
+		std::cout << "double" << std::endl;
+		print_vector(DoubleData);
+		std::cout << "int" << std::endl;
+		print_vector(IntData);
+		print_vector(ColumnData);
+		print_vector(LenOrIndPtr);
 
 		retcode = SQLExecute(hstmt);
 		check_error(retcode, (char*)"SQLExecute()", hstmt,
@@ -1187,7 +1281,7 @@ Handler::check_error(
 	SQLHANDLE h,
 	SQLSMALLINT t
 ){
-	if (e != SQL_SUCCESS && e != SQL_SUCCESS_WITH_INFO){
+	if (e != SQL_SUCCESS && e != SQL_SUCCESS_WITH_INFO && e != SQL_NO_DATA){
 		extract_error(s, h, t);
 	}
 };
@@ -1732,4 +1826,90 @@ Handler::get_table_types(){
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	return tabletypes;
+};
+
+
+std::vector<std::string>
+Handler::get_sql_colnames(const std::string & sql){
+
+	std::vector<std::string> colnames;
+	std::vector<std::string> tempvec;
+
+	int first = 0;
+	int count = 0;
+	bool instring = false;
+
+	for (int i=0; i<sql.size(); i++){
+
+		char c = sql[i];
+
+		//~ std::cout << c << std::endl;
+
+		if (isspace((int)c) || c == ','){
+			if (instring){
+				tempvec.push_back(sql.substr(first, count));
+			}
+			instring = false;
+			count = 0;
+		}
+		else if (c == '=' || c == '?' || c == ';'){
+			std::string tempstr = std::string(1, c);
+			tempvec.push_back(tempstr);
+			instring = false;
+			count = 0;
+		}
+		else if (c == '('){
+			if (instring){
+				tempvec.push_back(sql.substr(first, count));
+			}
+			instring = false;
+			count = 0;
+			print_vector(tempvec);
+			process_tokens(tempvec, colnames);
+			tempvec.clear();
+		}
+		else if (c == ')'){
+			if (instring){
+				tempvec.push_back(sql.substr(first, count));
+			}
+			instring = false;
+			count = 0;
+			print_vector(tempvec);
+			process_list(tempvec, colnames);
+			tempvec.clear();
+		}
+		else{
+			if (!instring){
+				instring = true;
+				first = i;
+			}
+			count += 1;
+		}
+	}
+	process_tokens(tempvec, colnames);
+
+	return colnames;
+};
+
+void
+Handler::process_tokens(const std::vector<std::string> & tokens, std::vector<std::string> & colnames){
+
+	if (tokens.size() < 3){
+		return;
+	}
+	for (int i=0; i<tokens.size()-2; i++){
+		if (tokens[i+1] == "=" and tokens[i+2] == "?"){
+			colnames.push_back(tokens[i]);
+		}
+	}
+};
+
+void
+Handler::process_list(const std::vector<std::string> & tokens, std::vector<std::string> & colnames){
+
+	for (int i=0; i<tokens.size(); i++){
+		if (tokens[i] != "?"){
+			colnames.push_back(tokens[i]);
+		}
+	}
 };
