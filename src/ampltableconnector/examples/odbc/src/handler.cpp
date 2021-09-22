@@ -227,7 +227,9 @@ Handler::read_in(){
 	std::clock_t c_start = std::clock();
 
 	retcode = SQLExecute (hstmt);
-	check_error(retcode, (char*)"SQLExecute()", hstmt, SQL_HANDLE_STMT);
+	if (retcode != SQL_NO_DATA){
+		check_error(retcode, (char*)"SQLExecute()", hstmt, SQL_HANDLE_STMT);
+	}
 
 	for (int i=0; ; i++) {
 		retcode = SQLFetch(hstmt);
@@ -566,8 +568,10 @@ Handler::write_out(){
 			}
 		}
 		retcode = SQLExecute(hstmt);
-		check_error(retcode, (char*)"SQLExecute()", hstmt,
-					SQL_HANDLE_STMT);
+		if (retcode != SQL_NO_DATA){
+			check_error(retcode, (char*)"SQLExecute()", hstmt,
+						SQL_HANDLE_STMT);
+		}
 	}
 	if (!autocommit){
 		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
@@ -815,8 +819,10 @@ Handler::write_inout(){
 		//~ print_vector(LenOrIndPtr);
 
 		retcode = SQLExecute(hstmt);
-		check_error(retcode, (char*)"SQLExecute()", hstmt,
-					SQL_HANDLE_STMT);
+		if (retcode != SQL_NO_DATA){
+			check_error(retcode, (char*)"SQLExecute()", hstmt,
+						SQL_HANDLE_STMT);
+		}
 	}
 
 	if (!autocommit){
@@ -1163,9 +1169,10 @@ Handler::table_create(){
 	logger.log(log_msg, LOG_INFO);
 
 	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
-			hstmt, SQL_HANDLE_STMT);
-
+	if (retcode != SQL_NO_DATA){
+		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
+				hstmt, SQL_HANDLE_STMT);
+	}
 	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
@@ -1181,9 +1188,10 @@ Handler::table_delete(){
 	logger.log(log_msg, LOG_INFO);
 
 	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
-			hstmt, SQL_HANDLE_STMT);
-
+	if (retcode != SQL_NO_DATA){
+		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
+				hstmt, SQL_HANDLE_STMT);
+	}
 	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
@@ -1199,9 +1207,10 @@ Handler::table_drop(){
 	logger.log(log_msg, LOG_INFO);
 
 	retcode = SQLExecDirect(hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
-			hstmt, SQL_HANDLE_STMT);
-
+	if (retcode != SQL_NO_DATA){
+		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
+				hstmt, SQL_HANDLE_STMT);
+	}
 	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
@@ -1274,7 +1283,7 @@ Handler::check_error(
 	SQLHANDLE h,
 	SQLSMALLINT t
 ){
-	if (e != SQL_SUCCESS && e != SQL_SUCCESS_WITH_INFO && e != SQL_NO_DATA){
+	if (e != SQL_SUCCESS && e != SQL_SUCCESS_WITH_INFO){
 		extract_error(s, h, t);
 	}
 };
