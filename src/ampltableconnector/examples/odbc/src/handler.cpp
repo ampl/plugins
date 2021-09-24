@@ -1900,7 +1900,7 @@ Handler::process_tokens(const std::vector<std::string> & tokens, std::vector<std
 		return;
 	}
 	for (int i=0; i<tokens.size()-2; i++){
-		if (tokens[i+1] == "=" and tokens[i+2] == "?"){
+		if (tokens[i+1] == "=" && tokens[i+2] == "?"){
 			colnames.push_back(tokens[i]);
 		}
 	}
