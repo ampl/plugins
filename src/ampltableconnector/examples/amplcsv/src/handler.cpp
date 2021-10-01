@@ -407,9 +407,6 @@ Handler::write_inout(){
 		}
 	}
 
-	print_vector(header);
-	print_vector(perm);
-
 	// temporary file to write data
 	std::string new_file = filepath + ".temp";
 
