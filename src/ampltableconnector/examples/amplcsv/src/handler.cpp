@@ -407,6 +407,9 @@ Handler::write_inout(){
 		}
 	}
 
+	print_vector(header);
+	print_vector(perm);
+
 	// temporary file to write data
 	std::string new_file = filepath + ".temp";
 
@@ -497,7 +500,12 @@ Handler::parse_row(const std::string & str, int row_size){
 	std::size_t ub = 0;
 
 	while (true){
-		if (str[i] == quotechar[0] && is_first){
+		if (i == str.size()){
+			ub = i;
+			row.push_back(str.substr(lb, ub-lb));
+			break;
+		}
+		else if (str[i] == quotechar[0] && is_first){
 			is_first = false;
 			lb = i;
 			while (true){
@@ -521,11 +529,6 @@ Handler::parse_row(const std::string & str, int row_size){
 				row.push_back(str.substr(lb, ub-lb));
 			}
 			is_first = true;
-		}
-		else if (i == str.size()){
-			ub = i;
-			row.push_back(str.substr(lb, ub-lb));
-			break;
 		}
 		else{
 			if (is_first){
