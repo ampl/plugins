@@ -251,7 +251,7 @@ Handler::write_header(FileHandler & f, std::vector<std::string> & header){
 			f.ampl_fprintf ("%s", header[j].c_str());
 		}
 		// add separator
-		if (j < ncols() - 1){
+		if (j < header.size() - 1){
 			f.ampl_fprintf ("%s", sep.c_str());
 		}
 	}
