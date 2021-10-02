@@ -65,7 +65,7 @@ jobs:
     - bash: bash download-ampl.sh $AMPL_URL
       displayName: Install AMPL
     - bash: |
-        set -x
+        set -ex
         export PATH=$PATH:$PWD/ampl/
         git submodule update --init --recursive --remote
         mkdir build
@@ -108,7 +108,7 @@ jobs:
     - bash: bash download-ampl.sh $AMPL_URL
       displayName: Install AMPL
     - bash: |
-        set -x
+        set -ex
         export PATH=$PATH:$PWD/ampl/
         git submodule update --init --recursive --remote
         mkdir build
