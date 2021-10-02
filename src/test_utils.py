@@ -3,16 +3,19 @@ import sys
 import difflib
 from subprocess import PIPE, Popen
 
+
 def run_ampl_script(ampl, dll, script):
     cmd = '{} -i {} {}'.format(ampl, dll, script)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
-    return stdout, stderr
+    return stdout.decode(), stderr.decode()
+
 
 def diff(str1, str2):
     lst1 = str1.replace('\r', '').split('\n')
     lst2 = str2.replace('\r', '').split('\n')
     return '\n'.join(difflib.unified_diff(lst1, lst2))
+
 
 def check_stderr(stderr):
     if stderr != '':
@@ -20,6 +23,7 @@ def check_stderr(stderr):
         print(stderr)
         return False
     return True
+
 
 def check_stdout(stdout, expected_output):
     d = diff(expected_output, stdout)
@@ -31,8 +35,9 @@ def check_stdout(stdout, expected_output):
         print('OK')
         return True
 
+
 class TestSuite:
-    def __init__(self, ampl, dll):        
+    def __init__(self, ampl, dll):
         self.count = 0
         self.failed = False
         self.ampl = ampl
@@ -51,4 +56,3 @@ class TestSuite:
             self.failed = True
         if not check_stdout(stdout, expected_output):
             self.failed = True
-
