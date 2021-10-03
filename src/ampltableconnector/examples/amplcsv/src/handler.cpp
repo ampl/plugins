@@ -361,6 +361,8 @@ Handler::write_inout(){
 	log_msg = "<write_inout>";
 	logger.log(log_msg, LOG_DEBUG);
 
+	std::clock_t c_start = std::clock();
+
 	std::string str; // string to read the information of a single row of the csv file
 	std::string tmp_str;
 	std::ifstream infile(filepath.c_str()); // stream to read the data in the csv file
@@ -417,15 +419,135 @@ Handler::write_inout(){
 		write_header(f, header);
 	}
 
-	// write data from AMPLs table
-	write_data_perm(f, perm);
-
 	// get a map of used keys
 	std::map<std::vector<std::string>, int> used_keys_map = get_used_keys_map(perm);
+	// if row from AMPLs table was already processed
+	std::vector<bool> rowdone(nrows(), false);
 
-	// now we read the rows in the input file and if the keys are not in used_keys_map we write
-	// the row to the output file
-	write_remaining_rows(infile, used_keys_map, perm, f, init_nfields);
+	//~ std::map<std::vector<std::string>, int>::iterator it = used_keys_map.begin();
+
+	//~ while (it != used_keys_map.end()){
+
+		//~ print_vector(it->first);
+		//~ std::cout << it->second << std::endl;
+
+		//~ it++;
+	//~ }
+
+	// read rows from the csv and check if they are also in AMPLs table
+
+	std::vector<std::string> temp_keys;
+
+	while (true) {
+
+		//~ safeGetline(infile, str);
+		std::string str = get_csv_row(infile);
+
+		if (str.empty()){break;}
+
+		//~ row.clear();
+		temp_keys.clear();
+
+		std::vector<std::string> row = parse_row(str);
+		row_count += 1;
+
+		if (row.size() != init_nfields){
+
+			log_msg = "Invalid number of fields when reading row ";
+			log_msg += numeric_to_string(row_count);
+			log_msg += ". Expected ";
+			log_msg += numeric_to_string(init_nfields);
+			log_msg += " got ";
+			log_msg += numeric_to_string(row.size());
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+
+		get_keys(row, perm, temp_keys);
+
+		if (used_keys_map.find(temp_keys) == used_keys_map.end()){
+
+			// the row is only in the csv
+			// we check if the row needs new columns and write it back
+
+			if (row.size() < perm.size()){
+				for (size_t i = 0; i < perm.size() - row.size(); i++){
+					str += sep;
+				}
+			}
+			f.ampl_fprintf ("%s\n", str.c_str());
+		}
+		else{
+			// the row is in ampl and in the csv
+			// we update the fields and write the data
+
+			int i = used_keys_map[temp_keys];
+			rowdone[i] = true;
+
+			for (size_t j = 0; j < perm.size(); j++){
+
+				if (perm[j] != -1){
+
+					int ampl_col = perm[j];
+
+					if (is_char_val(i, ampl_col)){
+
+						if (is_missing(i, j)){}
+						else if (quotestrings){
+							f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+						}
+						else{
+							f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
+						}
+					}
+					else{
+						// numeric value
+						f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
+					}
+				}
+				else{
+					f.ampl_fprintf ("%s", row[j].c_str());
+				}
+				if (j < perm.size() - 1){
+					f.ampl_fprintf ("%s", sep.c_str());
+				}
+			}
+			f.ampl_fprintf ("\n");
+		}
+	}
+
+	// write rows that are in AMPL but not in the external table
+	for (size_t i = 0; i < nrows(); i++){
+
+		if (!rowdone[i]){
+			for (size_t j = 0; j < perm.size(); j++){
+
+				if (perm[j] != -1){
+
+					int ampl_col = perm[j];
+
+					if (is_char_val(i, ampl_col)){
+
+						if (is_missing(i, j)){}
+						else if (quotestrings){
+							f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+						}
+						else{
+							f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
+						}
+					}
+					else{
+						// numeric value
+						f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
+					}
+				}
+				if (j < perm.size() - 1){
+					f.ampl_fprintf ("%s", sep.c_str());
+				}
+			}
+			f.ampl_fprintf ("\n");
+		}
+	}
 
 	infile.close();
 	f.close();
@@ -434,6 +556,11 @@ Handler::write_inout(){
 	remove(filepath.c_str());
 	copy_file(new_file, filepath);
 	remove(new_file.c_str());
+
+	std::clock_t c_end = std::clock();
+	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+	log_msg = "write_inout done in: " + numeric_to_fixed(time_elapsed / 1000, 3);
+	logger.log(log_msg, LOG_DEBUG);
 };
 
 
