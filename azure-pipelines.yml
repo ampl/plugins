@@ -1,22 +1,39 @@
+variables:
+  AMPL_DEMO_URL: 'https://ampl.com/demo/'
+  AMPL_EXT_DEMO_URL: 'https://ampl.com/dl/fdabrandao/demo/'
+  LINUX32_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.linux32.tgz'
+  LINUX64_BUNDLE_URL: '$(AMPL_EXT_DEMO_URL)/ampl.linux64.tgz'
+  MACOS64_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.macos64.tgz'
+  MSWIN32_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.mswin32.zip'
+  MSWIN64_BUNDLE_NAME: '$(AMPL_DEMO_URL)/ampl.mswin64.zip'
+  CTEST_OUTPUT_ON_FAILURE: 1
+
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-20.04'}
   strategy:
     matrix:
       x86:
+        AMPL_URL: $(LINUX32_BUNDLE_URL)
         image: 'fdabrandao/manylinux32:coin_cmake-3.12.4'
         nbits: 32
       x64:
+        AMPL_URL: $(LINUX64_BUNDLE_URL)
         image: 'fdabrandao/manylinux64:coin_cmake-3.12.4'
         nbits: 64
   variables:
     upload: $(Build.ArtifactStagingDirectory)
   steps:
     - bash: |
+        set -x
+        nproc
         lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
         cat /proc/cpuinfo
-      displayName: Check CPU
+      displayName: Check CPU details
+    - bash: bash download-ampl.sh $AMPL_URL
+      displayName: Install AMPL
     - bash: |
+        set -x
         BUILD_DIR=manylinux/linux$NBITS/
         git submodule update --init --recursive --remote
         mkdir -p $BUILD_DIR/*
@@ -35,14 +52,27 @@ jobs:
   pool: {vmImage: 'macOS-10.15'}
   variables:
     upload: $(Build.ArtifactStagingDirectory)
+    AMPL_URL: $(MACOS64_BUNDLE_URL)
   steps:
+    - task: UsePythonVersion@0
     - bash: |
+        set -x
+        sysctl -n machdep.cpu.brand_string
+        sysctl -n machdep.cpu.core_count
+        sysctl -n machdep.cpu.thread_count
+        sysctl -a | grep machdep.cpu
+      displayName: Check CPU details
+    - bash: bash download-ampl.sh $AMPL_URL
+      displayName: Install AMPL
+    - bash: |
+        set -ex
+        export PATH=$PATH:$PWD/ampl/
         git submodule update --init --recursive --remote
         mkdir build
         cd build
         cmake ..
         make all -j2
-        make test || true
+        ctest
         cpack
       displayName: Build package
     - bash: |
@@ -59,19 +89,33 @@ jobs:
       x86:
         arch: 'win32'
         nbits: 32
+        AMPL_URL: $(MSWIN32_BUNDLE_URL)
       x64:
         arch: 'x64'
         nbits: 64
+        AMPL_URL: $(MSWIN64_BUNDLE_NAME)
   variables:
     upload: $(Build.ArtifactStagingDirectory)
   steps:
+    - task: UsePythonVersion@0
     - bash: |
+        set -x
+        nproc
+        wmic cpu get name
+        wmic cpu get numberofcores
+        wmic cpu get caption, deviceid, name, numberofcores, maxclockspeed, status
+      displayName: Check CPU details
+    - bash: bash download-ampl.sh $AMPL_URL
+      displayName: Install AMPL
+    - bash: |
+        set -ex
+        export PATH=$PATH:$PWD/ampl/
         git submodule update --init --recursive --remote
         mkdir build
         cd build
         cmake .. -G "Visual Studio 16 2019" -A $ARCH
         cmake --build . -j 2 --config Release
-        ctest --output-on-failure -C Release || true
+        ctest -C Release
         cpack
       displayName: Build package
     - bash: |
