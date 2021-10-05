@@ -42,6 +42,7 @@ add_subdirectory(ampltableconnector/examples/template)
 add_subdirectory(ampltableconnector/examples/basic)
 add_subdirectory(ampltableconnector/examples/amplcsv)
 add_subdirectory(ampltableconnector/examples/odbc)
+add_subdirectory(ampltableconnector/examples/funclink)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
