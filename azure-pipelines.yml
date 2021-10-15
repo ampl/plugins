@@ -15,11 +15,11 @@ jobs:
     matrix:
       x86:
         AMPL_URL: $(LINUX32_BUNDLE_URL)
-        image: 'fdabrandao/manylinux32:coin_cmake-3.12.4'
+        image: 'nfbvs/manylinux32:coin_cmake-3.12.4_unixodbc-2.3.9'
         nbits: 32
       x64:
         AMPL_URL: $(LINUX64_BUNDLE_URL)
-        image: 'fdabrandao/manylinux64:coin_cmake-3.12.4'
+        image: 'nfbvs/manylinux64:coin_cmake-3.12.4_unixodbc-2.3.9'
         nbits: 64
   variables:
     upload: $(Build.ArtifactStagingDirectory)
