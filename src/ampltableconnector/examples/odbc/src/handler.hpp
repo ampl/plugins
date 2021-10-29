@@ -50,7 +50,7 @@ std::unordered_map<SQLSMALLINT, std::string> c_types_map({
 });
 
 static std::string name = "eodbc";
-static std::string version = "0.0.0";
+static std::string version = "0.0.1";
 
 static std::string doc = name + "\n" + name + "-" + version + "\n" +
 "EODBC: experimental ODBC driver for AMPL.\n"
@@ -65,6 +65,8 @@ static std::string doc = name + "\n" + name + "-" + version + "\n" +
 "- INOUT mode will use an SQL update statement.\n"
 "- If a table created by AMPL has key columns they will be declared as primary\n"
 "  keys.\n"
+"- Files to load the data from must be declared in the DBQ option of the \n"
+"  connection string.\n"
 "- Explicit loading of the library with the command \"load eodbc.dll;\" is needed.\n"
 "\n"
 "General information on table handlers and data correspondence between AMPL and\n"
