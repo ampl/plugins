@@ -883,10 +883,12 @@ Handler::validate_arguments(){
 
 		std::string key = it.first;
 
-		if (key == "autocommit"){
+		//~ if (key == "autocommit"){
+		if (compare_strings_lower(key, "autocommit")){
 			autocommit = get_bool_karg(key);
 		}
-		else if (key == "write"){
+		//~ else if (key == "write"){
+		else if (compare_strings_lower(key, "write")){
 			std::string val = it.second;
 
 			if (inout != "OUT"){
@@ -934,13 +936,15 @@ Handler::validate_arguments(){
 				throw DBE_Error;
 			}
 		}
-		else if (key == "DRIVER"){
-			driver = "DRIVER=" + it.second;
+		//~ else if (key == "DRIVER"){
+		else if (compare_strings_lower(key, "DRIVER")){
+			driver = "Driver=" + it.second;
 		}
-		else if (key == "DSN"){
+		//~ else if (key == "DSN"){
+		else if (compare_strings_lower(key, "DSN")){
 			driver = "DSN=" + it.second;
 		}
-		else if (key == "SQL"){
+		else if (compare_strings_lower(key, "SQL")){
 			sql = it.second;
 		}
 	}

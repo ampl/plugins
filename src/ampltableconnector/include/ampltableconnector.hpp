@@ -390,6 +390,11 @@ template <class T> void print_vector(const std::vector<T> v) {
 inline void copy_file(const std::string &source_path, const std::string &dest_path);
 
 
+inline bool case_insensitive_find(const std::string & val, const std::unordered_map<std::string, std::string> & umap);
+
+inline bool case_insensitive_find(const std::string & val, const std::unordered_set<std::string> & uset);
+
+
 /** Named enum with DB return values to use in try/catch exceptions.
  */
 enum DBE { /* return values from (*DbRead)(...) and (*DbWrite)(...) */
@@ -697,7 +702,8 @@ class Connector {
 		}
 
 		for (std::size_t i = 0; i < handler_extensions.size(); i++) {
-			if (extension == handler_extensions[i]) {
+			//~ if (extension == handler_extensions[i]) {
+			if (compare_strings_lower(extension, handler_extensions[i])) {
 				return true;
 			}
 		}
@@ -866,7 +872,8 @@ class Connector {
 			}
 		}
 		// check if arg_string is in allowed_args
-		else if (allowed_args.find(arg_string) != allowed_args.end()) {
+		//~ else if (allowed_args.find(arg_string) != allowed_args.end()) {
+		else if (case_insensitive_find(arg_string, allowed_args)) {
 			user_args.insert(arg_string);
 		}
 		// check for an alias
@@ -900,7 +907,7 @@ class Connector {
 			std::string val = karg_string.substr(eq_pos + 1);
 
 			// check verbose
-			if (key == "verbose") {
+			if (key == "verbose" || key == "VERBOSE") {
 				requested_verbose = std::atoi(val.c_str());
 				if (requested_verbose > 0) {
 					log_msg = "verbose: " + val;
@@ -908,7 +915,8 @@ class Connector {
 				}
 			}
 			// add valid keys to user_kargs for posterior validation
-			else if (allowed_kargs.find(key) != allowed_kargs.end()) {
+			//~ else if (allowed_kargs.find(key) != allowed_kargs.end()) {
+			else if (case_insensitive_find(key, allowed_kargs)) {
 				user_kargs[key] = val;
 				log_msg = "parse_arguments: \'" + key + "\' set to \'" + val + "\'";
 				logger.log(log_msg, LOG_INFO);
@@ -1394,6 +1402,31 @@ void copy_file(const std::string &source_path, const std::string &dest_path) {
 void* temp_mem(AmplExports *ae, TableInfo *TI, size_t len){
 	return ae->Tempmem(TI->TMI, len);
 };
+
+bool case_insensitive_find(const std::string & val, const std::unordered_map<std::string, std::string> & umap){
+
+	for(auto it : umap){
+		std::string temp = it.first;
+		if(compare_strings_lower(val, temp)){
+			return true;
+		}
+	}
+	return false;
+};
+
+bool case_insensitive_find(const std::string & val, const std::unordered_set<std::string> & uset){
+
+	for(auto &temp : uset){
+		if(compare_strings_lower(val, temp)){
+			return true;
+		}
+	}
+	return false;
+};
+
+
+
+
 // End of function implementations
 } // namespace ampl
 
