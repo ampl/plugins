@@ -62,7 +62,7 @@ jobs:
     - bash: |
         set -ex
         export PATH=$PATH:$PWD/ampl/
-        brew uninstall unixodbc
+        brew uninstall --ignore-dependencies unixodbc
         git submodule update --init --recursive --remote
         mkdir build
         cd build
