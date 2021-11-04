@@ -43,7 +43,7 @@ jobs:
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-- job: macos-iodbc
+- job: macos_iodbc
   pool: {vmImage: 'macOS-10.15'}
   variables:
     upload: $(Build.ArtifactStagingDirectory)
