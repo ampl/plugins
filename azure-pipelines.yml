@@ -63,6 +63,7 @@ jobs:
         set -ex
         export PATH=$PATH:$PWD/ampl/
         brew uninstall --ignore-dependencies unixodbc
+        brew install autoconf automake libtool
         curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
         cd libiodbc-3.52.15
         CFLAGS="-O -arch x86_64"
