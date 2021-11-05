@@ -63,8 +63,7 @@ jobs:
         set -ex
         export PATH=$PATH:$PWD/ampl/
         brew uninstall --ignore-dependencies unixodbc
-        curl -O https://sourceforge.net/projects/iodbc/files/iodbc/3.52.15/libiodbc-3.52.15.tar.gz
-        tar xvpfz libiodbc-3.52.15.tar.gz
+        curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
         cd libiodbc-3.52.15
         CFLAGS="-O -arch x86_64"
         CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
