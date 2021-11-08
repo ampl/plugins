@@ -9,40 +9,6 @@ variables:
   CTEST_OUTPUT_ON_FAILURE: 1
 
 jobs:
-- job: macos
-  pool: {vmImage: 'macOS-10.15'}
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-    AMPL_URL: $(MACOS64_BUNDLE_URL)
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        set -x
-        sysctl -n machdep.cpu.brand_string
-        sysctl -n machdep.cpu.core_count
-        sysctl -n machdep.cpu.thread_count
-        sysctl -a | grep machdep.cpu
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -ex
-        export PATH=$PATH:$PWD/ampl/
-        git submodule update --init --recursive --remote
-        mkdir build
-        cd build
-        cmake ..
-        make all -j2
-        ctest
-        cpack
-      displayName: Build package
-    - bash: |
-        UPLOAD_DIR=$UPLOAD/macos/
-        mkdir -p $UPLOAD_DIR
-        cp build/tables.zip $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
 - job: macos_iodbc
   pool: {vmImage: 'macOS-10.15'}
   variables:
@@ -75,6 +41,7 @@ jobs:
           --prefix=/usr/local/iODBC.universal
         make
         sudo make install
+        rm /usr/local/iODBC.universal/lib/libodbc.a
         export PATH=$PATH:/usr/local/iODBC.universal/include:/usr/local/iODBC.universal/lib
         echo $PATH
         cd ..
