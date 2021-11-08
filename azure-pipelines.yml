@@ -41,7 +41,7 @@ jobs:
           --prefix=/usr/local/iODBC.universal
         make
         sudo make install
-        rm /usr/local/iODBC.universal/lib/libodbc.a
+        sudo rm /usr/local/iODBC.universal/lib/libodbc.a
         export PATH=$PATH:/usr/local/iODBC.universal/include:/usr/local/iODBC.universal/lib
         echo $PATH
         cd ..
