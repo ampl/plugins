@@ -75,6 +75,7 @@ endif (SQLite3_FOUND)
 # zlibstatic that we can link statically to
 set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 add_subdirectory(amplxl/zlib-1.2.11)
+addToTablesFolder(support zlib zlibstatic minigzip)
 set(ZLIB_INCLUDE_DIRS amplxl/zlib-1.2.11 ${CMAKE_CURRENT_BINARY_DIR}/amplxl/zlib-1.2.11 amplxl/zlib-1.2.11/contrib/minizip)
 set(ZLIB_LIBRARIES zlibstatic)
 

@@ -1,6 +1,7 @@
 # Add test-support library
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/test-support ${CMAKE_CURRENT_BINARY_DIR}/mptest)
-  
+addToTablesFolder(test test-support)
+
 function(add_mp_test name)
   cmake_parse_arguments(add_mp_test "" "" LIBS ${ARGN})
   add_executable(${name} ${add_mp_test_UNPARSED_ARGUMENTS})
@@ -22,14 +23,12 @@ function(add_mp_test name)
     TABLEPROXY_EXE_NAME="$<TARGET_FILE:tableproxy>"
     )
   add_test(NAME ${name} COMMAND $<TARGET_FILE:${name}>)
+  addToTablesFolder(test ${name})
 endfunction()
 
 find_package(ODBC)
 if (ODBC_FOUND)
   include_directories(${ODBC_INCLUDE_DIRS})
-  message("ODBC_INCLUDE_DIRS ${ODBC_INCLUDE_DIRS}")
-  message("ODBC_LIBRARIES ${ODBC_LIBRARIES}")
-
   set(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${ODBC_LIBRARIES})
 

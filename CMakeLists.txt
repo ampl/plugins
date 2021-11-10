@@ -23,6 +23,19 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 
 project(TABLES VERSION 0.0.1 LANGUAGES CXX C)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# Test if I have a parent project, in which case put generated targets 
+# in the tables folder on supported generators
+get_directory_property(hasParent PARENT_DIRECTORY)
+
+function(addToTablesFolder folder)
+    if(hasParent)
+        set(prefix tables/)
+    else()
+        set(prefix "")
+    endif()
+    add_to_folder("${prefix}${folder}" ${ARGN})
+endfunction()
 
 if (MSVC)
   # Disable useless MSVC warnings suggesting nonportable "secure" alternatives.
@@ -47,4 +60,5 @@ set (CMAKE_CXX_STANDARD 11)
 add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
 add_subdirectory(test/tables)
+add_subdirectory(doc)
 

@@ -1,0 +1,23 @@
+PROJECT_NAME     = mp
+GENERATE_LATEX   = NO
+GENERATE_MAN     = NO
+GENERATE_RTF     = NO
+CASE_SENSE_NAMES = NO
+INPUT            =  ../src/ampltableconnector/include
+QUIET            = NO
+JAVADOC_AUTOBRIEF = YES
+AUTOLINK_SUPPORT = YES
+INLINE_INHERITED_MEMB = YES
+GENERATE_HTML = NO
+GENERATE_XML = YES
+RECURSIVE = YES
+XML_OUTPUT   = doxyxml
+ALIASES = "rst=\verbatim embed:rst"
+ALIASES += "endrst=\endverbatim"
+ALIASES += "rststar=\verbatim embed:rst:leading-asterisk"
+ALIASES += "endrststar=\endverbatim"
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+HIDE_FRIEND_COMPOUNDS  = YES
+PREDEFINED = __cplusplus 
