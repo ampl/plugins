@@ -76,7 +76,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/ampl/mp",
+            "url": "https://github.com/ampl/plugins",
             "icon": "fab fa-github"
         },
         {
@@ -104,7 +104,7 @@ html_theme_options = {
     ]
 }
 html_context = {
-    "theme_logo_text": "tables",
+    "theme_logo_text": "Plugins",
 }
 
 html_static_path = ['_static']
@@ -113,10 +113,10 @@ html_css_files = [
 ]
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "ampl::tables {} documentation".format(version)
+html_title = "ampl::plugins {} documentation".format(version)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "ampl::tables"
+html_short_title = "ampl::plugins"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -152,7 +152,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'tables.tex', u'ampl::tables Documentation',
+    ('index', 'tables.tex', u'ampl::plugins Documentation',
      u'Nicolau Santos', 'manual'),
 ]
 
