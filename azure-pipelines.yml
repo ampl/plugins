@@ -116,7 +116,6 @@ jobs:
         cmake .. -G "Visual Studio 16 2019" -A $ARCH
         cmake --build . -j 2 --config Release
         ctest -C Release
-        rm "$(which cpack).exe"
         cpack
       displayName: Build package
     - bash: |
