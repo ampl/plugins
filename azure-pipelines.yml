@@ -47,7 +47,6 @@ jobs:
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-
 - job: linux_iodbc
   pool: {vmImage: 'Ubuntu-20.04'}
   strategy:
@@ -81,7 +80,7 @@ jobs:
       displayName: Build package
     - bash: |
         BUILD_DIR=manylinux/linux$NBITS/
-        UPLOAD_DIR=$UPLOAD/linux$NBITS/
+        UPLOAD_DIR=$UPLOAD/linux-iodbc-$NBITS/
         mkdir -p $UPLOAD_DIR
         cp $BUILD_DIR/tables.zip $UPLOAD_DIR
       displayName: Upload package
