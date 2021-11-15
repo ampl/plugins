@@ -41,7 +41,7 @@ jobs:
       displayName: Build package
     - bash: |
         BUILD_DIR=manylinux/linux$NBITS/
-        UPLOAD_DIR=$UPLOAD/linux$NBITS/
+        UPLOAD_DIR=$UPLOAD/linux$NBITS-unixodbc/
         mkdir -p $UPLOAD_DIR
         cp $BUILD_DIR/tables.zip $UPLOAD_DIR
       displayName: Upload package
@@ -80,7 +80,7 @@ jobs:
       displayName: Build package
     - bash: |
         BUILD_DIR=manylinux/linux$NBITS/
-        UPLOAD_DIR=$UPLOAD/linux-iodbc-$NBITS/
+        UPLOAD_DIR=$UPLOAD/linux$NBITS-iodbc/
         mkdir -p $UPLOAD_DIR
         cp $BUILD_DIR/tables.zip $UPLOAD_DIR
       displayName: Upload package
@@ -114,7 +114,7 @@ jobs:
         cpack
       displayName: Build package
     - bash: |
-        UPLOAD_DIR=$UPLOAD/macos/
+        UPLOAD_DIR=$UPLOAD/macos-unixodbc/
         mkdir -p $UPLOAD_DIR
         cp build/tables.zip $UPLOAD_DIR
       displayName: Upload package
