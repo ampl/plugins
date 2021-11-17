@@ -8,9 +8,9 @@
 #include <sqlext.h>
 #include <cstring>
 
-#include "ampltableconnector.hpp"
+#include "amplp.hpp"
 
-using namespace amplt;
+using namespace amplp;
 
 //https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/c-data-types?view=sql-server-ver15
 std::unordered_set<SQLSMALLINT> sql_num_types ({
@@ -142,7 +142,7 @@ static std::string doc = name + "\n" + name + "-" + version + "\n" +
 ;
 
 class Handler:
-public Connector{
+public TableConnector{
 
 	private:
 
@@ -244,7 +244,7 @@ public Connector{
 
 	public:
 
-	Handler(AmplExports *ae, TableInfo *TI) : Connector(ae, TI){
+	Handler(AmplExports *ae, TableInfo *TI) : TableConnector(ae, TI){
 		handler_version = name + " - " + version;
 		henv = NULL;
 		hdbc = NULL;

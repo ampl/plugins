@@ -2,19 +2,19 @@
 
 #include <ctime>
 
-#include "ampltableconnector.hpp"
+#include "amplp.hpp"
 
-using namespace amplt;
+using namespace amplp;
 
 static std::string name = "amplcsv";
 static std::string version = "beta 0.0.6";
 
 class Handler:
-public Connector{
+public TableConnector{
 
 	public:
 
-	Handler(AmplExports *ae, TableInfo *TI) : Connector(ae, TI){
+	Handler(AmplExports *ae, TableInfo *TI) : TableConnector(ae, TI){
 
 	handler_version = name + " - " + version;
 

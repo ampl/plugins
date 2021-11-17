@@ -12,7 +12,7 @@ if(NOT SPHINX_EXECUTABLE)
   return()
 endif()
 
-add_prefix(doc_deps ../ src/ampltableconnector/include/ampltableconnector.hpp)
+add_prefix(doc_deps ../ src/amplp/include/amplp.hpp)
 
 set(DOC_BASEDIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(DOC_OUTPUTDIR ${CMAKE_CURRENT_BINARY_DIR}/html/)

@@ -37,11 +37,11 @@ macro(add_ampl_library name)
   endif ()
 endmacro()
 
-# ampltableconnector libraries
-add_subdirectory(ampltableconnector/examples/template)
-add_subdirectory(ampltableconnector/examples/basic)
-add_subdirectory(ampltableconnector/examples/amplcsv)
-add_subdirectory(ampltableconnector/examples/odbc)
+# amplp libraries
+add_subdirectory(amplp/examples/template)
+add_subdirectory(amplp/examples/basic)
+add_subdirectory(amplp/examples/amplcsv)
+add_subdirectory(amplp/examples/eodbc)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)

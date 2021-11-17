@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ampltableconnector.hpp"
+#include "amplp.hpp"
 
-using namespace amplt;
+using namespace amplp;
 
 static std::string name = "name";
 static std::string version = "version";
@@ -15,7 +15,7 @@ static std::string doc = name + "\n" + name + "-" + version + "\n" +
 ;
 
 class Handler:
-public Connector{
+public TableConnector{
 
 	// add aditional attributes and methods as needed
 
@@ -38,7 +38,7 @@ public Connector{
 
 	public:
 
-	Handler(AmplExports *ae, TableInfo *TI) : Connector(ae, TI){
+	Handler(AmplExports *ae, TableInfo *TI) : TableConnector(ae, TI){
 		handler_version = name + " - " + version;
 	};
 };

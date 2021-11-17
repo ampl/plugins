@@ -6,17 +6,17 @@ This section contains the reference to all the classes and functions in the tabl
 Connector
 ---------
 
-.. doxygenclass:: amplt::Connector
+.. doxygenclass:: amplp::TableConnector
    :members:
 
 Logger
 ------
 
-.. doxygenclass:: amplt::Logger
+.. doxygenclass:: amplp::Logger
    :members:
 
 FileHandler
 -----------
 
-.. doxygenclass:: amplt::FileHandler
+.. doxygenclass:: amplp::FileHandler
    :members:

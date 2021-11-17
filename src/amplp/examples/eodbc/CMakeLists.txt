@@ -6,10 +6,10 @@ if(ODBC_FOUND)
 	message(STATUS "ODBC_INCLUDE_DIR: ${ODBC_INCLUDE_DIR}")
 	message(STATUS "ODBC_LIBRARIES: ${ODBC_LIBRARIES}")
 
-	set(AMPLT_DIR ../../include)
+	set(AMPLP_DIR ../../include)
 
 	set(SRCDIR src)
-	set(SOURCES ${AMPLT_DIR}/ampltableconnector.hpp
+	set(SOURCES ${AMPLP_DIR}/amplp.hpp
 				${SRCDIR}/handler.hpp
 				${SRCDIR}/handler.cpp
 	)
@@ -19,7 +19,7 @@ if(ODBC_FOUND)
 	set_target_properties(eodbc PROPERTIES LINKER_LANGUAGE CXX)
 	set_property(TARGET eodbc PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-	target_include_directories(eodbc PRIVATE ${AMPLT_DIR})
+	target_include_directories(eodbc PRIVATE ${AMPLP_DIR})
 	target_include_directories(eodbc PRIVATE ${ODBC_INCLUDE_DIR})
 
 	target_link_libraries(eodbc ${ODBC_LIBRARIES})

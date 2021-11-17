@@ -31,7 +31,7 @@
  * - definitions from funcadd.h
  * - miscelaneous utility functions
  * - a Logger class
- * - a Connector class
+ * - a TableConnector class
  * A template is provided in
  *   /examples/template/src/
  * With the files handler.hpp and handler.cpp provided in the template we can be summarized the 
@@ -55,9 +55,9 @@
  */
 
 
-namespace amplt {
+namespace amplp {
 
-std::string amplt_version = "0.0.0";
+std::string amplp_version = "0.0.0";
 
 // Definitions from funcadd.h
 // These definitions provide the pointers to interact with AMPL and should not be changed
@@ -556,7 +556,7 @@ public:
 /**
  * Main class used to read, write and update tables.
 */
-class Connector {
+class TableConnector {
 
   private:
 	/**
@@ -648,17 +648,17 @@ class Connector {
 	/**
 	 * Add pointers to comunicate with AMPL.
 	*/
-	Connector(AmplExports *ae, TableInfo *TI){
+	TableConnector(AmplExports *ae, TableInfo *TI){
 		this->ae = ae;
 		this->TI = TI;
 
 		if (ae == NULL || TI == NULL) {
-			std::cout << "Connector: could not add ampl pointers." << std::endl;
+			std::cout << "TableConnector: could not add ampl pointers." << std::endl;
 			throw DBE_Error;
 		}
 		is_writer = false; // by default we assume the table handler is not a writer
 	};
-	virtual ~Connector(){};
+	virtual ~TableConnector(){};
 
 	/**
 	 * Helper function that encapsulates the necessary steps to read/write/update a table.
@@ -1328,7 +1328,7 @@ class Connector {
 
 	// End of functions to convert arguments from user_kargs
 
-	/** Provide a FileHandler object to be used with the Connector class.
+	/** Provide a FileHandler object to be used with the TableConnector class.
 	 */
 	FileHandler get_file_handler(
 		const std::string & filename,
@@ -1432,6 +1432,6 @@ bool case_insensitive_find(const std::string & val, const std::unordered_set<std
 
 /** AMPL expects a funcadd function to bridge AMPL and the external connector.
  */
-#define funcadd amplt::funcadd_ASL
+#define funcadd amplp::funcadd_ASL
 
 #endif
