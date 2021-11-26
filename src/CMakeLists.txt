@@ -42,6 +42,7 @@ add_subdirectory(amplp/examples/template)
 add_subdirectory(amplp/examples/basic)
 add_subdirectory(amplp/examples/amplcsv)
 add_subdirectory(amplp/examples/eodbc)
+add_subdirectory(amplp/examples/funclink)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
