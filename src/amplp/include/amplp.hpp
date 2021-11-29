@@ -403,6 +403,72 @@ enum DBE { /* return values from (*DbRead)(...) and (*DbWrite)(...) */
 		   DBE_Error = 2   /* Error reading or writing table. */
 };
 
+/**
+ * Class to encapsulate AMPL Exports functions
+ */
+class FunctionConnector {
+public:
+
+	AmplExports *ae;
+
+	FunctionConnector(AmplExports *ae){
+		this->ae = ae;
+	};
+
+	FILE* stderr(){
+		return ae->StdErr;
+	};
+
+
+	FILE* ampl_fopen(const char * filename, const char * mode){
+		return ae->Fopen(filename, mode);
+	};
+
+	int ampl_fclose(FILE * stream){
+		int res = ae->Fclose(stream);
+		return res;
+	};
+
+	int ampl_fprintf(FILE *stream, const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ae->VfprintF(stream, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_printf(const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ampl_vfprintf(ae->StdOut, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_sprintf(char *str, const char *format, ...){
+
+		va_list va;
+		va_start(va, format);
+		int res = ampl_vsprintf(str, format, va);
+		va_end(va);
+		return res;
+	};
+
+	int ampl_vfprintf(FILE *stream, const char *format, va_list arg){
+		return ae->VfprintF(stream, format, arg);
+	};
+
+	int ampl_vsprintf(char *buffer, const char *format, va_list arg){
+		return ae->VsprintF(buffer, format, arg);
+	};
+
+	double ampl_strtod(const char *str, char **endptr){
+		return ae->Strtod(str, endptr);
+	};
+};
+
 /** Log levels for the Logger Class.
  */
 enum LOG_LEVELS {
@@ -495,10 +561,10 @@ class Logger {
  * The created object will use AMPL's fprintf in order to read/write numbers from/to text files and 
  * close automaticaly if an exception is raised.
  */
-class FileHandler {
+class FileHandler:
+public FunctionConnector{
 
 private:
-	AmplExports *ae;
 	Logger logger;
 	FILE* f;
 	bool closed;
@@ -509,8 +575,9 @@ public:
 		Logger & logger,
 		const std::string & filename,
 		const std::string & mode
-	){
-		this->ae = ae;
+	)
+	: FunctionConnector(ae)
+	{
 		this->logger = logger;
 		f = ampl_fopen(filename.c_str(), mode.c_str());
 
@@ -523,26 +590,17 @@ public:
 	~FileHandler(){
 		close();
 	};
-	void ampl_fprintf(const char *format, ...){
+	void fprintf(const char *format, ...){
 
 		va_list va;
 		va_start(va, format);
-		int res = ae->VfprintF(f, format, va);
+		int res = ampl_fprintf(f, format, va);
 		va_end(va);
 		if (res < 0){
 			std::string log_msg = "FileHandler: ampl_fprintf error: " + numeric_to_string(res);
 			logger.log(log_msg, LOG_ERROR);
 			throw DBE_Error;
 		};
-	};
-
-	FILE* ampl_fopen(const char * filename, const char * mode){
-		return ae->Fopen(filename, mode);
-	};
-
-	int ampl_fclose(FILE * stream){
-		int res = ae->Fclose(stream);
-		return res;
 	};
 
 	void close(){
@@ -552,6 +610,7 @@ public:
 		}
 	};
 };
+
 
 /**
  * Main class used to read, write and update tables.
