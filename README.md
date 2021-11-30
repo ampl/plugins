@@ -4,7 +4,7 @@
 
 Either clone this repository recursively:
 ```
-git clone --recursive https://github.com/ampl/tables.git
+git clone --recursive https://github.com/ampl/plugins.git
 ``` 
 or, after cloning, check out the submodules:
 ```
