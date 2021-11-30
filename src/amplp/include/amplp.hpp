@@ -415,9 +415,9 @@ public:
 		this->ae = ae;
 	};
 
-	FILE* stderr(){
-		return ae->StdErr;
-	};
+	//~ FILE* stderr(){
+		//~ return ae->StdErr;
+	//~ };
 
 
 	FILE* ampl_fopen(const char * filename, const char * mode){
