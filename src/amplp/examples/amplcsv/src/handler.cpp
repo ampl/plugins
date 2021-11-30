@@ -245,17 +245,17 @@ Handler::write_header(FileHandler & f, std::vector<std::string> & header){
 	for (size_t j = 0; j < header.size(); j++){
 
 		if (quotestrings){
-			f.ampl_fprintf ("%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
+			f.fprintf ("%s%s%s", quotechar.c_str(), header[j].c_str(), quotechar.c_str());
 		}
 		else{
-			f.ampl_fprintf ("%s", header[j].c_str());
+			f.fprintf ("%s", header[j].c_str());
 		}
 		// add separator
 		if (j < header.size() - 1){
-			f.ampl_fprintf ("%s", sep.c_str());
+			f.fprintf ("%s", sep.c_str());
 		}
 	}
-	f.ampl_fprintf ("\n");
+	f.fprintf ("\n");
 };
 
 
@@ -278,22 +278,22 @@ Handler::write_data_ampl(FileHandler & f){
 				// if value is missing don't write anything
 				if (is_missing(i, j)){}
 				else if (quotestrings){
-					f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
+					f.fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, j), quotechar.c_str());
 				}
 				else{
-					f.ampl_fprintf ("%s", get_char_val(i, j));
+					f.fprintf ("%s", get_char_val(i, j));
 				}
 			}
 			// otherwise element is numeric
 			else{
-				f.ampl_fprintf ("%.g", get_numeric_val(i, j));
+				f.fprintf ("%.g", get_numeric_val(i, j));
 			}
 			// add separator
 			if (j < ncols() - 1){
-				f.ampl_fprintf ("%s", sep.c_str());
+				f.fprintf ("%s", sep.c_str());
 			}
 		}
-		f.ampl_fprintf ("\n");
+		f.fprintf ("\n");
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
@@ -330,22 +330,22 @@ Handler::write_data_perm(FileHandler & f, std::vector<int>& perm){
 
 					if (is_missing(i, j)){}
 					else if (quotestrings){
-						f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+						f.fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
 					}
 					else{
-						f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
+						f.fprintf ("%s", get_char_val(i, ampl_col));
 					}
 				}
 				else{
 					// numeric value
-					f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
+					f.fprintf ("%.g", get_numeric_val(i, ampl_col));
 				}
 			}
 			if (j < perm.size() - 1){
-				f.ampl_fprintf ("%s", sep.c_str());
+				f.fprintf ("%s", sep.c_str());
 			}
 		}
-		f.ampl_fprintf ("\n");
+		f.fprintf ("\n");
 	}
 	std::clock_t c_end = std::clock();
 	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
@@ -475,7 +475,7 @@ Handler::write_inout(){
 					str += sep;
 				}
 			}
-			f.ampl_fprintf ("%s\n", str.c_str());
+			f.fprintf ("%s\n", str.c_str());
 		}
 		else{
 			// the row is in ampl and in the csv
@@ -494,25 +494,25 @@ Handler::write_inout(){
 
 						if (is_missing(i, j)){}
 						else if (quotestrings){
-							f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+							f.fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
 						}
 						else{
-							f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
+							f.fprintf ("%s", get_char_val(i, ampl_col));
 						}
 					}
 					else{
 						// numeric value
-						f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
+						f.fprintf ("%.g", get_numeric_val(i, ampl_col));
 					}
 				}
 				else{
-					f.ampl_fprintf ("%s", row[j].c_str());
+					f.fprintf ("%s", row[j].c_str());
 				}
 				if (j < perm.size() - 1){
-					f.ampl_fprintf ("%s", sep.c_str());
+					f.fprintf ("%s", sep.c_str());
 				}
 			}
-			f.ampl_fprintf ("\n");
+			f.fprintf ("\n");
 		}
 	}
 
@@ -530,22 +530,22 @@ Handler::write_inout(){
 
 						if (is_missing(i, j)){}
 						else if (quotestrings){
-							f.ampl_fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
+							f.fprintf ("%s%s%s", quotechar.c_str(), get_char_val(i, ampl_col), quotechar.c_str());
 						}
 						else{
-							f.ampl_fprintf ("%s", get_char_val(i, ampl_col));
+							f.fprintf ("%s", get_char_val(i, ampl_col));
 						}
 					}
 					else{
 						// numeric value
-						f.ampl_fprintf ("%.g", get_numeric_val(i, ampl_col));
+						f.fprintf ("%.g", get_numeric_val(i, ampl_col));
 					}
 				}
 				if (j < perm.size() - 1){
-					f.ampl_fprintf ("%s", sep.c_str());
+					f.fprintf ("%s", sep.c_str());
 				}
 			}
-			f.ampl_fprintf ("\n");
+			f.fprintf ("\n");
 		}
 	}
 
@@ -1094,7 +1094,7 @@ Handler::write_remaining_rows(
 					str += sep;
 				}
 			}
-			f.ampl_fprintf ("%s\n", str.c_str());
+			f.fprintf ("%s\n", str.c_str());
 		}
 		// we could also track duplicate rows here, but we'll assume everything is ok
 	}

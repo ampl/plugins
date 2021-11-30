@@ -597,7 +597,7 @@ public:
 		int res = ampl_fprintf(f, format, va);
 		va_end(va);
 		if (res < 0){
-			std::string log_msg = "FileHandler: ampl_fprintf error: " + numeric_to_string(res);
+			std::string log_msg = "FileHandler: fprintf error: " + numeric_to_string(res);
 			logger.log(log_msg, LOG_ERROR);
 			throw DBE_Error;
 		};
