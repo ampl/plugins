@@ -615,17 +615,16 @@ public:
 /**
  * Main class used to read, write and update tables.
 */
-class TableConnector {
-
+class TableConnector:
+public FunctionConnector{
   private:
 	/**
 	 * Auxiliary vector to keep string data in memory before passing it to AMPL.
 	*/
 	std::vector<std::string> tmp_row;
 
-	// pointers to AMPL
+	// pointers to struct with table information
 	TableInfo *TI;
-	AmplExports *ae;
 
 	/** Sets the size of tmp_row from the number of columns in AMPL's table.
 	 */
@@ -707,8 +706,9 @@ class TableConnector {
 	/**
 	 * Add pointers to comunicate with AMPL.
 	*/
-	TableConnector(AmplExports *ae, TableInfo *TI){
-		this->ae = ae;
+	TableConnector(AmplExports *ae, TableInfo *TI)
+	: FunctionConnector(ae)
+	{
 		this->TI = TI;
 
 		if (ae == NULL || TI == NULL) {
@@ -1145,60 +1145,60 @@ class TableConnector {
 
 	// End of table info functions
 
-	// AMPL Exports functions
-	// Replacement functions for fprintf, printf, sprintf, vfprintf, vsprintf and strtod.
-	// These functions should be used instead of of standart library ones to prevent errors derived
-	// from diferent compiler implementations.
+	//~ // AMPL Exports functions
+	//~ // Replacement functions for fprintf, printf, sprintf, vfprintf, vsprintf and strtod.
+	//~ // These functions should be used instead of of standart library ones to prevent errors derived
+	//~ // from diferent compiler implementations.
 
-	FILE* ampl_fopen(const char * filename, const char * mode){
-		return ae->Fopen(filename, mode);
-	};
+	//~ FILE* ampl_fopen(const char * filename, const char * mode){
+		//~ return ae->Fopen(filename, mode);
+	//~ };
 
-	int ampl_fclose(FILE * stream){
-		int res = ae->Fclose(stream);
-		return res;
-	};
+	//~ int ampl_fclose(FILE * stream){
+		//~ int res = ae->Fclose(stream);
+		//~ return res;
+	//~ };
 
-	int ampl_fprintf(FILE *stream, const char *format, ...){
+	//~ int ampl_fprintf(FILE *stream, const char *format, ...){
 
-		va_list va;
-		va_start(va, format);
-		int res = ae->VfprintF(stream, format, va);
-		va_end(va);
-		return res;
-	};
+		//~ va_list va;
+		//~ va_start(va, format);
+		//~ int res = ae->VfprintF(stream, format, va);
+		//~ va_end(va);
+		//~ return res;
+	//~ };
 
-	int ampl_printf(const char *format, ...){
+	//~ int ampl_printf(const char *format, ...){
 
-		va_list va;
-		va_start(va, format);
-		int res = ampl_vfprintf(ae->StdOut, format, va);
-		va_end(va);
-		return res;
-	};
+		//~ va_list va;
+		//~ va_start(va, format);
+		//~ int res = ampl_vfprintf(ae->StdOut, format, va);
+		//~ va_end(va);
+		//~ return res;
+	//~ };
 
-	int ampl_sprintf(char *str, const char *format, ...){
+	//~ int ampl_sprintf(char *str, const char *format, ...){
 
-		va_list va;
-		va_start(va, format);
-		int res = ampl_vsprintf(str, format, va);
-		va_end(va);
-		return res;
-	};
+		//~ va_list va;
+		//~ va_start(va, format);
+		//~ int res = ampl_vsprintf(str, format, va);
+		//~ va_end(va);
+		//~ return res;
+	//~ };
 
-	int ampl_vfprintf(FILE *stream, const char *format, va_list arg){
-		return ae->VfprintF(stream, format, arg);
-	};
+	//~ int ampl_vfprintf(FILE *stream, const char *format, va_list arg){
+		//~ return ae->VfprintF(stream, format, arg);
+	//~ };
 
-	int ampl_vsprintf(char *buffer, const char *format, va_list arg){
-		return ae->VsprintF(buffer, format, arg);
-	};
+	//~ int ampl_vsprintf(char *buffer, const char *format, va_list arg){
+		//~ return ae->VsprintF(buffer, format, arg);
+	//~ };
 
-	double ampl_strtod(const char *str, char **endptr){
-		return ae->Strtod(str, endptr);
-	};
+	//~ double ampl_strtod(const char *str, char **endptr){
+		//~ return ae->Strtod(str, endptr);
+	//~ };
 
-	// End of AMPL Exports functions
+	//~ // End of AMPL Exports functions
 
 	/** Parse and validate arguments, ensure the external table is found.
 	 */
