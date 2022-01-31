@@ -1156,7 +1156,7 @@ Handler::table_exists(){
 		logger.log(log_msg, LOG_INFO);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	return exists;
@@ -1177,7 +1177,7 @@ Handler::table_create(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1196,7 +1196,7 @@ Handler::table_delete(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1215,7 +1215,7 @@ Handler::table_drop(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1447,7 +1447,7 @@ Handler::get_odbc_col_types(){
 		logger.log(log_msg, LOG_DEBUG);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1501,7 +1501,7 @@ Handler::get_db_supported_types(){
 		db_supported_types.insert(dataType);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	log_msg = "db_supported_types = [";
@@ -1828,7 +1828,7 @@ Handler::get_table_types(){
 		logger.log(log_msg, LOG_DEBUG);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	return tabletypes;
