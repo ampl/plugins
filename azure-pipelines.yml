@@ -108,7 +108,7 @@ jobs:
         git submodule update --init --recursive --remote
         mkdir build
         cd build
-        cmake ..
+        cmakd .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
         make all -j2
         ctest
         cpack
@@ -159,7 +159,7 @@ jobs:
         git submodule update --init --recursive --remote
         mkdir build
         cd build
-        cmake ..
+        cmakd .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
         make all -j2
         ctest
         cpack
