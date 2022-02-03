@@ -1036,11 +1036,19 @@ Handler::alloc_and_connect(){
 				hdbc, SQL_HANDLE_DBC);
 
 	// Set Auto Commit
-	if (!autocommit){
-		retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, 0, 0);
-		check_error(retcode, (char*)"SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
-															hdbc, SQL_HANDLE_DBC);
+	if (!is_writer){
+		autocommit = true;
 	}
+
+	if (!autocommit){
+		retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)0, 0);
+	}
+	else{
+		retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)1, 0);
+	}
+
+	check_error(retcode, (char*)"SQLSetConnectAttr(SQL_ATTR_AUTOCOMMIT)",
+														hdbc, SQL_HANDLE_DBC);
 
 	std::string connstr;
 	if (!driver.empty()){connstr = driver;}
@@ -1156,7 +1164,7 @@ Handler::table_exists(){
 		logger.log(log_msg, LOG_INFO);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	return exists;
@@ -1177,7 +1185,7 @@ Handler::table_create(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1196,7 +1204,14 @@ Handler::table_delete(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+
+	if (!autocommit){
+		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
+		check_error(retcode, "SQLEndTran()", hstmt,
+					SQL_HANDLE_STMT);
+	}
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1215,7 +1230,7 @@ Handler::table_drop(){
 		check_error(retcode, (char*)"SQLExecDirect(SQL_HANDLE_ENV)",
 				hstmt, SQL_HANDLE_STMT);
 	}
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1447,7 +1462,7 @@ Handler::get_odbc_col_types(){
 		logger.log(log_msg, LOG_DEBUG);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
@@ -1501,7 +1516,7 @@ Handler::get_db_supported_types(){
 		db_supported_types.insert(dataType);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	log_msg = "db_supported_types = [";
@@ -1828,7 +1843,7 @@ Handler::get_table_types(){
 		logger.log(log_msg, LOG_DEBUG);
 	}
 
-	retcode = SQLFreeStmt(hstmt, SQL_RESET_PARAMS);
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 
 	return tabletypes;
