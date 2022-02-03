@@ -1064,7 +1064,8 @@ Handler::alloc_and_connect(){
 	logger.log(log_msg, LOG_INFO);
 
 	retcode = SQLDriverConnect(hdbc, NULL, (SQLCHAR*)connstr.c_str(), SQL_NTS,
-					 NULL, 0, NULL, SQL_DRIVER_COMPLETE);
+					 //~ NULL, 0, NULL, SQL_DRIVER_COMPLETE);
+					 NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
 	check_error(retcode, (char*)"SQLDriverConnect(DATASOURCE)",
                 hdbc, SQL_HANDLE_DBC);
 
