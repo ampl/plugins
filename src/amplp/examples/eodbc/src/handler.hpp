@@ -242,6 +242,8 @@ public TableConnector{
 	std::string
 	get_SQLBindParameter_string(int paramnum, int amplcol, int ttype, int ctype, int sqltype);
 
+	std::string get_db_type(SQLSMALLINT test_type);
+
 	public:
 
 	Handler(AmplExports *ae, TableInfo *TI) : TableConnector(ae, TI){

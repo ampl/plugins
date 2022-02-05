@@ -367,48 +367,37 @@ Handler::get_stmt_delete(){
 std::string
 Handler::get_stmt_create(){
 
-	// get the data types supported by the database
-	std::unordered_set<SQLSMALLINT> db_supported_types = get_db_supported_types();
-
 	// one of the following data types must be supported by the Database
-	// SQL_DOUBLE is the preferred, others might loose precision
+	// SQL_DOUBLE is the preferred
 	std::vector<SQLSMALLINT> prefnumtypes = {SQL_DOUBLE, SQL_FLOAT, SQL_REAL, SQL_NUMERIC};
+	std::vector<std::string> prefnumtypesnames = {"SQL_DOUBLE", "SQL_FLOAT", "SQL_REAL", "SQL_NUMERIC"};
 
-	std::unordered_map<SQLSMALLINT, std::string> numtypesmap = {
-		{SQL_DOUBLE, "DOUBLE"},
-		{SQL_FLOAT, "FLOAT"},
-		{SQL_REAL, "REAL"},
-		{SQL_NUMERIC, "NUMERIC"}
-	};
-
-	// find a compatible data type in the available ones
 	bool found = false;
 	std::string tmp_str;
 
-	for(size_t i = 0; i < prefnumtypes.size(); i++){
+	for(int i = 0; i < prefnumtypes.size(); i++){
 
-		SQLSMALLINT testtype = prefnumtypes[i];
+		tmp_str = get_db_type(prefnumtypes[i]);
 
-		if (db_supported_types.find(testtype) != db_supported_types.end()){
-
-			tmp_str = " " + numtypesmap[testtype];
+		if (!tmp_str.empty()){
 			found = true;
+			log_msg =  prefnumtypesnames[i] + " -> " + tmp_str;
+			logger.log(log_msg, LOG_DEBUG);
 			break;
 		}
 		else{
-			log_msg = "DB does not support " + numtypesmap[testtype];
-			logger.log(log_msg, LOG_INFO);
+			log_msg = "Cannot find SQL type for " + prefnumtypesnames[i];
+			logger.log(log_msg, LOG_DEBUG);
 		}
 	}
 
 	if (!found){
-		log_msg = "No suitable numeric type found to create table.";
+		log_msg = "Could not find SQL synonym for SQL_DOUBLE.";
 		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;
 	}
 
 	// We assume VARCHAR is supported
-
 	std::string stmt = "CREATE TABLE ";
 	stmt += table_name;
 	stmt += " (";
@@ -420,12 +409,10 @@ Handler::get_stmt_create(){
 			stmt += " VARCHAR(255)";
 		}
 		else{
+			stmt += " ";
 			stmt += tmp_str;
 		}
-
-		//~ if (i + 1 < ncols()){
-			stmt += ", ";
-		//~ }
+		stmt += ", ";
 	}
 
 	stmt += "PRIMARY KEY (";
@@ -1467,7 +1454,7 @@ Handler::get_odbc_col_types(){
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
 };
 
-
+/*
 std::unordered_set<SQLSMALLINT>
 Handler::get_db_supported_types(){
 
@@ -1476,8 +1463,9 @@ Handler::get_db_supported_types(){
 	SQLCHAR typeName[128];
 	SQLSMALLINT dataType;
 	SQLINTEGER columnSize;
+	SQLINTEGER sqtype;
 
-	SQLLEN typeName_ind, dataType_ind, columnSize_ind;
+	SQLLEN typeName_ind, dataType_ind, columnSize_ind, sqtype_ind;
 
 	retcode = SQLGetTypeInfo(hstmt, SQL_ALL_TYPES);
 	check_error(retcode, (char*)"SQLGetTypeInfo", hstmt, SQL_HANDLE_STMT);
@@ -1497,6 +1485,13 @@ Handler::get_db_supported_types(){
 						(SQLLEN) sizeof(columnSize), &columnSize_ind);
 	check_error(retcode, (char*)"SQLBindCol(2)", hstmt, SQL_HANDLE_STMT);
 
+	retcode = SQLBindCol(hstmt, 16, SQL_C_ULONG,
+						(SQLPOINTER) &sqtype,
+						(SQLLEN) sizeof(sqtype), &sqtype_ind);
+	check_error(retcode, (char*)"SQLBindCol(2)", hstmt, SQL_HANDLE_STMT);
+
+
+
 	//~ printf("SQL Data Type             Type Name                 Value"
 																//~ "Max Size\n");
 	//~ printf("------------------------- ------------------------- -------"
@@ -1504,18 +1499,26 @@ Handler::get_db_supported_types(){
 
 	//~ std::cout << "DB supported data types" << std::endl;
 
+	std::cout << std::endl;
+
 	// Fetch each row, and display
 	while ((retcode = SQLFetch(hstmt)) == SQL_SUCCESS) {
 
-		//~ std::cout << typeName;
-		//~ std::cout << ", ";
-		//~ std::cout << dataType;
-		//~ std::cout << ", ";
-		//~ std::cout << columnSize;
-		//~ std::cout << std::endl;
+		std::cout << typeName;
+		std::cout << ", ";
+		std::cout << dataType;
+		std::cout << ", ";
+		std::cout << columnSize;
+		std::cout << ", ";
+		std::cout << sqtype;
+		std::cout << std::endl;
+
+		db_types[sqtype] = (char*)typeName;
 
 		db_supported_types.insert(dataType);
 	}
+
+	std::cout << std::endl;
 
 	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
 	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
@@ -1531,6 +1534,38 @@ Handler::get_db_supported_types(){
 
 	return db_supported_types;
 };
+*/
+
+
+std::string
+Handler::get_db_type(SQLSMALLINT test_type){
+
+	SQLCHAR typeName[128];
+	SQLLEN typeName_ind;
+
+	retcode = SQLGetTypeInfo(hstmt, test_type);
+	check_error(retcode, (char*)"SQLGetTypeInfo", hstmt, SQL_HANDLE_STMT);
+
+	retcode = SQLBindCol(hstmt, 1, SQL_C_CHAR,
+						(SQLPOINTER) typeName,
+						(SQLLEN) sizeof(typeName), &typeName_ind);
+	check_error(retcode, (char*)"SQLBindCol(1)", hstmt, SQL_HANDLE_STMT);
+
+	std::string str_type;
+
+	// Fetch each row, and display
+	while ((retcode = SQLFetch(hstmt)) == SQL_SUCCESS) {
+
+		str_type = (char*)typeName;
+		break;
+	}
+
+	retcode = SQLFreeStmt(hstmt, SQL_CLOSE);
+	check_error(retcode, (char*)"SQLFreeStmt()", hstmt, SQL_HANDLE_STMT);
+
+	return str_type;
+};
+
 
 std::string
 Handler::get_timestamp_info(TIMESTAMP_STRUCT* ts){
