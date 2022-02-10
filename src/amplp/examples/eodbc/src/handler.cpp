@@ -412,17 +412,21 @@ Handler::get_stmt_create(){
 			stmt += " ";
 			stmt += tmp_str;
 		}
-		stmt += ", ";
-	}
-
-	stmt += "PRIMARY KEY (";
-	for (size_t i = 0; i < nkeycols(); i++){
-		stmt += get_col_name(i);
-		if (i + 1 < nkeycols()){
+		if (i < ncols() - 1){
 			stmt += ", ";
 		}
 	}
-	stmt += ")";
+
+	if(create_primary_keys){
+		stmt += ", PRIMARY KEY (";
+		for (size_t i = 0; i < nkeycols(); i++){
+			stmt += get_col_name(i);
+			if (i + 1 < nkeycols()){
+				stmt += ", ";
+			}
+		}
+		stmt += ")";
+	}
 	stmt += ");";
 
 	return stmt;
@@ -861,7 +865,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"autocommit", "write", "DRIVER", "SQL", "DSN"};
+	allowed_kargs = {"autocommit", "primarykeys", "write", "DRIVER", "SQL", "DSN"};
 };
 
 
@@ -875,11 +879,14 @@ Handler::validate_arguments(){
 
 		std::string key = it.first;
 
-		//~ if (key == "autocommit"){
 		if (compare_strings_lower(key, "autocommit")){
 			autocommit = get_bool_karg(key);
 		}
-		//~ else if (key == "write"){
+
+		else if (compare_strings_lower(key, "primarykeys")){
+			create_primary_keys = get_bool_karg(key);
+		}
+
 		else if (compare_strings_lower(key, "write")){
 			std::string val = it.second;
 
@@ -928,11 +935,9 @@ Handler::validate_arguments(){
 				throw DBE_Error;
 			}
 		}
-		//~ else if (key == "DRIVER"){
 		else if (compare_strings_lower(key, "DRIVER")){
 			driver = "Driver=" + it.second;
 		}
-		//~ else if (key == "DSN"){
 		else if (compare_strings_lower(key, "DSN")){
 			driver = "DSN=" + it.second;
 		}
@@ -941,32 +946,6 @@ Handler::validate_arguments(){
 		}
 	}
 
-	//~ std::string tempstr;
-	//~ for (size_t i=0; i<ampl_args.size(); i++){
-
-		//~ std::string arg = ampl_args[i];
-
-		//~ tempstr = "DRIVER=";
-		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
-			//~ driver = arg;
-		//~ }
-
-		//~ tempstr = "SQL=";
-		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
-			//~ sql = arg.substr(tempstr.size());
-			//~ if (is_writer){
-				//~ log_msg = "SQL declaration only accepted when reading data. Ignoring: " + arg;
-				//~ logger.log(log_msg, LOG_WARNING);
-			//~ }
-		//~ }
-
-		//~ tempstr = "DSN=";
-		//~ if (!arg.compare(0, tempstr.size(), tempstr)){
-			//~ dsn = arg;
-		//~ }
-	//~ }
-
-	//~ if (inout != "IN"){
 	if (is_writer){
 		get_ampl_col_types();
 	}
