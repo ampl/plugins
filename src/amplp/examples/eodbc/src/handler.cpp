@@ -592,6 +592,11 @@ Handler::write_inout(){
 		return;
 	}
 
+	if (ndatacols() == 0){
+		log_msg = "Updating table without data columns.";
+		logger.log(log_msg, LOG_WARNING);
+	}
+
 	char buff[1000];
 
 	std::unordered_map<std::string, int> table_types = get_table_types();
