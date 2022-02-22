@@ -961,8 +961,7 @@ Handler::validate_arguments(){
 		}
 		else{
 			log_msg = "Could not find table " + table_name;
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
+			logger.log(log_msg, LOG_WARNING);
 		}
 	}
 	else{
