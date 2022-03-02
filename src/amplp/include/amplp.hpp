@@ -594,7 +594,7 @@ public:
 
 		va_list va;
 		va_start(va, format);
-		int res = ampl_fprintf(f, format, va);
+		int res = ae->VfprintF(f, format, va);
 		va_end(va);
 		if (res < 0){
 			std::string log_msg = "FileHandler: fprintf error: " + numeric_to_string(res);
