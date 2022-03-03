@@ -37,11 +37,12 @@ macro(add_ampl_library name)
   endif ()
 endmacro()
 
-# ampltableconnector libraries
-add_subdirectory(ampltableconnector/examples/template)
-add_subdirectory(ampltableconnector/examples/basic)
-add_subdirectory(ampltableconnector/examples/amplcsv)
-add_subdirectory(ampltableconnector/examples/odbc)
+# amplp libraries
+add_subdirectory(amplp/examples/template)
+add_subdirectory(amplp/examples/basic)
+add_subdirectory(amplp/examples/amplcsv)
+add_subdirectory(amplp/examples/eodbc)
+add_subdirectory(amplp/examples/funclink)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
@@ -75,6 +76,7 @@ endif (SQLite3_FOUND)
 # zlibstatic that we can link statically to
 set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 add_subdirectory(amplxl/zlib-1.2.11)
+addToTablesFolder(support zlib zlibstatic minigzip)
 set(ZLIB_INCLUDE_DIRS amplxl/zlib-1.2.11 ${CMAKE_CURRENT_BINARY_DIR}/amplxl/zlib-1.2.11 amplxl/zlib-1.2.11/contrib/minizip)
 set(ZLIB_LIBRARIES zlibstatic)
 
