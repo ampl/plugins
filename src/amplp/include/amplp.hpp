@@ -410,15 +410,16 @@ class FunctionConnector {
 public:
 
 	AmplExports *ae;
+	FILE* ampl_stderr;
+	FILE* ampl_stdin;
+	FILE* ampl_stdout;
 
 	FunctionConnector(AmplExports *ae){
 		this->ae = ae;
+		ampl_stderr = ae->StdErr;
+		ampl_stdin = ae->StdIn;
+		ampl_stdout = ae->StdOut;
 	};
-
-	//~ FILE* stderr(){
-		//~ return ae->StdErr;
-	//~ };
-
 
 	FILE* ampl_fopen(const char * filename, const char * mode){
 		return ae->Fopen(filename, mode);
@@ -462,6 +463,10 @@ public:
 
 	int ampl_vsprintf(char *buffer, const char *format, va_list arg){
 		return ae->VsprintF(buffer, format, arg);
+	};
+
+	int ampl_vsnprintf(char * s, size_t n, const char * format, va_list arg ){
+		return ae->VsnprintF(s, n, format, arg);
 	};
 
 	double ampl_strtod(const char *str, char **endptr){
