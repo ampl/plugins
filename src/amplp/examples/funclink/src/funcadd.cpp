@@ -57,7 +57,7 @@ sginv(arglist *al)	/* character-valued version of ginv */
 	/* A nonreentrant alternative would be to declare */
 	/*	static char buf[32];	*/
 	char *buf = (char*)ae->Tempmem(al->TMI, 32);
-	sprintf(buf, "x%.g", x ? 1./x : 0);
+	ae->SprintF(buf, "x%.g", x ? 1./x : 0);
 	return buf;
 	}
 
@@ -126,14 +126,14 @@ mean(arglist *al)	/* mean of arbitrarily many arguments */
 			++de;
 			}
 		else {
-			x += z = strtod(sym = al->sa[-(j+1)], &se);
+			x += z = ae->Strtod(sym = al->sa[-(j+1)], &se);
 			if (*se) {
-				fprintf(ae->StdErr,
+				ae->FprintF(ae->StdErr,
 				"mean treating arg %d = \"%s\" as %.g\n",
 					i, sym, z);
 				/* Stderr may be stdout on some systems, */
 				/* so flushing it is recommended. */
-				fflush(ae->StdErr);
+				ae->Fflush(ae->StdErr);
 				}
 			}
 	if (d) {
@@ -160,14 +160,14 @@ kth(arglist *al)	/* kth(k,a1,a2,...,an) return ak */
 	n = al->n;
 	if (k < 0) {
 		al->Errmsg = buf = (char*)ae->Tempmem(al->TMI, 64);
-		sprintf(buf, "kth(k,...) has k = %d < 0", k);
+		ae->SprintF(buf, "kth(k,...) has k = %d < 0", k);
 		return buf;
 		}
 	if (n <= 1 || k <= 0 || k >= n)
 		return "";
 	if ((j = al->at[k]) >= 0) {
 		buf = (char*)ae->Tempmem(al->TMI, 32);
-		sprintf(buf, "%.g", al->ra[j]);
+		ae->SprintF(buf, "%.g", al->ra[j]);
 		return buf;
 		}
 	return al->sa[-(j+1)];
@@ -179,7 +179,7 @@ get_env(arglist *al)	/* test/demonstrate ae->Getenv */
 	AmplExports *ae = al->AE;
 
 	if (al->at[0])
-		return getenv(al->sa[0]);
+		return ae->Getenv(al->sa[0]);
 	return "";
 	}
 
@@ -198,7 +198,7 @@ At_end(void *v)
 {
 	Aeinfo *aei = (Aeinfo *)v;
 	AmplExports *ae = aei->ae;
-	printf("Got to At_end: n = %d\n", aei->n);
+	ae->PrintF("Got to At_end: n = %d\n", aei->n);
 	}
 
  static void
@@ -206,7 +206,7 @@ At_reset(void *v)
 {
 	Aeinfo *aei = (Aeinfo *)v;
 	AmplExports *ae = aei->ae;
-	printf("Got to At_reset: n = %d\n", aei->n);
+	ae->PrintF("Got to At_reset: n = %d\n", aei->n);
 	}
 
 static double
