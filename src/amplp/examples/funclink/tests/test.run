@@ -1,0 +1,29 @@
+reset;
+
+load funclink.dll;
+
+function ginv;
+function sginv symbolic;
+function hypot;
+function ncall;
+function rncall random;
+function mean0;
+function mean;
+function kth symbolic;
+function getenv symbolic;
+function ginvae;
+function io_fc;
+
+display{i in -3..3} ginv(i);
+display{i in -3..3} sginv(i);
+display{i in -3..3, j in -3..3} hypot(i, j);
+display ncall();
+display rncall();
+display mean0({i in {1..10}} i);
+display mean({i in {1, "1", 2}} i);
+display {i in 1..3} kth(i,'a',i+10,'Last arg');
+display getenv("Path");
+display {i in 1..3} ginvae(i);
+call io_fc();
+
+unload funclink.dll;
