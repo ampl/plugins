@@ -152,6 +152,7 @@ public TableConnector{
 	std::string write;
 	bool autocommit;
 	bool create_primary_keys;
+	bool nsmix;
 	std::vector<int> amplcoltypes; // 0 numeric, 1 string, 2 mixed
 	std::map<int, SQLSMALLINT> t_num_types; // odbc table numeric type for each column (0 indexed)
 	std::map<int, std::string> t_str_types; // odbc table string type for each column (0 indexed)
@@ -256,6 +257,7 @@ public TableConnector{
 		write = "DELETE";
 		autocommit = false;
 		create_primary_keys = true;
+		nsmix = false;
 	};
 
 	~Handler();

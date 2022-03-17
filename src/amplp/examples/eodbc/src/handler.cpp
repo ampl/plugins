@@ -252,7 +252,23 @@ Handler::read_in(){
 					set_col_val(*(double*)ColumnData[j], perm[j]);
 				}
 				else{
-					set_col_val((char*)ColumnData[j], perm[j]);
+					if (nsmix){
+
+						char* se;
+						double t;
+
+						// check if val is a number
+						t = ampl_strtod((char*)ColumnData[j], &se);
+						if (!*se) {//valid number
+							set_col_val(t, perm[j]);
+						}
+						else{
+							set_col_val((char*)ColumnData[j], perm[j]);
+						}
+					}
+					else{
+						set_col_val((char*)ColumnData[j], perm[j]);
+					}
 				}
 			}
 		}
@@ -865,7 +881,7 @@ Handler::register_handler_kargs(){
 	log_msg = "<register_handler_kargs>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	allowed_kargs = {"autocommit", "primarykeys", "write", "DRIVER", "SQL", "DSN"};
+	allowed_kargs = {"autocommit", "primarykeys", "write", "DRIVER", "SQL", "DSN", "nsmix"};
 };
 
 
@@ -885,6 +901,10 @@ Handler::validate_arguments(){
 
 		else if (compare_strings_lower(key, "primarykeys")){
 			create_primary_keys = get_bool_karg(key);
+		}
+
+		else if (compare_strings_lower(key, "nsmix")){
+			nsmix = get_bool_karg(key);
 		}
 
 		else if (compare_strings_lower(key, "write")){
