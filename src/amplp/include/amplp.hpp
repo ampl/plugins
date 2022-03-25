@@ -62,10 +62,10 @@ std::string amplp_version = "0.0.0";
 // Definitions from funcadd.h
 // These definitions provide the pointers to interact with AMPL and should not be changed
 
-typedef struct cryptblock cryptblock;
 
 extern "C" {
 
+typedef struct cryptblock cryptblock;
 typedef struct arglist arglist;
 typedef struct function function;
 typedef struct TVA TVA;
@@ -115,6 +115,20 @@ struct arglist {     /* Information sent to user-defined functions */
 
 typedef double (*rfunc)(arglist *);
 typedef double(ufunc)(arglist *);
+
+ struct
+cryptblock {
+	size_t bin;	/* number of input bytes */
+	size_t bout;	/* number of output bytes */
+	size_t bscr;	/* bytes in scratch array (below) */
+	size_t state;	/* decoder manipulates as it sees fit */
+	void *scratch;	/* decoder uses this as it sees fit */
+	void *misc;	/* decoder uses this as it sees fit; crypto */
+			/* initializes misc = scratch.  During reset, */
+			/* scratch is relocated, but not misc. */
+	int (*decoder)(cryptblock*, char *inbuf, char *outbuf);
+			/* decoder must be supplied by the crypto caller */
+	};
 
 enum AMPLFUNC_AT_BITS { /* Intrepretation of at[i] when the type */
 						/* arg to addfunc has the */
