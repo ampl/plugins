@@ -43,7 +43,7 @@ jobs:
         BUILD_DIR=manylinux/linux$NBITS/
         UPLOAD_DIR=$UPLOAD/linux$NBITS-unixodbc/
         mkdir -p $UPLOAD_DIR
-        cp $BUILD_DIR/tables.zip $UPLOAD_DIR
+        cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
@@ -82,7 +82,7 @@ jobs:
         BUILD_DIR=manylinux/linux$NBITS/
         UPLOAD_DIR=$UPLOAD/linux$NBITS-iodbc/
         mkdir -p $UPLOAD_DIR
-        cp $BUILD_DIR/tables.zip $UPLOAD_DIR
+        cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
@@ -116,7 +116,7 @@ jobs:
     - bash: |
         UPLOAD_DIR=$UPLOAD/macos-unixodbc/
         mkdir -p $UPLOAD_DIR
-        cp build/tables.zip $UPLOAD_DIR
+        cp build/*.tar.gz $UPLOAD_DIR
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
@@ -167,7 +167,7 @@ jobs:
     - bash: |
         UPLOAD_DIR=$UPLOAD/macos-iodbc/
         mkdir -p $UPLOAD_DIR
-        cp build/tables.zip $UPLOAD_DIR
+        cp build/*.tar.gz $UPLOAD_DIR
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
@@ -210,7 +210,7 @@ jobs:
     - bash: |
         UPLOAD_DIR=$UPLOAD/win$NBITS/
         mkdir -p $UPLOAD_DIR
-        cp build/tables.zip $UPLOAD_DIR
+        cp build/*.zip $UPLOAD_DIR
       displayName: Upload package
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
