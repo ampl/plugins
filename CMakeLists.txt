@@ -29,25 +29,24 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 
 project(plugins VERSION 0.0.1 LANGUAGES CXX C)
 
-
+######## Package names ########
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(ARCH 64)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
     set(ARCH 32)
 endif()
-
-if(LINUX)
-  set(SYSNAME "linux-intel")
-elseif(APPLE)
+if(APPLE)
   set(SYSNAME "macos")
 elseif(WIN32)
   set(SYSNAME "mswin")
+else()
+  set(SYSNAME "linux-intel")
 endif()
 # The following name is used when generating the distribution package
 set(COMPONENT_STRING ${SYSNAME}${ARCH}.${PACKAGE_VERSION})
 set(DISTRO_COMPONENT "distrib.${COMPONENT_STRING}")
 set(ALL_COMPONENT "all.${COMPONENT_STRING}")
-
+###############################
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Test if I have a parent project, in which case put generated targets 
