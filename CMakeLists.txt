@@ -8,6 +8,12 @@ endif()
 
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
+
+# Set version number for distribution package
+set(PACKAGE_VERSION 20220329)
+
+
+
 # Use static MSVC runtime.
 # This should be done before the project command.
 function (override var file)
@@ -22,6 +28,25 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
 
 
 project(plugins VERSION 0.0.1 LANGUAGES CXX C)
+
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(ARCH 64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(ARCH 32)
+endif()
+
+if(LINUX)
+  set(SYSNAME "linux-intel")
+elseif(APPLE)
+  set(SYSNAME "macos")
+elseif(WIN32)
+  set(SYSNAME "mswin")
+endif()
+# The following name is used when generating the distribution package
+set(COMPONENT_STRING ${SYSNAME}${ARCH}.${PACKAGE_VERSION})
+set(DISTRO_COMPONENT "distrib.${COMPONENT_STRING}")
+set(ALL_COMPONENT "all.${COMPONENT_STRING}")
 
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -69,6 +94,6 @@ endif()
 
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-set(CPACK_PACKAGE_VERSION ${ALIC_VERSION})
+set(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION})
 set(CPACK_PACKAGE_FILE_NAME plugins)
 include(CPack)

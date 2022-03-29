@@ -6,7 +6,7 @@ set(SOURCES ${AMPLP_DIR}/amplp.hpp
 			${SRCDIR}/handler.cpp
 )
 
-add_ampl_library(amplcsv ${SOURCES})
+add_ampl_library(amplcsv ${SOURCES} COMPONENT ${DISTRO_COMPONENT})
 target_include_directories(amplcsv PRIVATE ${AMPLP_DIR})
 
 if(MSVC)

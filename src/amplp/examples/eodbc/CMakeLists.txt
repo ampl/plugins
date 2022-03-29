@@ -14,7 +14,7 @@ if(ODBC_FOUND)
 				${SRCDIR}/handler.cpp
 	)
 
-	add_ampl_library(eodbc ${SOURCES})
+	add_ampl_library(eodbc ${SOURCES} COMPONENT ${DISTRO_COMPONENT})
 
 	set_target_properties(eodbc PROPERTIES LINKER_LANGUAGE CXX)
 	set_property(TARGET eodbc PROPERTY POSITION_INDEPENDENT_CODE ON)
