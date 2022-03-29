@@ -26,14 +26,8 @@ macro(add_ampl_library name)
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".dll")
   if (NOT add_ampl_library_PRIVATE)
-    # Specify RUNTIME DESTINATION and LIBRARY DESTINATION, but not
-    # DESTINATION or ARCHIVE_DESTINATION because we don't want import
-    # libraries installed.
-    install(TARGETS ${name}
-        RUNTIME DESTINATION ${AMPL_LIBRARY_DIR}
-        LIBRARY DESTINATION ${AMPL_LIBRARY_DIR}
-        ARCHIVE DESTINATION ${AMPL_LIBRARY_DIR}
-    )
+    install(TARGETS ${name} RUNTIME DESTINATION ${AMPL_LIBRARY_DIR} COMPONENT ${name})
+    install(TARGETS ${name} LIBRARY DESTINATION ${AMPL_LIBRARY_DIR} COMPONENT ${name})
   endif ()
 endmacro()
 

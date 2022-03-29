@@ -21,7 +21,8 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
   ${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
 
 
-project(TABLES VERSION 0.0.1 LANGUAGES CXX C)
+project(plugins VERSION 0.0.1 LANGUAGES CXX C)
+
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Test if I have a parent project, in which case put generated targets 
@@ -44,21 +45,30 @@ endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-# CPack
-set(CPACK_GENERATOR ZIP)
-set(CPACK_PACKAGE_VERSION ${ALIC_VERSION})
-set(CPACK_PACKAGE_FILE_NAME tables)
-include(CPack)
+# c++11 support
+set (CMAKE_CXX_STANDARD 11)
+
+
 
 # CTest
 include(CTest)
 enable_testing()
 
-# c++11 support
-set (CMAKE_CXX_STANDARD 11)
-
+set(ASL_SKIP_INSTALL 1) # do not install ASL
 add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
 add_subdirectory(test/tables)
 add_subdirectory(doc)
 
+# CPack
+if(MSVC)
+    set(CPACK_GENERATOR ZIP)
+else()
+    set(CPACK_GENERATOR TGZ)
+endif()
+
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+set(CPACK_PACKAGE_VERSION ${ALIC_VERSION})
+set(CPACK_PACKAGE_FILE_NAME plugins)
+include(CPack)
