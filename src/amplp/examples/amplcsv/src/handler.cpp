@@ -79,6 +79,8 @@ Handler::read_in(){
 		throw DBE_Error;
 	}
 
+	check_bom(infile);
+
 	std::size_t nfields = 0; // number of fields (columns) in the csv table
 
 	std::vector<std::string> header; // vector to store the strings in the csv header
@@ -219,6 +221,8 @@ Handler::get_header_csv(){
 		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;
 	}
+
+	check_bom(infile);
 
 	std::string str = get_csv_row(infile);
 
@@ -372,6 +376,8 @@ Handler::write_inout(){
 		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;
 	}
+
+	check_bom(infile);
 
 	std::size_t init_nfields = 0; // number of fields (columns) in the csv table
 	std::size_t nfields = 0; // number of fields (columns) in the csv table
@@ -1100,7 +1106,21 @@ Handler::write_remaining_rows(
 	}
 };
 
+void
+Handler::check_bom(std::ifstream & infile){
 
+	char a,b,c;
+	a = infile.get();
+	b = infile.get();
+	c = infile.get();
+	if (a != (char)0xEF || b != (char)0xBB || c != (char)0xBF) {
+		infile.seekg(0);
+	}
+	else {
+		log_msg = "BOM found";
+		logger.log(log_msg, LOG_INFO);
+	}
+};
 
 
 

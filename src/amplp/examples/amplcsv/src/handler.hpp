@@ -87,6 +87,11 @@ public TableConnector{
 		FileHandler & f,
 		int init_nfields
 	);
+
+	/** Check for the presence of a BOM
+	 * https://en.wikipedia.org/wiki/Byte_order_mark
+	 */
+	void check_bom(std::ifstream & infile);
 };
 
 
