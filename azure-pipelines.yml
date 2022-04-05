@@ -232,8 +232,8 @@ stages:
             artifactName: 'drop'
         - bash: |
             set -ex
-            mkdir -p artifacts/release
-            cd artifacts/release
+            cd artifacts/
+            mkdir -p release
             cp linux*-unixodbc/* release/
             cp macos-iodbc/* release/
             cp win64/* release/
