@@ -7,210 +7,239 @@ variables:
   MSWIN32_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.mswin32.zip'
   MSWIN64_BUNDLE_NAME: '$(AMPL_DEMO_URL)/ampl.mswin64.zip'
   CTEST_OUTPUT_ON_FAILURE: 1
-jobs:
-- job: linux_unixodbc
-  pool: {vmImage: 'Ubuntu-20.04'}
-  strategy:
-    matrix:
-      x86:
-        AMPL_URL: $(LINUX32_BUNDLE_URL)
-        image: 'nfbvs/manylinux32:coin_cmake-3.12.4_unixodbc-2.3.9'
-        nbits: 32
-      x64:
-        AMPL_URL: $(LINUX64_BUNDLE_URL)
-        image: 'nfbvs/manylinux64:coin_cmake-3.12.4_unixodbc-2.3.9'
-        nbits: 64
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-  steps:
-    - bash: |
-        set -x
-        nproc
-        lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
-        cat /proc/cpuinfo
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -x
-        BUILD_DIR=manylinux/linux$NBITS/
-        git submodule update --init --recursive --remote
-        mkdir -p $BUILD_DIR/*
-        rm -rf $BUILD_DIR/*
-        docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
-      displayName: Build package
-    - bash: |
-        BUILD_DIR=manylinux/linux$NBITS/
-        UPLOAD_DIR=$UPLOAD/linux$NBITS-unixodbc/
-        mkdir -p $UPLOAD_DIR
-        cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-- job: linux_iodbc
-  pool: {vmImage: 'Ubuntu-20.04'}
-  strategy:
-    matrix:
-      x86:
-        AMPL_URL: $(LINUX32_BUNDLE_URL)
-        image: 'nfbvs/manylinux32:coin_cmake-3.12.4_iodbc-3.52.15'
-        nbits: 32
-      x64:
-        AMPL_URL: $(LINUX64_BUNDLE_URL)
-        image: 'nfbvs/manylinux64:coin_cmake-3.12.4_iodbc-3.52.15'
-        nbits: 64
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-  steps:
-    - bash: |
-        set -x
-        nproc
-        lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
-        cat /proc/cpuinfo
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -x
-        BUILD_DIR=manylinux/linux$NBITS/
-        git submodule update --init --recursive --remote
-        mkdir -p $BUILD_DIR/*
-        rm -rf $BUILD_DIR/*
-        docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
-      displayName: Build package
-    - bash: |
-        BUILD_DIR=manylinux/linux$NBITS/
-        UPLOAD_DIR=$UPLOAD/linux$NBITS-iodbc/
-        mkdir -p $UPLOAD_DIR
-        cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-- job: macos_unixodbc
-  pool: {vmImage: 'macOS-10.15'}
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-    AMPL_URL: $(MACOS64_BUNDLE_URL)
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        set -x
-        sysctl -n machdep.cpu.brand_string
-        sysctl -n machdep.cpu.core_count
-        sysctl -n machdep.cpu.thread_count
-        sysctl -a | grep machdep.cpu
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -ex
-        export PATH=$PATH:$PWD/ampl/
-        git submodule update --init --recursive --remote
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
-        make all -j2
-        ctest
-        cpack
-      displayName: Build package
-    - bash: |
-        UPLOAD_DIR=$UPLOAD/macos-unixodbc/
-        mkdir -p $UPLOAD_DIR
-        cp build/*.tar.gz $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-- job: macos_iodbc
-  pool: {vmImage: 'macOS-10.15'}
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-    AMPL_URL: $(MACOS64_BUNDLE_URL)
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        set -x
-        sysctl -n machdep.cpu.brand_string
-        sysctl -n machdep.cpu.core_count
-        sysctl -n machdep.cpu.thread_count
-        sysctl -a | grep machdep.cpu
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -ex
-        export PATH=$PATH:$PWD/ampl/
-        brew uninstall --ignore-dependencies unixodbc
-        brew install autoconf automake libtool
-        curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
-        cd libiodbc-3.52.15
-        CFLAGS="-O -arch x86_64"
-        CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
-        export CFLAGS
-        sh autogen.sh
-        ./configure \
-          --disable-dependency-tracking \
-          --prefix=/usr/local/iODBC.universal
-        make
-        sudo make install
-        sudo rm /usr/local/iODBC.universal/lib/libodbc.a
-        export PATH=$PATH:/usr/local/iODBC.universal/include:/usr/local/iODBC.universal/lib
-        echo $PATH
-        cd ..
-        git submodule update --init --recursive --remote
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
-        make all -j2
-        ctest
-        cpack
-      displayName: Build package
-    - bash: |
-        UPLOAD_DIR=$UPLOAD/macos-iodbc/
-        mkdir -p $UPLOAD_DIR
-        cp build/*.tar.gz $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
-- job: windows
-  pool: {vmImage: 'windows-2019'}
-  strategy:
-    matrix:
-      x86:
-        arch: 'win32'
-        nbits: 32
-        AMPL_URL: $(MSWIN32_BUNDLE_URL)
-      x64:
-        arch: 'x64'
-        nbits: 64
-        AMPL_URL: $(MSWIN64_BUNDLE_NAME)
-  variables:
-    upload: $(Build.ArtifactStagingDirectory)
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        set -x
-        nproc
-        wmic cpu get name
-        wmic cpu get numberofcores
-        wmic cpu get caption, deviceid, name, numberofcores, maxclockspeed, status
-      displayName: Check CPU details
-    - bash: bash download-ampl.sh $AMPL_URL
-      displayName: Install AMPL
-    - bash: |
-        set -ex
-        export PATH=$PATH:$PWD/ampl/
-        git submodule update --init --recursive --remote
-        mkdir build
-        cd build
-        cmake .. -G "Visual Studio 16 2019" -A $ARCH
-        cmake --build . -j 2 --config Release
-        ctest -C Release
-        cpack
-      displayName: Build package
-    - bash: |
-        UPLOAD_DIR=$UPLOAD/win$NBITS/
-        mkdir -p $UPLOAD_DIR
-        cp build/*.zip $UPLOAD_DIR
-      displayName: Upload package
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+
+stages:
+- stage: build
+  jobs:
+  - job: linux_unixodbc
+    pool: {vmImage: 'Ubuntu-20.04'}
+    strategy:
+      matrix:
+        x86:
+          AMPL_URL: $(LINUX32_BUNDLE_URL)
+          image: 'nfbvs/manylinux32:coin_cmake-3.12.4_unixodbc-2.3.9'
+          nbits: 32
+        x64:
+          AMPL_URL: $(LINUX64_BUNDLE_URL)
+          image: 'nfbvs/manylinux64:coin_cmake-3.12.4_unixodbc-2.3.9'
+          nbits: 64
+    variables:
+      upload: $(Build.ArtifactStagingDirectory)
+    steps:
+      - bash: |
+          set -x
+          nproc
+          lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
+          cat /proc/cpuinfo
+        displayName: Check CPU details
+      - bash: bash download-ampl.sh $AMPL_URL
+        displayName: Install AMPL
+      - bash: |
+          set -x
+          BUILD_DIR=manylinux/linux$NBITS/
+          git submodule update --init --recursive --remote
+          mkdir -p $BUILD_DIR/*
+          rm -rf $BUILD_DIR/*
+          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
+        displayName: Build package
+      - bash: |
+          BUILD_DIR=manylinux/linux$NBITS/
+          UPLOAD_DIR=$UPLOAD/linux$NBITS-unixodbc/
+          mkdir -p $UPLOAD_DIR
+          cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
+        displayName: Upload package
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+  - job: linux_iodbc
+    pool: {vmImage: 'Ubuntu-20.04'}
+    strategy:
+      matrix:
+        x86:
+          AMPL_URL: $(LINUX32_BUNDLE_URL)
+          image: 'nfbvs/manylinux32:coin_cmake-3.12.4_iodbc-3.52.15'
+          nbits: 32
+        x64:
+          AMPL_URL: $(LINUX64_BUNDLE_URL)
+          image: 'nfbvs/manylinux64:coin_cmake-3.12.4_iodbc-3.52.15'
+          nbits: 64
+    variables:
+      upload: $(Build.ArtifactStagingDirectory)
+    steps:
+      - bash: |
+          set -x
+          nproc
+          lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('
+          cat /proc/cpuinfo
+        displayName: Check CPU details
+      - bash: bash download-ampl.sh $AMPL_URL
+        displayName: Install AMPL
+      - bash: |
+          set -x
+          BUILD_DIR=manylinux/linux$NBITS/
+          git submodule update --init --recursive --remote
+          mkdir -p $BUILD_DIR/*
+          rm -rf $BUILD_DIR/*
+          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
+        displayName: Build package
+      - bash: |
+          BUILD_DIR=manylinux/linux$NBITS/
+          UPLOAD_DIR=$UPLOAD/linux$NBITS-iodbc/
+          mkdir -p $UPLOAD_DIR
+          cp $BUILD_DIR/*.tar.gz $UPLOAD_DIR
+        displayName: Upload package
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+  - job: macos_unixodbc
+    pool: {vmImage: 'macOS-10.15'}
+    variables:
+      upload: $(Build.ArtifactStagingDirectory)
+      AMPL_URL: $(MACOS64_BUNDLE_URL)
+    steps:
+      - task: UsePythonVersion@0
+      - bash: |
+          set -x
+          sysctl -n machdep.cpu.brand_string
+          sysctl -n machdep.cpu.core_count
+          sysctl -n machdep.cpu.thread_count
+          sysctl -a | grep machdep.cpu
+        displayName: Check CPU details
+      - bash: bash download-ampl.sh $AMPL_URL
+        displayName: Install AMPL
+      - bash: |
+          set -ex
+          export PATH=$PATH:$PWD/ampl/
+          git submodule update --init --recursive --remote
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          make all -j2
+          ctest
+          cpack
+        displayName: Build package
+      - bash: |
+          UPLOAD_DIR=$UPLOAD/macos-unixodbc/
+          mkdir -p $UPLOAD_DIR
+          cp build/*.tar.gz $UPLOAD_DIR
+        displayName: Upload package
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+  - job: macos_iodbc
+    pool: {vmImage: 'macOS-10.15'}
+    variables:
+      upload: $(Build.ArtifactStagingDirectory)
+      AMPL_URL: $(MACOS64_BUNDLE_URL)
+    steps:
+      - task: UsePythonVersion@0
+      - bash: |
+          set -x
+          sysctl -n machdep.cpu.brand_string
+          sysctl -n machdep.cpu.core_count
+          sysctl -n machdep.cpu.thread_count
+          sysctl -a | grep machdep.cpu
+        displayName: Check CPU details
+      - bash: bash download-ampl.sh $AMPL_URL
+        displayName: Install AMPL
+      - bash: |
+          set -ex
+          export PATH=$PATH:$PWD/ampl/
+          brew uninstall --ignore-dependencies unixodbc
+          brew install autoconf automake libtool
+          curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
+          cd libiodbc-3.52.15
+          CFLAGS="-O -arch x86_64"
+          CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
+          export CFLAGS
+          sh autogen.sh
+          ./configure \
+            --disable-dependency-tracking \
+            --prefix=/usr/local/iODBC.universal
+          make
+          sudo make install
+          sudo rm /usr/local/iODBC.universal/lib/libodbc.a
+          export PATH=$PATH:/usr/local/iODBC.universal/include:/usr/local/iODBC.universal/lib
+          echo $PATH
+          cd ..
+          git submodule update --init --recursive --remote
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          make all -j2
+          ctest
+          cpack
+        displayName: Build package
+      - bash: |
+          UPLOAD_DIR=$UPLOAD/macos-iodbc/
+          mkdir -p $UPLOAD_DIR
+          cp build/*.tar.gz $UPLOAD_DIR
+        displayName: Upload package
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+  - job: windows
+    pool: {vmImage: 'windows-2019'}
+    strategy:
+      matrix:
+        x86:
+          arch: 'win32'
+          nbits: 32
+          AMPL_URL: $(MSWIN32_BUNDLE_URL)
+        x64:
+          arch: 'x64'
+          nbits: 64
+          AMPL_URL: $(MSWIN64_BUNDLE_NAME)
+    variables:
+      upload: $(Build.ArtifactStagingDirectory)
+    steps:
+      - task: UsePythonVersion@0
+      - bash: |
+          set -x
+          nproc
+          wmic cpu get name
+          wmic cpu get numberofcores
+          wmic cpu get caption, deviceid, name, numberofcores, maxclockspeed, status
+        displayName: Check CPU details
+      - bash: bash download-ampl.sh $AMPL_URL
+        displayName: Install AMPL
+      - bash: |
+          set -ex
+          export PATH=$PATH:$PWD/ampl/
+          git submodule update --init --recursive --remote
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 16 2019" -A $ARCH
+          cmake --build . -j 2 --config Release
+          ctest -C Release
+          cpack
+        displayName: Build package
+      - bash: |
+          UPLOAD_DIR=$UPLOAD/win$NBITS/
+          mkdir -p $UPLOAD_DIR
+          cp build/*.zip $UPLOAD_DIR
+        displayName: Upload package
+      - task: PublishBuildArtifacts@1
+        inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
+
+
+- stage: ftp_upload
+  condition: succeeded()
+  jobs:
+    - job: ftp_upload
+      pool: {vmImage: 'Ubuntu-20.04'}
+      steps:
+        - task: DownloadBuildArtifacts@0
+          inputs:
+              buildType: 'current'
+              downloadPath: 'artifacts/'
+              artifactName: 'drop'
+        - bash: |
+          mkdir -p artifacts/release
+          cp linux*-unixodbc/* artifacts/release/
+          cp macos-iodbc/* artifacts/release/
+          cp win64/* artifacts/release/
+        - task: FtpUpload@2
+          inputs:
+            serverEndpoint: 'ftpserver'
+            trustSSL: true
+            rootDirectory: 'artifacts'
+            remoteDirectory: '/plugins/$(Build.SourceBranchName)/'
+            preservePaths: true
+            clean: true
