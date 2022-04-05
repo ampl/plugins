@@ -227,14 +227,14 @@ stages:
       steps:
         - task: DownloadBuildArtifacts@0
           inputs:
-              buildType: 'current'
-              downloadPath: 'artifacts/'
-              artifactName: 'drop'
+            buildType: 'current'
+            downloadPath: 'artifacts/'
+            artifactName: 'drop'
         - bash: |
-          mkdir -p artifacts/release
-          cp linux*-unixodbc/* artifacts/release/
-          cp macos-iodbc/* artifacts/release/
-          cp win64/* artifacts/release/
+            mkdir -p artifacts/release
+            cp linux*-unixodbc/* artifacts/release/
+            cp macos-iodbc/* artifacts/release/
+            cp win64/* artifacts/release/
         - task: FtpUpload@2
           inputs:
             serverEndpoint: 'ftpserver'
