@@ -234,9 +234,9 @@ stages:
             set -ex
             cd artifacts/
             mkdir -p release
-            cp linux*-unixodbc/* release/
-            cp macos-iodbc/* release/
-            cp win64/* release/
+            cp drop/linux*-unixodbc/* release/
+            cp drop/macos-iodbc/* release/
+            cp drop/win64/* release/
         - task: FtpUpload@2
           inputs:
             serverEndpoint: 'ftpserver'
