@@ -1,0 +1,13 @@
+reset;
+
+set PEOPLE;
+param dept{PEOPLE} symbolic;
+param loc{PEOPLE} symbolic;
+param mf{PEOPLE} symbolic;
+param rank{PEOPLE} symbolic;
+
+table test IN "amplcsv" "BalAssign2022bom.csv": PEOPLE <- [PEOPLE],dept,loc,mf,rank;
+
+read table test;
+
+display PEOPLE,dept,loc,mf,rank;

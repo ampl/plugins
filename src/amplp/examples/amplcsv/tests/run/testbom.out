@@ -1,0 +1,232 @@
+set PEOPLE :=
+BIW   ECA   RGR   TAR   AGI   PSL   APT   MLE   MNA   JJR   DLD   RMS   RGE
+KRS   MAI   LLR   RPR   ACI   TEN   TMN   CEH   ANV   GGH   ASA   REZ   HMG
+TLR   JCO   FEE   PWS   CAH   SME   FJT   MRH   SNN   MBT   HAN   TBR   GWZ
+VAA   DWO   ADS   EJD   LVN   WLB   KKI   JMA   DMN   GDE   JAP   HWG   XYF
+JRT   AJH   CFS   CPR   DLT   RHE   BCG   JMT   FJL   MSR   MFR   SCG   JEN
+AMR   CAE   DBN   AVI   RCR   RJY   MKA   CGY   SOL   LMN   MMH   JLN   BLW
+MES   MRL   PSN   MTH   CTS   SJH   KKA   RJZ   RGF   PST   AJU   JSG
+JAD   FTR   REN   CGH   AJS   DHR   SGA   HMN   EGL   KRA   MSL   EHR
+MJR   SJO   FWI   MKN   NHI   HJO   BLE   DJA   RJE   ESO   PSY   LHS
+JRS   DHY   MPO   HFE   RHA   RLS   TWD   NMA   GMR   ASO   FSM   JWR
+HCN   DHE   JDS   SCS   RMN   KLN   EGR   MMY   MBY   PSA   PSZ   SAS
+DAN   CWU   GCY   DGR   RHD   SBK   ABE   MRE   SML   UJT   CSN   CGS
+CWT   EAZ   WMS   IGN   SBM   HKA   SCR   SMA   AJT   MRZ   TJY   MET
+DCN   RFS   JMS   CAR   PSO   KWY   DSF   MMA   PAS   SER   MDI   KWN
+SWR   JWS   SWS   JAE   RDL   WFS   RDN   JMQ   API   RSN   TTI   AWN
+TBG   RVY   PMY   OGZ   DET   MBM   JWB   LSR   SDN   RSR   ETN   HRR
+LVO   PMO   WAD   RLN   KWR   RCG   VMA   CMY   BAN   JPY   MRK   WHF;
+
+:    dept       loc      mf      rank       :=
+ABE   NNW   Peoria        M   Adjunct
+ACI   NNE   Peoria        F   Assistant
+ADS   NNE   Peoria        M   Adjunct
+AGI   SSE   Peoria        M   Assistant
+AJH   NNE   Peoria        M   Adjunct
+AJS   SSE   Peoria        M   Assistant
+AJT   NNE   Peoria        M   Assistant
+AJU   SSE   Springfield   M   Assistant
+AMR   SSE   Peoria        M   Deputy
+ANV   SSE   Peoria        M   Assistant
+API   NNE   Springfield   M   Adjunct
+APT   NNE   Peoria        M   Adjunct
+ASA   SSE   Peoria        M   Consultant
+ASO   NNE   Carbondale    F   Assistant
+AVI   NNE   Springfield   F   Adjunct
+AWN   NNE   Springfield   M   Adjunct
+BAN   NNE   Peoria        M   Assistant
+BCG   NNE   Urbana        M   Adjunct
+BIW   NNE   Peoria        M   Assistant
+BLE   NNE   Peoria        M   Assistant
+BLW   NNE   Peoria        M   Deputy
+CAE   SSE   Peoria        M   Adjunct
+CAH   SSE   Peoria        F   Adjunct
+CAR   NNW   Peoria        M   Assistant
+CEH   NNE   Springfield   M   Assistant
+CFS   NNW   Joliet        M   Assistant
+CGH   NNE   Springfield   M   Adjunct
+CGS   NNE   Springfield   M   Assistant
+CGY   NNE   Springfield   M   Adjunct
+CMY   NNE   Peoria        M   Adjunct
+CPR   NNE   Peoria        M   Deputy
+CSN   NNE   Joliet        M   Assistant
+CTS   NNE   Peoria        M   Deputy
+CWT   NNE   Springfield   M   Adjunct
+CWU   NNW   Peoria        M   Assistant
+DAN   NNE   Springfield   M   Adjunct
+DBN   SSE   Peoria        M   Adjunct
+DCN   NNE   Peoria        M   Adjunct
+DET   NNE   Springfield   M   Assistant
+DGR   NNE   Springfield   M   Assistant
+DHE   NNE   Peoria        M   Adjunct
+DHR   SSE   Peoria        M   Assistant
+DHY   NNE   Urbana        M   Adjunct
+DJA   NNE   Peoria        M   Adjunct
+DLD   NNE   Urbana        F   Assistant
+DLT   SSE   Peoria        F   Adjunct
+DMN   NNW   Peoria        M   Adjunct
+DSF   NNW   Springfield   M   Adjunct
+DWO   SSE   Peoria        M   Adjunct
+EAZ   NNE   Peoria        M   Assistant
+ECA   NNE   Springfield   M   Assistant
+EGL   NNE   Peoria        M   Adjunct
+EGR   NNE   Peoria        F   Adjunct
+EHR   NNE   Peoria        M   Assistant
+EJD   WSW   Peoria        F   Adjunct
+ESO   NNE   Springfield   M   Adjunct
+ETN   NNE   Peoria        M   Assistant
+FEE   NNW   Springfield   M   Adjunct
+FJL   NNE   Springfield   M   Assistant
+FJT   WSW   Peoria        M   Assistant
+FSM   NNE   Springfield   M   Assistant
+FTR   NNE   Peoria        M   Adjunct
+FWI   NNW   Peoria        M   Assistant
+GCY   NNE   Peoria        M   Adjunct
+GDE   NNE   Peoria        M   Deputy
+GGH   NNW   Peoria        M   Adjunct
+GMR   NNE   Peoria        M   Assistant
+GWZ   NNE   Joliet        M   Assistant
+HAN   SSE   Peoria        M   Deputy
+HCN   SSE   Peoria        M   Deputy
+HFE   NNW   Carbondale    M   Adjunct
+HJO   NNE   Carbondale    M   Assistant
+HKA   NNE   Carbondale    M   Adjunct
+HMG   NNE   Joliet        F   Assistant
+HMN   WSW   Springfield   F   Assistant
+HRR   NNE   Macomb        M   Adjunct
+HWG   NNE   Peoria        M   Assistant
+IGN   NNE   Springfield   M   Assistant
+JAD   NNE   Peoria        M   Adjunct
+JAE   NNE   Springfield   M   Assistant
+JAP   SSE   Peoria        M   Adjunct
+JCO   SSE   Macomb        M   Adjunct
+JDS   NNW   Peoria        M   Adjunct
+JEN   NNE   Peoria        M   Deputy
+JJR   SSE   Springfield   M   Adjunct
+JLN   NNE   Peoria        F   Assistant
+JMA   NNE   Carbondale    M   Deputy
+JMQ   NNE   Carbondale    F   Assistant
+JMS   NNE   Springfield   M   Adjunct
+JMT   NNE   Peoria        F   Assistant
+JPY   NNE   Peoria        M   Adjunct
+JRS   NNE   Springfield   M   Assistant
+JRT   NNE   Springfield   M   Deputy
+JSG   NNE   Peoria        M   Deputy
+JWB   NNW   Peoria        F   Deputy
+JWR   NNE   Springfield   M   Assistant
+JWS   WSW   Peoria        M   Adjunct
+KKA   NNE   Peoria        M   Assistant
+KKI   NNE   Carbondale    M   Adjunct
+KLN   WSW   Peoria        M   Adjunct
+KRA   NNE   Peoria        M   Adjunct
+KRS   WSW   Springfield   F   Assistant
+KWN   WSW   Springfield   M   Assistant
+KWR   NNE   Peoria        M   Assistant
+KWY   NNE   Peoria        M   Deputy
+LHS   NNE   Peoria        M   Adjunct
+LLR   NNE   Peoria        M   Assistant
+LMN   NNW   Peoria        F   Assistant
+LSR   NNW   Peoria        M   Adjunct
+LVN   NNE   Springfield   F   Assistant
+LVO   NNE   Peoria        M   Assistant
+MAI   NNE   Peoria        F   Adjunct
+MBM   SSE   Peoria        M   Assistant
+MBT   NNE   Peoria        M   Adjunct
+MBY   NNE   Peoria        F   Assistant
+MDI   NNE   Peoria        M   Consultant
+MES   NNE   Peoria        M   Consultant
+MET   NNE   Peoria        F   Assistant
+MFR   NNE   Springfield   M   Adjunct
+MJR   NNE   Springfield   M   Assistant
+MKA   NNE   Carbondale    M   Assistant
+MKN   WSW   Peoria        M   Assistant
+MLE   NNE   Macomb        M   Adjunct
+MMA   NNE   Carbondale    M   Deputy
+MMH   NNE   Joliet        M   Adjunct
+MMY   NNE   Peoria        M   Assistant
+MNA   NNE   Carbondale    M   Adjunct
+MPO   SSE   Peoria        M   Assistant
+MRE   NNE   Peoria        M   Assistant
+MRH   NNE   Peoria        M   Deputy
+MRK   NNE   Peoria        M   Adjunct
+MRL   WSW   Peoria        M   Assistant
+MRZ   WSW   Peoria        F   Assistant
+MSL   NNW   Springfield   M   Adjunct
+MSR   SSE   Peoria        M   Assistant
+MTH   NNE   Joliet        M   Assistant
+NHI   NNE   Carbondale    M   Assistant
+NMA   NNE   Carbondale    F   Assistant
+OGZ   NNE   Peoria        M   Consultant
+PAS   NNE   Peoria        M   Assistant
+PMO   SSE   Peoria        M   Assistant
+PMY   NNE   Peoria        M   Deputy
+PSA   NNE   Springfield   M   Assistant
+PSL   SSE   Peoria        F   Assistant
+PSN   NNE   Peoria        M   Adjunct
+PSO   NNE   Peoria        M   Adjunct
+PST   NNE   Springfield   M   Assistant
+PSY   NNE   Springfield   M   Assistant
+PSZ   SSE   Peoria        M   Assistant
+PWS   NNE   Peoria        M   Consultant
+RCG   SSE   Peoria        M   Adjunct
+RCR   NNE   Peoria        M   Adjunct
+RDL   NNW   Joliet        M   Adjunct
+RDN   NNE   Peoria        M   Adjunct
+REN   NNE   Peoria        F   Adjunct
+REZ   NNE   Evansville    M   Adjunct
+RFS   NNE   Peoria        M   Deputy
+RGE   SSE   Springfield   M   Adjunct
+RGF   NNE   Springfield   M   Adjunct
+RGR   NNE   Peoria        M   Assistant
+RHA   NNW   Carbondale    M   Assistant
+RHD   SSE   Peoria        M   Assistant
+RHE   NNE   Peoria        M   Assistant
+RJE   NNE   Macomb        M   Adjunct
+RJY   SSE   Springfield   M   Deputy
+RJZ   NNW   Peoria        M   Adjunct
+RLN   SSE   Peoria        M   Adjunct
+RLS   NNE   Peoria        M   Adjunct
+RMN   NNE   Springfield   M   Deputy
+RMS   NNE   Peoria        M   Adjunct
+RPR   NNE   Peoria        M   Adjunct
+RSN   NNE   Joliet        M   Assistant
+RSR   NNW   Peoria        M   Adjunct
+RVY   NNE   Peoria        M   Adjunct
+SAS   NNE   Peoria        F   Adjunct
+SBK   NNE   Cairo         M   Adjunct
+SBM   NNW   Peoria        M   Assistant
+SCG   NNW   Joliet        M   Adjunct
+SCR   NNE   Peoria        M   Adjunct
+SCS   NNE   Peoria        M   Adjunct
+SDN   NNE   Peoria        M   Deputy
+SER   NNW   Peoria        M   Assistant
+SGA   NNW   Springfield   F   Assistant
+SJH   NNE   Cairo         M   Adjunct
+SJO   NNE   Peoria        M   Adjunct
+SMA   NNE   Joliet        M   Adjunct
+SME   NNE   Springfield   M   Consultant
+SML   NNE   Springfield   M   Assistant
+SNN   NNE   Macomb        F   Assistant
+SOL   NNE   Evansville    M   Assistant
+SWR   WSW   Peoria        M   Adjunct
+SWS   NNW   Springfield   M   Assistant
+TAR   NNE   Peoria        M   Assistant
+TBG   NNE   Springfield   M   Assistant
+TBR   NNE   Peoria        M   Deputy
+TEN   NNW   Springfield   M   Adjunct
+TJY   WSW   Springfield   M   Adjunct
+TLR   NNW   Peoria        F   Adjunct
+TMN   NNE   Peoria        M   Assistant
+TTI   NNE   Carbondale    M   Assistant
+TWD   SSE   Peoria        M   Assistant
+UJT   NNE   Springfield   M   Assistant
+VAA   NNW   Peoria        M   Deputy
+VMA   SSE   Peoria        M   Adjunct
+WAD   NNE   Springfield   M   Adjunct
+WFS   NNW   Peoria        M   Adjunct
+WHF   NNE   Peoria        M   Assistant
+WLB   NNE   Peoria        M   Adjunct
+WMS   NNE   Springfield   M   Deputy
+XYF   NNE   Peoria        M   Assistant
+;
+
