@@ -18,3 +18,5 @@ This page has links for user guides of the following projects:
 
    amplcsv
    amplxl
+   ampltabl
+   tableproxy

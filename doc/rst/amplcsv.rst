@@ -10,7 +10,7 @@ AMPL CSV File Interface
 
 This page describes a new AMPL interface for files in `CSV format <https://en.wikipedia.org/wiki/Comma-separated_values>`_. It uses the same table statements as AMPL’s other data interfaces, but works directly with .csv files for speed and reliability.
 
-If you are using .csv files with spreadsheet software, you may also be interested in AMPL’s `direct spreadsheet interface <https://ampl.com/resources/new-features/data-table-handlers/spreadsheets/>`_ that reads and writes .xlsx format files.
+If you are using .csv files with spreadsheet software, you may also be interested in AMPL’s :doc:`amplxl` that reads and writes .xlsx format files.
 
 Installation
 ------------
