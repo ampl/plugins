@@ -40,7 +40,8 @@ stages:
           git submodule update --init --recursive --remote
           mkdir -p $BUILD_DIR/*
           rm -rf $BUILD_DIR/*
-          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
+          DATE=`date +%Y%m%d`
+          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS $DATE
         displayName: Build package
       - bash: |
           BUILD_DIR=manylinux/linux$NBITS/
@@ -79,7 +80,8 @@ stages:
           git submodule update --init --recursive --remote
           mkdir -p $BUILD_DIR/*
           rm -rf $BUILD_DIR/*
-          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS
+          DATE=`date +%Y%m%d`
+          docker run -v `pwd`:/base --rm $IMAGE /base/manylinux/build.sh $NBITS $DATE
         displayName: Build package
       - bash: |
           BUILD_DIR=manylinux/linux$NBITS/
