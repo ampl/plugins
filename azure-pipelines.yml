@@ -111,7 +111,8 @@ stages:
           git submodule update --init --recursive --remote
           mkdir build
           cd build
-          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          DATE=`date +%Y%m%d`
+          cmake .. -DPACKAGE_VERSION=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
           make all -j2
           ctest
           cpack
@@ -162,7 +163,8 @@ stages:
           git submodule update --init --recursive --remote
           mkdir build
           cd build
-          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          DATE=`date +%Y%m%d`
+          cmake .. -DPACKAGE_VERSION=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
           make all -j2
           ctest
           cpack
@@ -205,7 +207,8 @@ stages:
           git submodule update --init --recursive --remote
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 16 2019" -A $ARCH
+          DATE=`date +%Y%m%d`
+          cmake .. -DPACKAGE_VERSION=$DATE -G "Visual Studio 16 2019" -A $ARCH
           cmake --build . -j 2 --config Release
           ctest -C Release
           cpack
