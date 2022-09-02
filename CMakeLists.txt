@@ -8,11 +8,8 @@ endif()
 
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
-if (NOT DEFINED PACKAGE_VERSION)
-  # Set version number for distribution package
-  set(PACKAGE_VERSION "YYYYMMDD")
-endif()
-
+set(PACKAGE_VERSION "YYYYMMDD" CACHE STRING "Package version")
+message(STATUS "PACKAGE_VERSION: ${PACKAGE_VERSION}")
 
 # Use static MSVC runtime.
 # This should be done before the project command.

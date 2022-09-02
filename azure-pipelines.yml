@@ -90,7 +90,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: macos_unixodbc
-    pool: {vmImage: 'macOS-10.15'}
+    pool: {vmImage: 'macos-latest'}
     variables:
       upload: $(Build.ArtifactStagingDirectory)
       AMPL_URL: $(MACOS64_BUNDLE_URL)
@@ -125,7 +125,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: macos_iodbc
-    pool: {vmImage: 'macOS-10.15'}
+    pool: {vmImage: 'macos-latest'}
     variables:
       upload: $(Build.ArtifactStagingDirectory)
       AMPL_URL: $(MACOS64_BUNDLE_URL)
