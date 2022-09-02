@@ -114,7 +114,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DPACKAGE_VERSION=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
           make all -j2
           ctest
           cpack
@@ -166,7 +166,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DPACKAGE_VERSION=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
           make all -j2
           ctest
           cpack
@@ -210,7 +210,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DPACKAGE_VERSION=$DATE -G "Visual Studio 16 2019" -A $ARCH
+          cmake .. -DDATE=$DATE -G "Visual Studio 16 2019" -A $ARCH
           cmake --build . -j 2 --config Release
           ctest -C Release
           cpack

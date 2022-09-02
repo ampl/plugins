@@ -8,7 +8,12 @@ endif()
 
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
-set(PACKAGE_VERSION "YYYYMMDD" CACHE STRING "Package version")
+# Set version number for distribution package
+if(DATE)
+  set(PACKAGE_VERSION ${DATE})
+else()
+  set(PACKAGE_VERSION "YYYYMMDD")
+endif()
 message(STATUS "PACKAGE_VERSION: ${PACKAGE_VERSION}")
 
 # Use static MSVC runtime.
