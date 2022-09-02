@@ -1,6 +1,5 @@
 .. _cppreference:
 
-
 This section contains the reference to all the classes and functions in the tables handler.
 
 FunctionConnector

@@ -8,6 +8,14 @@ endif()
 
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
+# Set version number for distribution package
+if(DATE)
+  set(PACKAGE_VERSION ${DATE})
+else()
+  set(PACKAGE_VERSION "YYYYMMDD")
+endif()
+message(STATUS "PACKAGE_VERSION: ${PACKAGE_VERSION}")
+
 # Use static MSVC runtime.
 # This should be done before the project command.
 function (override var file)
@@ -21,7 +29,26 @@ override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
   ${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
 
 
-project(TABLES VERSION 0.0.1 LANGUAGES CXX C)
+project(plugins VERSION 0.0.1 LANGUAGES CXX C)
+
+######## Package names ########
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(ARCH 64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(ARCH 32)
+endif()
+if(APPLE)
+  set(SYSNAME "macos")
+elseif(WIN32)
+  set(SYSNAME "mswin")
+else()
+  set(SYSNAME "linux-intel")
+endif()
+# The following name is used when generating the distribution package
+set(COMPONENT_STRING ${SYSNAME}${ARCH}.${PACKAGE_VERSION})
+set(DISTRO_COMPONENT "distrib.${COMPONENT_STRING}")
+set(ALL_COMPONENT "all.${COMPONENT_STRING}")
+###############################
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Test if I have a parent project, in which case put generated targets 
@@ -44,21 +71,30 @@ endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-# CPack
-set(CPACK_GENERATOR ZIP)
-set(CPACK_PACKAGE_VERSION ${ALIC_VERSION})
-set(CPACK_PACKAGE_FILE_NAME tables)
-include(CPack)
+# c++11 support
+set (CMAKE_CXX_STANDARD 11)
+
+
 
 # CTest
 include(CTest)
 enable_testing()
 
-# c++11 support
-set (CMAKE_CXX_STANDARD 11)
-
+set(ASL_SKIP_INSTALL 1) # do not install ASL
 add_subdirectory(thirdparty/asl)
 add_subdirectory(src)
 add_subdirectory(test/tables)
 add_subdirectory(doc)
 
+# CPack
+if(MSVC)
+    set(CPACK_GENERATOR ZIP)
+else()
+    set(CPACK_GENERATOR TGZ)
+endif()
+
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+set(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION})
+set(CPACK_PACKAGE_FILE_NAME plugins)
+include(CPack)

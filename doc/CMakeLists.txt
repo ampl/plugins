@@ -38,4 +38,6 @@ add_to_folder(docs tables-doc)
 
 install(DIRECTORY ${DOC_OUTPUTDIR}
         DESTINATION docs OPTIONAL
-        PATTERN .* EXCLUDE)
+        COMPONENT ${ALL_COMPONENT}
+        PATTERN .* EXCLUDE
+        )

@@ -1,0 +1,10 @@
+reset;
+
+model visible.mod; # load the visible part of the model
+include encoded.mod; # load the hidden part of the model
+data diet.dat; # load the data
+solve;
+display Buy;
+show;
+display _con, _obj, _scon, _sobj;
+expand  _con, _obj, _scon, _sobj;

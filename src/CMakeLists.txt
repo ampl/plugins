@@ -21,19 +21,22 @@ set(AMPL_LIBRARY_DIR .)
 # Adds a shared AMPL library which by convention doesn't have any prefix
 # and has a suffix ".dll" on all platforms.
 macro(add_ampl_library name)
-  cmake_parse_arguments(add_ampl_library PRIVATE "" "" ${ARGN})
+  cmake_parse_arguments(add_ampl_library PRIVATE "COMPONENT" "" ${ARGN})
   add_library(${name} SHARED ${add_ampl_library_UNPARSED_ARGUMENTS})
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".dll")
   if (NOT add_ampl_library_PRIVATE)
-    # Specify RUNTIME DESTINATION and LIBRARY DESTINATION, but not
-    # DESTINATION or ARCHIVE_DESTINATION because we don't want import
-    # libraries installed.
-    install(TARGETS ${name}
-        RUNTIME DESTINATION ${AMPL_LIBRARY_DIR}
-        LIBRARY DESTINATION ${AMPL_LIBRARY_DIR}
-        ARCHIVE DESTINATION ${AMPL_LIBRARY_DIR}
-    )
+    if (add_ampl_library_COMPONENT)
+        set(PNAME ${add_ampl_library_COMPONENT})
+    else()
+        set(PNAME ${ALL_COMPONENT})
+    endif()
+    if(MSVC)
+      install(TARGETS ${name} RUNTIME DESTINATION ${AMPL_LIBRARY_DIR} COMPONENT ${PNAME})
+    else()
+      install(TARGETS ${name} RUNTIME DESTINATION ${AMPL_LIBRARY_DIR} 
+                              LIBRARY DESTINATION ${AMPL_LIBRARY_DIR} COMPONENT ${PNAME})
+    endif()
   endif ()
 endmacro()
 
@@ -43,6 +46,7 @@ add_subdirectory(amplp/examples/basic)
 add_subdirectory(amplp/examples/amplcsv)
 add_subdirectory(amplp/examples/eodbc)
 add_subdirectory(amplp/examples/funclink)
+add_subdirectory(amplp/examples/modhide)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
@@ -96,7 +100,8 @@ if (WIN32)
   set(AMPLXL_SOURCES ${AMPLXL_SOURCES} amplxl/src/iowin32.c)
 endif()
 
-add_ampl_library(amplxl ${AMPLXL_SOURCES})
+add_ampl_library(amplxl ${AMPLXL_SOURCES}
+                COMPONENT ${DISTRO_COMPONENT})
 
 set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(amplxl PRIVATE asl2 ${ZLIB_LIBRARIES})

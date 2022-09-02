@@ -32,8 +32,6 @@ THIS SOFTWARE.
 #include <cmath>
 #include "amplp.hpp"
 
-using namespace amplp;
-
 static double
 ginv(arglist *al)	/* generalized inverse of a single argument */
 {
@@ -225,27 +223,6 @@ ginvae(arglist *al)	/* like ginv, but enrolling At_reset and At_exit */
 	return ginv(al);
 	}
 
-static void
-io_fc(arglist *al){
-
-	FunctionConnector fc(al->AE);
-
-	FILE* myfile = fc.ampl_fopen("temp.txt", "w");
-
-	std::string tmpstr = "text to file";
-
-	fc.ampl_fprintf(myfile, "%s\n", tmpstr.c_str());
-	fc.ampl_fclose(myfile);
-
-	char buff[100];
-
-	fc.ampl_sprintf(buff, "ampl_sprintf %d\n", 111);
-	fc.ampl_printf("ampl_printf %s\n", buff);
-
-	fc.ampl_fprintf(fc.ampl_stderr, "Print to ampl stderror %d\n", 222);
-	fc.ampl_fprintf(fc.ampl_stdout, "Print to ampl stdout %d\n", 333);
-}
-
 void
 funcadd(AmplExports *ae){
 	/* Insert calls on addfunc here... */
@@ -286,6 +263,5 @@ funcadd(AmplExports *ae){
 	if (ae->ASLdate >= 20000608)
 		ae->Addfunc("getenv", (rfunc)get_env, 3, 1, 0, ae);
 	ae->Addfunc("ginvae", (rfunc)ginvae, 0, 1, 0, ae); /* demo at_exit, at_reset */
-	ae->Addfunc("io_fc", (ufunc*)io_fc, 1, 0, 0, ae);
 	/* at_end() and at_reset() calls could appear here, too. */
 	}
