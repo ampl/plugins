@@ -1,5 +1,5 @@
 variables:
-  BUNDLES_URL: 'https://portal.ampl.com/dl/amplce/'
+  BUNDLES_URL: 'https://portal.ampl.com/dl/demo/'
   LINUX32_BUNDLE_URL: '$(BUNDLES_URL)/ampl.linux32.tgz'
   LINUX64_BUNDLE_URL: '$(BUNDLES_URL)/ampl.linux64.tgz'
   MACOS64_BUNDLE_URL: '$(BUNDLES_URL)/ampl.macos64.tgz'
