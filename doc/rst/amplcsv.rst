@@ -16,15 +16,15 @@ Installation
 ------------
 Use one of the following links to download the csv table handler zipfile appropriate to your computer:
 
-* Windows: `amplcsv.win64.zip (64-bit) <https://ampl.com/dl/amplcsv/amplcsv.win64.zip>`_, `amplcsv.win32.zip (32-bit) <https://ampl.com/dl/amplcsv/amplcsv.win32.zip>`_
-* Linux: `amplcsv.linux64.zip (64-bit) <https://ampl.com/dl/amplcsv/amplcsv.linux64.zip>`_, `amplcsv.linux32.zip (32-bit) <https://ampl.com/dl/amplcsv/amplcsv.linux32.zip>`_
-* macOS: `amplcsv.macos.zip <https://ampl.com/dl/amplcsv/amplcsv.macos.zip>`_
+* Windows: `amplcsv.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.win64.zip>`_, `amplcsv.win32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.win32.zip>`_
+* Linux: `amplcsv.linux64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.linux64.zip>`_, `amplcsv.linux32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.linux32.zip>`_
+* macOS: `amplcsv.macos.zip <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.macos.zip>`_
 
 Double-click the zipfile or use an unzip utility to extract the file `amplcsv.dll`. Then move `amplcsv.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 
 Initial test
 ------------
-To confirm that your installation is working, download `amplcsv-test.zip <https://ampl.com/dl/amplcsv/amplcsv-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise 5 files: `diet.mod`, `foods.csv`, `nutrients.csv`, `amounts.csv`, and `diet.run`.
+To confirm that your installation is working, download `amplcsv-test.zip <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise 5 files: `diet.mod`, `foods.csv`, `nutrients.csv`, `amounts.csv`, and `diet.run`.
 
 * If you are using command-line AMPL, move the 5 files into the folder (or Linux directory) where you have put `amplcsv.dll`. Then start AMPL from that folder.
 * If you are using the AMPL IDE, move the 5 files into any convenient folder (or Linux directory). Start the AMPL IDE, and use the IDE’s file pane (at the left) to make that folder current.
