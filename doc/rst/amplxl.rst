@@ -17,16 +17,16 @@ Installation
 
 Use one of the following links to download the table handler zipfile appropriate to your computer:
 
-* Windows: `amplxl.win64.zip (64-bit) <https://ampl.com/dl/amplxl/amplxl.win64.zip>`_, `amplxl.win32.zip (32-bit) <https://ampl.com/dl/amplxl/amplxl.win32.zip>`_
-* Linux: `amplxl.linux64.zip (64-bit) <https://ampl.com/dl/amplxl/amplxl.linux64.zip>`_, `amplxl.linux32.zip (32-bit) <https://ampl.com/dl/amplxl/amplxl.linux32.zip>`_
-* macOS: `amplxl.macos.zip <https://ampl.com/dl/amplxl/amplxl.macos.zip>`_
+* Windows: `amplxl.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.win64.zip>`_, `amplxl.win32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.win32.zip>`_
+* Linux: `amplxl.linux64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.linux64.zip>`_, `amplxl.linux32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.linux32.zip>`_
+* macOS: `amplxl.macos.zip <https://portal.ampl.com/~nfbvs/amplxl/amplxl.macos.zip>`_
 
 Double-click the zipfile or use an unzip utility to extract the file `amplxl.dll`, and move this file into the folder (or Linux directory) that contains your AMPL program file: `ampl.exe` on Windows systems, or `ampl` on Linux and macOS systems.
 
 Initial test
 ------------
 
-To confirm that your installation is working, download `amplxl-test.zip <https://ampl.com/dl/amplxl/amplxl-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise three files: `diet.mod`, `diet.xlsx`, and `diet.run`.
+To confirm that your installation is working, download `amplxl-test.zip <https://portal.ampl.com/~nfbvs/amplxl/amplxl-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise three files: `diet.mod`, `diet.xlsx`, and `diet.run`.
 
 * If you are using command-line AMPL, move the three files into the folder (or Linux directory) where you have put `amplxl.dll`. Then start AMPL from that folder.
 * If you are using the AMPL IDE, move the three files into any convenient folder (or Linux directory). Start the AMPL IDE, and use the file pane at the left to make that folder current.
@@ -89,14 +89,14 @@ Learning more
 
 The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of *table* statements for data transfer. Although the presentation is not specific to spreadsheets, all of the examples can be adapted to work with the new amplxl spreadsheet handler. Thus we recommend reading at least sections 10.1 though 10.4 if you have not used any AMPL spreadsheet interface previously.
 
-We have also prepared a collection of examples that highlight new features of the amplxl interface. To get the example files, download `amplxl-examples.zip <https://ampl.com/dl/amplxl/amplxl-examples.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise four AMPL scripts and two spreadsheet files.
+We have also prepared a collection of examples that highlight new features of the amplxl interface. To get the example files, download `amplxl-examples.zip <https://portal.ampl.com/~nfbvs/amplxl/amplxl-examples.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents, which comprise four AMPL scripts and two spreadsheet files.
 
 * If you are using command-line AMPL, move these files into the folder (or Linux directory) where you have put `amplxl.dll`. Then start AMPL from that folder.
 * If you are using the *AMPL IDE*, move these files into any convenient folder (or Linux directory). Start the *AMPL IDE*, and use the file pane at the left to make that folder current.
 
 Use commands like `include amplxl-ex1.run;` to execute the scripts. The following comments explain how they work. Currently amplxl backs up spreadsheet files by default, creating *.amplback* files that appear in the same directory. To suppress the backups, add the string *"backup=false"* to the options in the *table* declaration.
 
-`amplxl-ex1.run <https://ampl.com/dl/amplxl/examples/amplxl-ex1.run>`_ writes three data tables to the spreadsheet file `ex1.xlsx <https://ampl.com/dl/amplxl/examples/ex1.xlsx>`_, then reads the data back into AMPL and displays it. The file has been set up to show three ways of specifying where the data should be written:
+`amplxl-ex1.run <https://portal.ampl.com/~nfbvs/amplxl/examples/amplxl-ex1.run>`_ writes three data tables to the spreadsheet file `ex1.xlsx <https://portal.ampl.com/~nfbvs/amplxl/examples/ex1.xlsx>`_, then reads the data back into AMPL and displays it. The file has been set up to show three ways of specifying where the data should be written:
 
 * The entire table *Aset* is identified by a named range.
 * Only the header of table *Bset* is identified by a named range. This alternative allows the number of rows in the table to be determined dynamically.
@@ -104,7 +104,7 @@ Use commands like `include amplxl-ex1.run;` to execute the scripts. The followin
 
 In the second part of the example, the same alternatives are employed to determine the locations from which the data should be read.
 
-`amplxl-ex2.run <https://ampl.com/dl/amplxl/examples/amplxl-ex2.run>`_ introduces two-dimensional spreadsheet tables for representing AMPL data indexed over two sets. The same data is written to two different spreadsheet files and then read from those files, but using different table statements:
+`amplxl-ex2.run <https://portal.ampl.com/~nfbvs/amplxl/examples/amplxl-ex2.run>`_ introduces two-dimensional spreadsheet tables for representing AMPL data indexed over two sets. The same data is written to two different spreadsheet files and then read from those files, but using different table statements:
 
 * table ex2_1D specifies a traditional “one-dimensional” relational table, for which each row of spreadsheet data has two keys and a value:
 
@@ -123,11 +123,11 @@ A table statement that specifies "2D" must list only one parameter (or other ind
 
 Since file names are not specified in the table statements for this example, the amplxl table handler takes the names of the files to be `ex1D.xlsx` and `ex2D.xlsx`. And since those files do not yet exist when the *write table* statements are executed, amplxl creates them, and saves the data on new sheets named ex1D and ex2D.
 
-`amplxl-ex3.run <https://ampl.com/dl/amplxl/examples/amplxl-ex3.run>`_ shows the concept of two-dimensional tables extended to AMPL data indexed over three sets. As in the previous example, the same data is written twice, but using different table statements:
+`amplxl-ex3.run <https://portal.ampl.com/~nfbvs/amplxl/examples/amplxl-ex3.run>`_ shows the concept of two-dimensional tables extended to AMPL data indexed over three sets. As in the previous example, the same data is written twice, but using different table statements:
 
 * table ex3_1D specifies a traditional relational table, for which each row of spreadsheet data has three keys and a value.
 * table ex3_2D has the additional keyword string "2D" in its declaration, to specify that the data for an AMPL parameter will be represented in a two-dimensional table, with pairs of keys from the first two sets labeling the rows, and keys from the third set labeling the columns.
 
 Two spreadsheet files are written as in the previous example. Parameters indexed over more than three sets are handled in an analogous manner, with always one label on the columns and other labels on the rows.
 
-`amplxl-ex4.run <https://ampl.com/dl/amplxl/examples/amplxl-ex4.run>`_ shows how the positioning of row and column labels of a two-dimensional spreadsheet table can be specified, by setting up headers in the spreadsheet `ex4.xlsx <https://ampl.com/dl/amplxl/examples/ex4.xlsx>`_ before it is written. (Currently it is not possible for the table statement to specify this positioning.) Three tables ex4_1, ex4_2, and ex4_3 have exactly the same declaration in the AMPL script, but are written differently to match the headers set up in the spreadsheet file. Similar to the first example, the entire table ex4_1 is identified by a named range; only the header of table ex4_2 is identified by a named range; and table ex4_3 is identified by a sheet name.
+`amplxl-ex4.run <https://portal.ampl.com/~nfbvs/amplxl/examples/amplxl-ex4.run>`_ shows how the positioning of row and column labels of a two-dimensional spreadsheet table can be specified, by setting up headers in the spreadsheet `ex4.xlsx <https://portal.ampl.com/~nfbvs/amplxl/examples/ex4.xlsx>`_ before it is written. (Currently it is not possible for the table statement to specify this positioning.) Three tables ex4_1, ex4_2, and ex4_3 have exactly the same declaration in the AMPL script, but are written differently to match the headers set up in the spreadsheet file. Similar to the first example, the entire table ex4_1 is identified by a named range; only the header of table ex4_2 is identified by a named range; and table ex4_3 is identified by a sheet name.
