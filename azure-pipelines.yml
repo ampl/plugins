@@ -1,11 +1,11 @@
 variables:
-  AMPL_DEMO_URL: 'https://ampl.com/demo/'
-  AMPL_EXT_DEMO_URL: 'https://ampl.com/dl/fdabrandao/demo/'
-  LINUX32_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.linux32.tgz'
-  LINUX64_BUNDLE_URL: '$(AMPL_EXT_DEMO_URL)/ampl.linux64.tgz'
-  MACOS64_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.macos64.tgz'
-  MSWIN32_BUNDLE_URL: '$(AMPL_DEMO_URL)/ampl.mswin32.zip'
-  MSWIN64_BUNDLE_NAME: '$(AMPL_DEMO_URL)/ampl.mswin64.zip'
+  BUNDLES_URL: 'https://portal.ampl.com/dl/demo/'
+  BUNDLES_URL_LINUX64: 'https://portal.ampl.com/dl/amplce/'
+  LINUX32_BUNDLE_URL: '$(BUNDLES_URL)/ampl.linux32.tgz'
+  LINUX64_BUNDLE_URL: '$(BUNDLES_URL_LINUX64)/ampl.linux64.tgz'
+  MACOS64_BUNDLE_URL: '$(BUNDLES_URL)/ampl.macos64.tgz'
+  MSWIN32_BUNDLE_URL: '$(BUNDLES_URL)/ampl.mswin32.zip'
+  MSWIN64_BUNDLE_NAME: '$(BUNDLES_URL)/ampl.mswin64.zip'
   CTEST_OUTPUT_ON_FAILURE: 1
 
 stages:
