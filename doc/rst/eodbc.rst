@@ -22,12 +22,12 @@ If you are using spreadsheet software, you may also be interested in :doc:`amplx
 Installation
 ------------
 
-The executable `eodbc.dll` is included by default in most of the generated bundles. If you dont't have eodbc yet
+The executable `eodbc.dll` is included by default in most of the distributed bundles. If you dont't have eodbc yet
 use one of the following links to download the table handler zipfile appropriate to your computer:
 
-* Windows: `eodbc.win64.zip (64-bit) <https://ampl.com/dl/nfbvs/experimental/eodbc-0.0.2/eodbc.win64.zip>`_
-* Linux: `eodbc.linux64-unixodbc.zip (64-bit) <https://ampl.com/dl/nfbvs/experimental/eodbc-0.0.2/eodbc.linux64-unixodbc.zip>`_, `eodbc.linux64-iodbc.zip (64-bit) <https://ampl.com/dl/nfbvs/experimental/eodbc-0.0.2/eodbc.linux64-iodbc.zip>`_
-* macOS: `eodbc.macos-unixodbc.zip <https://ampl.com/dl/nfbvs/experimental/eodbc-0.0.2/eodbc.macos-unixodbc.zip>`_, `eodbc.macos-iodbc.zip <https://ampl.com/dl/nfbvs/experimental/eodbc-0.0.2/eodbc.macos-iodbc.zip>`_
+* Windows: `eodbc.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.win64.zip>`_
+* Linux: `eodbc.linux64-unixodbc.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.linux64-unixodbc.zip>`_, `eodbc.linux64-iodbc.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.linux64-iodbc.zip>`_
+* macOS: `eodbc.macos-unixodbc.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc.macos-unixodbc.zip>`_, `eodbc.macos-iodbc.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc.macos-iodbc.zip>`_
 
 Double-click the zipfile or use an unzip utility to extract the file `eodbc.dll`. Then move `eodbc.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 
@@ -38,11 +38,117 @@ Double-click the zipfile or use an unzip utility to extract the file `eodbc.dll`
 
 
 Example
-------------
-To confirm that your installation is working, download `eodbc-test.zip <https://ampl.com/dl/eodbc/eodbc-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an apropriate folder.
+-------
+To confirm that your installation is working, download `eodbc-test.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an apropriate folder. Consider this as your test folder.
 
-* If you are using command-line AMPL, move the 5 files into the folder (or Linux directory) where you have put `eodbc.dll`. Then start AMPL from that folder.
-* If you are using the AMPL IDE, move the 5 files into any convenient folder (or Linux directory). Start the AMPL IDE, and use the IDE’s file pane (at the left) to make that folder current.
+* If you are using command-line AMPL, start your AMPL session and use the `cd` command to move to your test folder.
+* If you are using the AMPL IDE, start the AMPL IDE, and use the IDE’s file pane (at the left) to make your test folder current.
+
+The test folder contains multiple `.run` files that start with the instruction
+
+.. code-block:: ampl
+
+	load eodbc.dll;
+
+to make the `eodbc` table handler available.
+
+The `.run` files also contain a **connection string** parameter. Choose the option for your database or consult the documentation of the database you are using in order to provide a correct connection string.
+
+.. code-block:: ampl
+
+	param cs symbolic := "my connection string";
+
+
+Write example
+*************
+
+In the "diet_write.run" example we will load the `diet` model and data files and save the data to a database. The same process may also be used to convert existing '.dat' files into database tables.
+
+The `diet` problem has two indexing sets, **NUTR** and **FOOD**, and several parameters. 
+The parameters **n_min** and **n_max** are index by **NUTR** so it's natural to create a table named **nutr** to store the information.
+
+.. code-block:: ampl
+
+	table nutr OUT "eodbc" (cs):
+		NUTR -> [nutr], n_min, n_max;
+
+The same reasoning may be aplyed to the **FOOD** set and the **cost**, **f_min** and **f_max** parameters.
+
+.. code-block:: ampl
+
+	table food OUT "eodbc" (cs):
+		FOOD -> [food], cost, f_min, f_max;
+
+Finally **amt** is indexed simultaneously by **NUTR** and **FOOD**.
+
+.. code-block:: ampl
+
+	table amt OUT "eodbc" (cs):
+		[nutr, food], amt;
+
+Note the **OUT** keyword in the table statements and the brackets around the indexing sets. The -> arrow indicates that the members of our indexing set will be written in the key column.
+After the tables are defined we need to invoke a `write` statement for each of the declared tables.
+
+.. code-block:: ampl
+
+	write table nutr;
+	write table food;
+	write table amt;
+
+The driver will search for a table with the given name, delete the data in the table and write the data from AMPL.
+If the table does not exist it will be cretaed.
+
+Read example
+************
+
+In the "diet_read.run" example we will load the `diet` model, read the data from the database and call a solver.
+We first need to specify the table declarations. They are similar to the write example.
+
+.. code-block:: ampl
+
+	table nutr IN "eodbc" (cs):
+		NUTR <- [nutr], n_min, n_max;
+
+	table food IN "eodbc" (cs):
+		FOOD <- [food], cost, f_min, f_max;
+
+	table amt IN "eodbc" (cs):
+		[nutr, food], amt;
+
+Note the **IN** keyword in the table statements and the brackets around the indexing sets. Also note the <- arrow indication 
+that the data for the indexing sets will be read from the table.
+After the table declaration we load the data with the `read table` statements
+
+.. code-block:: ampl
+
+	read table nutr;
+	read table food;
+	read table amt;
+
+and invoke a solver to find a solution for our `diet` problem.
+
+Update example
+**************
+
+In the *"diet_update.run"* example we will load the `diet` model, load the data from a database, change some values in the *nutr* and *food* tables and update the tables with these new values. The table declarations are similar to the previous examples
+
+.. code-block:: ampl
+
+	table nutr INOUT "eodbc" (cs):
+		NUTR <-> [nutr], n_min, n_max;
+
+	table food INOUT "eodbc" (cs):
+		FOOD <-> [food], cost, f_min, f_max;
+
+In this example we are using a single table declaration to read and update the data.
+The <-> arrow indicates that the indexing sets will be populated, when using a `read table` instruction.
+Conversely the members of the indexing sets will be written to the correponding table, when a `write table` statement is used.
+The **INOUT** keyword will trigger an UPDATE statement in the database.
+
+After the table declarations we have the `read table` instructions, we update some values in the parameters with the `let` command and we update the values in the database with the `write table` commands.
+
+Note that if you run the *"diet_read.run"* example afterwards AMPL will display the updated values.
+
 
 
 Learning more
