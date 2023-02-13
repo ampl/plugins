@@ -48,6 +48,7 @@ add_subdirectory(amplp/examples/eodbc)
 add_subdirectory(amplp/examples/funclink)
 add_subdirectory(amplp/examples/modhide)
 add_subdirectory(amplp/examples/heuristic)
+add_subdirectory(amplp/examples/ampljson)
 
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
