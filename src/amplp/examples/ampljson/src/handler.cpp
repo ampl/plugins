@@ -148,13 +148,15 @@ Handler::read_in_meat(rapidjson::Document & doc){
 		bool found = false;
 
 		for (rapidjson::SizeType i = 0; i < doc.Size(); i++){
+
 			if(doc[i].IsObject()){
 				
-				if (doc[i].HasMember("id") || doc[i]["id"].GetString() == table_name){
+				if (doc[i].HasMember("id") && doc[i]["id"].GetString() == table_name){
+
 					read_table_info(doc[i]);
+					found = true;
 					break;
 				}
-				
 			}
 		}
 		if (!found){

@@ -49,8 +49,8 @@ if __name__ == "__main__":
 	# ~ print_json("nutr.json")
 	# ~ print_json("amt.json")
 
-	# ~ print_json("diet_cols.json")
-	print_json("diet_cols_concat.json")
+	print_json("diet.json")
+	# ~ print_json("diet_cols_concat.json")
 
 
 
