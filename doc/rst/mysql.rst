@@ -4,10 +4,10 @@ Connecting AMPL to MySQL
 ========================
 
 To use MySQL with AMPL, you need to have the MySQL ODBC driver, also known as
-`Connector/ODBC <http://dev.mysql.com/doc/refman/5.1/en/connector-odbc.html>`__,
+`Connector/ODBC <https://dev.mysql.com/doc/refman/5.1/en/connector-odbc.html>`__,
 installed and to have access to a database server, which could be either
 local or remote. You can download the latest version of the MySQL ODBC driver
-for various platforms from `<http://dev.mysql.com/downloads/connector/odbc/>`__.
+for various platforms from `<https://dev.mysql.com/downloads/connector/odbc/>`__.
 
 Installation
 ------------
@@ -18,9 +18,9 @@ GNU/Linux
 Debian-based distributions
 ``````````````````````````
 
-The following instructions apply to `Debian <http://www.debian.org/>`__
+The following instructions apply to `Debian <https://www.debian.org/>`__
 and Debian-based Linux distributions such as `Ubuntu
-<http://www.ubuntu.com/>`__ and `Mint <http://linuxmint.com/>`__.
+<https://www.ubuntu.com/>`__ and `Mint <https://linuxmint.com/>`__.
 
 #. Install the MySQL ODBC driver:
 
@@ -69,11 +69,11 @@ Go to :ref:`mysql-usage`.
 Other distributions
 ```````````````````
 
-#. Install `unixODBC <http://www.unixodbc.org>`__ following `these instructions
-   <http://www.unixodbc.org/download.html>`__.
+#. Install `unixODBC <https://www.unixodbc.org>`__ following `these instructions
+   <https://www.unixodbc.org/download.html>`__.
 
 #. Install the MySQL Connector/ODBC following `these instructions
-   <http://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-unix>`__.
+   <https://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-unix>`__.
    Make sure that you use compatible versions of the ODBC driver
    (Connector/ODBC) and the MySQL client library, otherwise the driver
    library will not load and any connection attempt will fail.
@@ -107,10 +107,10 @@ MacOS X
 The easiest way to install the MySQL ODBC driver on Mac is by using an
 installer available for download as a DMG archive from the
 `Connector/ODBC download page on the MySQL website
-<http://dev.mysql.com/downloads/connector/odbc/#downloads>`__.
+<https://dev.mysql.com/downloads/connector/odbc/#downloads>`__.
 
 Alternatively you can install the MySQL Connector/ODBC as described `here
-<http://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-macosx>`__,
+<https://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-macosx>`__,
 skipping the outdated last step (driver registration) and then register
 the driver with the following command:
 
@@ -137,7 +137,7 @@ Windows
 ~~~~~~~
 
 Install and register the MySQL Connector/ODBC following `these instructions
-<http://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-windows>`__.
+<https://dev.mysql.com/doc/refman/5.1/en/connector-odbc-installation.html#connector-odbc-installation-binary-windows>`__.
 
 .. _mysql-usage:
 
@@ -147,13 +147,13 @@ Usage
 We'll demonstrate usage of MySQL with AMPL on a small example.
 For this example we use the diet problem, which finds a combination of foods
 that satisfies certain nutritional requirements. It is described in
-`Chapter 2 of the AMPL book <http://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
+`Chapter 2 of the AMPL book <https://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
 
 We assume that you've already installed the MySQL ODBC driver using
 the instructions above and have access to the MySQL ``test`` database.
 
 First download the data for the diet problem `diet-mysql.sql
-<http://ampl.github.io/models/tables/diet-mysql.sql>`__
+<https://ampl.github.io/models/tables/diet-mysql.sql>`__
 and import it to MySQL:
 
 .. code-block:: bash
@@ -161,9 +161,9 @@ and import it to MySQL:
    $ mysql test < diet-mysql.sql
 
 Then download the model file `diet.mod
-<http://ampl.github.io/models/tables/diet.mod>`__
+<https://ampl.github.io/models/tables/diet.mod>`__
 and the script file `diet-mysql.run
-<http://ampl.github.io/models/tables/diet-mysql.run>`__.
+<https://ampl.github.io/models/tables/diet-mysql.run>`__.
 
 The script file first reads the model:
 
@@ -247,7 +247,7 @@ is working properly and the problem is easily solved:
 
 You can use various database tools such as `MySQL workbench
 <https://www.mysql.com/products/workbench/>`__ or `MySQL command-line tool
-<http://dev.mysql.com/doc/refman/5.5/en/mysql.html>`__ to view the data
+<https://dev.mysql.com/doc/refman/5.5/en/mysql.html>`__ to view the data
 exported to the database from the AMPL script:
 
 .. image:: ../img/mysql-workbench.png
@@ -256,14 +256,14 @@ SQL statements
 --------------
 
 The default `identifier quote character in MySQL
-<http://dev.mysql.com/doc/refman/5.0/en/identifiers.html>`__
+<https://dev.mysql.com/doc/refman/5.0/en/identifiers.html>`__
 is the backquote (`````). AMPL's ODBC table handler detects the quote
 character automatically and uses it when necessary. However,
 user-supplied SQL statements are passed to the MySQL ODBC driver as is
 and should use the correct quotation. It is possible to enable support for
 the ANSI standard quote character (``"``) in MySQL by setting the SQL mode to
 `ANSI_QUOTES
-<http://dev.mysql.com/doc/refman/5.1/en/server-sql-mode.html#sqlmode_ansi_quotes>`__.
+<https://dev.mysql.com/doc/refman/5.1/en/server-sql-mode.html#sqlmode_ansi_quotes>`__.
 
 Example:
 
