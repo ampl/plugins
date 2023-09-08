@@ -4,7 +4,7 @@ Connecting AMPL to Oracle
 =========================
 
 To use Oracle with AMPL, you need to have the `Oracle ODBC driver
-<http://www.oracle.com/technetwork/database/windows/index-098976.html>`__
+<https://www.oracle.com/technetwork/database/windows/index-098976.html>`__
 installed and to have access to a database server, which could be either
 local or remote.
 
@@ -17,13 +17,13 @@ GNU/Linux
 Debian-based distributions
 ``````````````````````````
 
-The following instructions apply to `Debian <http://www.debian.org/>`__
+The following instructions apply to `Debian <https://www.debian.org/>`__
 and Debian-based Linux distributions such as `Ubuntu
-<http://www.ubuntu.com/>`__ and `Mint <http://linuxmint.com/>`__.
+<https://www.ubuntu.com/>`__ and `Mint <https://linuxmint.com/>`__.
 
 #. Download RPM packages of Oracle Instant Client for your Linux platform from the
    `Instant Client Downloads page
-   <http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html>`__.
+   <https://www.oracle.com/technetwork/database/features/instant-client/index-097480.html>`__.
    You will need the Basic and ODBC packages. In the Usage example we also use ``sqlplus`` from
    the SQL*Plus package.
 
@@ -93,12 +93,12 @@ Go to :ref:`oracle-usage`.
 Other distributions
 ```````````````````
 
-#. Install `unixODBC <http://www.unixodbc.org>`__ following `these instructions
-   <http://www.unixodbc.org/download.html>`__.
+#. Install `unixODBC <https://www.unixodbc.org>`__ following `these instructions
+   <https://www.unixodbc.org/download.html>`__.
 
 #. Download and install Oracle Instant Client packages for your Linux platform from the
    `Instant Client Downloads page
-   <http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html>`__.
+   <https://www.oracle.com/technetwork/database/features/instant-client/index-097480.html>`__.
    You will need the Basic and ODBC packages. In the Usage example we also use ``sqlplus`` from
    the SQL*Plus package.
 
@@ -151,7 +151,7 @@ MacOS X
 ~~~~~~~
 
 Oracle doesn't provide ODBC drivers for Mac OS X but you can get them from
-third-party companies such as `OpenLink Software <http://www.openlinksw.com/>`__.
+third-party companies such as `OpenLink Software <https://www.openlinksw.com/>`__.
 
 Go to :ref:`oracle-usage`.
 
@@ -165,10 +165,10 @@ Administrator, ``odbcad32.exe``, and looking for Oracle in the ``Drivers`` tab.
 .. image:: /img/odbcad32-oracle.png
 
 If the driver is missing, download one from `OracleODBC Drivers Download Page
-<http://www.oracle.com/technetwork/database/windows/downloads/index-096177.html>`__
+<https://www.oracle.com/technetwork/database/windows/downloads/index-096177.html>`__
 (32-bit version) and install it. 64-bit version of the driver is available as
 a part of `Oracle Data Access Components
-<http://www.oracle.com/technetwork/database/windows/downloads/index-090165.html>`__.
+<https://www.oracle.com/technetwork/database/windows/downloads/index-090165.html>`__.
 
 .. _oracle-usage:
 
@@ -178,13 +178,13 @@ Usage
 We'll demonstrate usage of Oracle with AMPL on a small example.
 For this example we use the diet problem, which finds a combination of foods
 that satisfies certain nutritional requirements. It is described in
-`Chapter 2 of the AMPL book <http://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
+`Chapter 2 of the AMPL book <https://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
 
 We assume that you've already installed the Oracle ODBC driver using
 the instructions above and have access to a local Oracle database.
 
 First download the data for the diet problem `diet-oracle.sql
-<http://ampl.github.io/models/tables/diet-oracle.sql>`__
+<https://ampl.github.io/models/tables/diet-oracle.sql>`__
 and import it into an Oracle database:
 
 .. code-block:: bash
@@ -195,9 +195,9 @@ where ``<username>`` is the name of a database user and ``<password>`` is the
 user's password.
  
 Then download the model file `diet.mod
-<http://ampl.github.io/models/tables/diet.mod>`__
+<https://ampl.github.io/models/tables/diet.mod>`__
 and the script file `diet-oracle.run
-<http://ampl.github.io/models/tables/diet-oracle.run>`__.
+<https://ampl.github.io/models/tables/diet-oracle.run>`__.
 
 The script file first reads the model:
 
@@ -287,10 +287,10 @@ is working properly and the problem is easily solved:
    13 iterations, objective 118.0594032
 
 You can use various database tools such as `Oracle SQL Developer IDE
-<http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html>`__,
+<https://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html>`__,
 `Oracle Application Express
-<http://www.oracle.com/technetwork/developer-tools/apex/overview/index.html>`__,
-or `sqlplus <http://docs.oracle.com/cd/B19306_01/server.102/b14357/toc.htm>`__
+<https://www.oracle.com/technetwork/developer-tools/apex/overview/index.html>`__,
+or `sqlplus <https://docs.oracle.com/cd/B19306_01/server.102/b14357/toc.htm>`__
 to view the data exported to the database from the AMPL script:
 
 .. image:: /img/oracle-application-express.png

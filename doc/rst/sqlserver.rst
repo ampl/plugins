@@ -14,7 +14,7 @@ GNU/Linux
 ~~~~~~~~~
 
 Follow the instructions in `Installing the Microsoft ODBC Driver for SQL Server on Linux
-<http://msdn.microsoft.com/en-us/library/hh568454.aspx>`__.
+<https://msdn.microsoft.com/en-us/library/hh568454.aspx>`__.
 
 Windows
 ~~~~~~~
@@ -27,7 +27,7 @@ Administrator, ``odbcad32.exe``, and looking for SQL Server in the ``Drivers`` t
 
 If the driver is missing, follow the instructions in
 `Microsoft ODBC Driver for SQL Server: System Requirements, Installation, and Driver Files
-<http://msdn.microsoft.com/en-us/library/jj730315.aspx>`__ to install it.
+<https://msdn.microsoft.com/en-us/library/jj730315.aspx>`__ to install it.
 
 .. _sqlserver-usage:
 
@@ -37,14 +37,14 @@ Usage
 We'll demonstrate usage of MS SQL Server with AMPL on a small example.
 For this example we use the diet problem, which finds a combination of foods
 that satisfies certain nutritional requirements. It is described in
-`Chapter 2 of the AMPL book <http://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
+`Chapter 2 of the AMPL book <https://www.ampl.com/BOOK/CHAPTERS/05-tut2.pdf>`__.
 
 We assume that you've already installed the MS SQL Server ODBC driver using
 the instructions above and have access to a local SQL Server database.
 
 First download the data for the diet problem `diet.xls
 <../models/tables/diet.xls>`__ and import it using the `SQL Server Import and
-Export Wizard <http://msdn.microsoft.com/en-us/library/ms141209.aspx>`__
+Export Wizard <https://msdn.microsoft.com/en-us/library/ms141209.aspx>`__
 which can be run from the Start menu -> All Programs -> Microsoft SQL Server 
 -> Import and Export Data. Skip the Welcome page, if any, by clicking Next,
 then choose ``Microsoft Excel`` as a Data source and specify the path to
@@ -153,7 +153,7 @@ is working properly and the problem is easily solved:
    13 iterations, objective 118.0594032
 
 You can use various database tools such as `SQL Server Management Studio
-<http://msdn.microsoft.com/en-us/library/hh213248.aspx>`__ to view the data
+<https://msdn.microsoft.com/en-us/library/hh213248.aspx>`__ to view the data
 exported to the database from the AMPL script:
 
 .. image:: ../img/sql-server-management-studio.png
@@ -162,7 +162,7 @@ SQL statements
 --------------
 
 The default `identifier quote character in SQL Server
-<http://msdn.microsoft.com/en-us/library/ms174393.aspx>`__
+<https://msdn.microsoft.com/en-us/library/ms174393.aspx>`__
 is the double quotation mark (``"``). AMPL's ODBC table handler detects the
 quote character automatically and uses it when necessary. However,
 user-supplied SQL statements are passed to the ODBC driver for SQL Server
