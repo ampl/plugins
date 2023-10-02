@@ -1,0 +1,49 @@
+reset;
+
+model knapsack.mod;
+
+read n, W, {i in 1..n}(v[i], w[i]) < "small.txt";
+
+display n, W;
+#display w, v;
+
+
+load heuristic.dll;
+
+function heuristic_show;
+function heuristic_solve;
+function heuristic_set_nitems;
+function heuristic_set_capacity;
+function heuristic_set_weights;
+function heuristic_set_values;
+function heuristic_get_obj;
+function heuristic_get_sol({i in 1..n} (INOUT));
+function heuristic_get_sol_val;
+
+call heuristic_set_nitems(n);
+call heuristic_set_capacity(W);
+call heuristic_set_weights({i in 1..n} w[i]);
+call heuristic_set_values({i in 1..n} v[i]);
+call heuristic_show();
+call heuristic_solve();
+
+param hobj := heuristic_get_obj();
+display hobj;
+
+printf "Getting sol\n";
+
+for{i in 1..n}{
+	let x[i] := heuristic_get_sol_val(i);
+}
+
+
+
+#call heuristic_get_sol({i in 1..n} x[i]);
+
+#display x;
+printf "Getting sol done\n";
+
+option solver cbc;
+solve;
+
+#unload heuristic.dll;

@@ -1,0 +1,64 @@
+reset;
+load ampljson.dll;
+
+
+model diet.mod;
+data diet.dat;
+
+display cost, f_min, f_max;
+
+option solver highs;
+solve;
+
+
+param vb symbolic := "verbose=3";
+param layout symbolic := "layout=columns";
+param ap symbolic := "append";
+param f symbolic := "diet.json";
+
+table food OUT "ampljson" (layout) (f):
+	FOOD -> [FOOD], cost, f_min, f_max;
+write table food;
+
+table nutr OUT "ampljson" (layout) (f) (ap):
+	NUTR -> [NUTR], n_min, n_max;
+write table nutr;
+
+table amt OUT "ampljson" (layout) (f) (ap):
+	[NUTR, FOOD], amt;
+write table amt;
+
+
+
+reset;
+
+model diet.mod;
+
+param vb symbolic := "verbose=3";
+param f symbolic := "diet.json";
+
+table food IN "ampljson" (f):
+	FOOD <- [FOOD], cost, f_min, f_max;
+read table food;
+
+table nutr IN "ampljson" (f):
+	NUTR <- [NUTR], n_min, n_max;
+read table nutr;
+
+table amt IN "ampljson" (f):
+	[NUTR, FOOD], amt;
+read table amt;
+
+display cost, f_min, f_max;
+display n_min, n_max;
+display amt;
+
+option solver highs;
+solve;
+
+
+
+
+
+
+
