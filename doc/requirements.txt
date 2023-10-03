@@ -1,3 +1,4 @@
 sphinx==4.2.0
 breathe==4.33.1
-ampl-sphinx-theme
+ampl-sphinx-theme @ git+https://github.com/ampl/ampl.github.io.git#subdirectory=ampl-sphinx-theme
+
