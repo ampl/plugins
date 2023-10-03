@@ -1,9 +1,9 @@
-PROJECT_NAME     = mp
+PROJECT_NAME     = amplp
 GENERATE_LATEX   = NO
 GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
-INPUT            =  ../src/amplp/include
+INPUT            = ../../src/amplp/include
 QUIET            = NO
 JAVADOC_AUTOBRIEF = YES
 AUTOLINK_SUPPORT = YES

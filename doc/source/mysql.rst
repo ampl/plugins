@@ -250,7 +250,7 @@ You can use various database tools such as `MySQL workbench
 <https://dev.mysql.com/doc/refman/5.5/en/mysql.html>`__ to view the data
 exported to the database from the AMPL script:
 
-.. image:: ../img/mysql-workbench.png
+.. image:: img/mysql-workbench.png
 
 SQL statements
 --------------

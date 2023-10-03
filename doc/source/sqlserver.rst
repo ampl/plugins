@@ -50,12 +50,12 @@ which can be run from the Start menu -> All Programs -> Microsoft SQL Server
 then choose ``Microsoft Excel`` as a Data source and specify the path to
 the downloaded ``diet.xls`` file in Excel file path:
 
-.. image:: ../img/sql-server-import-source.png
+.. image:: img/sql-server-import-source.png
 
 Click Next and on the following page provide the connection settings for the
 SQL Server database you are going to use:
 
-.. image:: ../img/sql-server-import-destination.png
+.. image:: img/sql-server-import-destination.png
 
 Click Next, select ``Copy data from one or more tables or views`` on the next
 page and click Next again.
@@ -63,7 +63,7 @@ page and click Next again.
 Select tables ``Amounts``, ``Foods`` and ``Nutrients`` for import and click
 Next:
 
-.. image:: ../img/sql-server-import-tables.png
+.. image:: img/sql-server-import-tables.png
 
 Select ``Run immediately`` and click Finish on the next page and the one that
 follows.
@@ -100,7 +100,7 @@ To discover the driver name on Windows, run the ODBC Data Source
 Administrator, ``odbcad32.exe``.  Go to the ``Drivers`` tab where all the
 installed drivers are listed and look for the one containing ``SQL Server``:
 
-.. image:: ../img/odbcad32-sqlserver.png
+.. image:: img/odbcad32-sqlserver.png
 
 A driver name containing a semicolon (``;``) should be surrounded with
 ``{`` and ``}`` in a connection string, for example:
@@ -156,7 +156,7 @@ You can use various database tools such as `SQL Server Management Studio
 <https://msdn.microsoft.com/en-us/library/hh213248.aspx>`__ to view the data
 exported to the database from the AMPL script:
 
-.. image:: ../img/sql-server-management-studio.png
+.. image:: img/sql-server-management-studio.png
 
 SQL statements
 --------------
