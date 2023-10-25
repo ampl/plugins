@@ -114,7 +114,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           make all -j2
           ctest
           cpack
@@ -149,7 +149,7 @@ stages:
           brew install autoconf automake libtool
           curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
           cd libiodbc-3.52.15
-          CFLAGS="-O -arch x86_64"
+          CFLAGS="-O -arch x86_64 -arch arm64"
           CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
           export CFLAGS
           sh autogen.sh
@@ -166,7 +166,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           make all -j2
           ctest
           cpack
