@@ -96,20 +96,7 @@ stages:
     variables:
       upload: $(Build.ArtifactStagingDirectory)
       AMPL_URL: $(MACOS64_BUNDLE_URL)
-    strategy:
-      matrix:
-        amplxl:
-          TARGET: amplxl
-          OSX_ARCH: arm64;x86_64
-        unix eodbc:
-          TARGET: eodbc
-          OSX_ARCH: x86_64
-        ampljson:
-          TARGET: ampljson
-          OSX_ARCH: x86_64
-        amplcsv:
-          TARGET: ampljson
-          OSX_ARCH: x86_64
+      OSX_ARCH: x86_64
     steps:
       - task: UsePythonVersion@0
       - bash: |
@@ -129,13 +116,13 @@ stages:
           cd build
           DATE=`date +%Y%m%d`
           cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="$(OSX_ARCH)"
-          make $(TARGET) -j2
-          ctest -R $(TARGET)
+          make
+          ctest
         displayName: Build package
       - bash: |
           UPLOAD_DIR=$UPLOAD/macos-$(TARGET)/
           mkdir -p $UPLOAD_DIR
-          cp $(TARGET)/$(TARGET).dll $UPLOAD_DIR
+          cp build/*.tar.gz $UPLOAD_DIR
         displayName: Upload package
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
@@ -187,7 +174,6 @@ stages:
       - bash: |
           UPLOAD_DIR=$UPLOAD/macos-iodbc/
           mkdir -p $UPLOAD_DIR
-          cp src/eodbc.dll $UPLOAD_DIR
           cp build/*.tar.gz $UPLOAD_DIR
         displayName: Upload package
       - task: PublishBuildArtifacts@1
@@ -254,9 +240,7 @@ stages:
             cd artifacts/
             mkdir -p release
             cp drop/linux*-unixodbc/* release/
-            cp drop/macos-amplxl/amplxl.dll release/
-            cp drop/macos-amplcsv/amplcsv.dll release/
-            cp drop/macos-ampljson/ampljson.dll release/
+            cp drop/macos-eodbc/* release/
             cp drop/macos-iodbc/* release/
             cp drop/win64/* release/
         - task: FtpUpload@2
