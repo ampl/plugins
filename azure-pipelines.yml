@@ -7,7 +7,7 @@ variables:
   MSWIN32_BUNDLE_URL: '$(BUNDLES_URL)/ampl.mswin32.zip'
   MSWIN64_BUNDLE_NAME: '$(BUNDLES64_URL)/ampl.mswin64.zip'
   CTEST_OUTPUT_ON_FAILURE: 1
-  solver: highs
+  solver: minos
 
 stages:
 - stage: build
