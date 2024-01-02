@@ -130,7 +130,7 @@ stages:
           DATE=`date +%Y%m%d`
           cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="$osx_arch"
           make $target -j2
-          ctest
+          ctest -R $target
           cpack
         displayName: Build package
       - bash: |
