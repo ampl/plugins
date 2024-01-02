@@ -118,6 +118,7 @@ stages:
           cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="$(OSX_ARCH)"
           make
           ctest
+          cpack
         displayName: Build package
       - bash: |
           UPLOAD_DIR=$UPLOAD/macos-unixodbc/
