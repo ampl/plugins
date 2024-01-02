@@ -7,6 +7,7 @@ variables:
   MSWIN32_BUNDLE_URL: '$(BUNDLES_URL)/ampl.mswin32.zip'
   MSWIN64_BUNDLE_NAME: '$(BUNDLES64_URL)/ampl.mswin64.zip'
   CTEST_OUTPUT_ON_FAILURE: 1
+  solver: highs
 
 stages:
 - stage: build
@@ -99,17 +100,17 @@ stages:
     strategy:
       matrix:
         amplxl:
-          target: amplxl
-          osx_arch: arm64;x86_64
+          TARGET: amplxl
+          OSX_ARCH: arm64;x86_64
         eodbc:
-          target: eodbc
-          osx_arch: x86_64
+          TARGET: eodbc
+          OSX_ARCH: x86_64
         ampljson:
-          target: ampljson
-          osx_arch: x86_64
+          TARGET: ampljson
+          OSX_ARCH: x86_64
         amplcsv:
-          target: ampljson
-          osx_arch: x86_64
+          TARGET: ampljson
+          OSX_ARCH: x86_64
     steps:
       - task: UsePythonVersion@0
       - bash: |
@@ -128,13 +129,13 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="$osx_arch"
-          make $target -j2
-          ctest -R $target
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="$(OSX_ARCH)"
+          make $(TARGET) -j2
+          ctest -R $(TARGET)
           cpack
         displayName: Build package
       - bash: |
-          UPLOAD_DIR=$UPLOAD/macos-$target/
+          UPLOAD_DIR=$UPLOAD/macos-$(TARGET)/
           mkdir -p $UPLOAD_DIR
           cp build/*.tar.gz $UPLOAD_DIR
         displayName: Upload package

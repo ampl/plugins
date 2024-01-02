@@ -15,6 +15,7 @@ elif [ -d "/base/manylinux/" ]; then
     export PATH=$PATH:/tmp/tables/ampl/
     cmake /tmp/tables/ -DARCH=$1 -DDATE=${2:-YYYYMMDD} -DGENERATE_ARITH=1
     make all -j4
+    export solver="highs"
     make test
     cpack
 else
