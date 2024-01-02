@@ -1,7 +1,7 @@
 import os
 import sys
 
-DIET_IN="""
+DIET_IN = """
 option display_precision 0;
 model diet.mod;
 
@@ -28,7 +28,7 @@ solve;
 display {j in FOOD} (Buy[j], Buy.rc[j],  Buy[j]/f_max[j]);
 """
 
-DIET_INOUT="""
+DIET_INOUT = """
 option display_precision 0;
 model diet.mod;
 
@@ -88,7 +88,7 @@ display BuyFrac;
 display BuyRC;
 """
 
-DIET_OUT="""
+DIET_OUT = """
 option display_precision 0;
 model diet.mod;
 
@@ -148,7 +148,7 @@ display BuyFrac;
 display BuyRC;
 """
 
-DIET_INOUT_SINGLE="""
+DIET_INOUT_SINGLE = """
 option display_precision 0;
 model diet.mod;
 
@@ -209,53 +209,49 @@ display BuyFrac;
 display BuyRC;
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NTYPES = 3
-    RUN_DIR = 'run/'
-    XLSX_DIR = ''
+    RUN_DIR = "run/"
+    XLSX_DIR = ""
     generated = []
 
     for i in range(NTYPES):
-        name_in = os.path.join(XLSX_DIR, 'diet_in_{}.xlsx'.format(i+1))
-        runfile = os.path.join(RUN_DIR, 'diet_in_{}.run'.format(i+1))
-        with open(runfile, 'w') as f:
-            f.write(
-                DIET_IN.replace('#1#', name_in)
-            )
+        name_in = os.path.join(XLSX_DIR, "diet_in_{}.xlsx".format(i + 1))
+        runfile = os.path.join(RUN_DIR, "diet_in_{}.run".format(i + 1))
+        with open(runfile, "w") as f:
+            f.write("option solver minos;\n")
+            f.write(DIET_IN.replace("#1#", name_in))
         generated.append(runfile)
 
     for i in range(NTYPES):
-        name_in = os.path.join(XLSX_DIR, 'diet_in_{}.xlsx'.format(i+1))
-        name_out = os.path.join(XLSX_DIR, 'diet_inout_{}.xlsx'.format(i+1))
-        runfile = os.path.join(RUN_DIR, 'diet_inout_{}.run'.format(i+1))
-        with open(runfile, 'w') as f:
-            f.write(
-                DIET_INOUT.replace('#1#', name_in).replace('#2#', name_out)
-            )
+        name_in = os.path.join(XLSX_DIR, "diet_in_{}.xlsx".format(i + 1))
+        name_out = os.path.join(XLSX_DIR, "diet_inout_{}.xlsx".format(i + 1))
+        runfile = os.path.join(RUN_DIR, "diet_inout_{}.run".format(i + 1))
+        with open(runfile, "w") as f:
+            f.write("option solver minos;\n")
+            f.write(DIET_INOUT.replace("#1#", name_in).replace("#2#", name_out))
         generated.append(runfile)
 
     for i in range(NTYPES):
-        name_in = os.path.join(XLSX_DIR, 'diet_in_{}.xlsx'.format(i+1))
-        name_out = os.path.join(XLSX_DIR, 'diet_out_{}.xlsx'.format(i+1))
-        runfile = os.path.join(RUN_DIR, 'diet_out_{}.run'.format(i+1))
-        with open(runfile, 'w') as f:
-            f.write(
-                DIET_OUT.replace('#1#', name_in).replace('#2#', name_out)
-            )
+        name_in = os.path.join(XLSX_DIR, "diet_in_{}.xlsx".format(i + 1))
+        name_out = os.path.join(XLSX_DIR, "diet_out_{}.xlsx".format(i + 1))
+        runfile = os.path.join(RUN_DIR, "diet_out_{}.run".format(i + 1))
+        with open(runfile, "w") as f:
+            f.write("option solver minos;\n")
+            f.write(DIET_OUT.replace("#1#", name_in).replace("#2#", name_out))
         generated.append(runfile)
 
     for i in range(NTYPES):
-        name = os.path.join(XLSX_DIR, 'diet_inout_single_{}.xlsx'.format(i+1))
-        runfile = os.path.join(RUN_DIR, 'diet_inout_single_{}.run'.format(i+1))
-        with open(runfile, 'w') as f:
-            f.write(
-                DIET_INOUT_SINGLE.replace('#1#', name)
-            )
+        name = os.path.join(XLSX_DIR, "diet_inout_single_{}.xlsx".format(i + 1))
+        runfile = os.path.join(RUN_DIR, "diet_inout_single_{}.run".format(i + 1))
+        with open(runfile, "w") as f:
+            f.write("option solver minos;\n")
+            f.write(DIET_INOUT_SINGLE.replace("#1#", name))
         generated.append(runfile)
 
+    os.chdir("run")
     for script in generated:
+        script = os.path.basename(script)
         os.system(
-            'ampl -i amplxl.dll {} > {}'.format(
-                script, script.replace('.run', '.out')
-            )
+            "ampl -i amplxl.dll {} > {}".format(script, script.replace(".run", ".out"))
         )

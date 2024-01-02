@@ -114,7 +114,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.py DESTINATION ${CMAKE_CURRENT_
 add_test(NAME amplxl-test COMMAND ${PYTHON_PROGRAM}
   ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplxl>)
   
-  find_package(ODBC)
+find_package(ODBC)
 if (ODBC_FOUND)
   add_library(amplodbc STATIC tables/amplodbc.c)
   set_property(TARGET amplodbc PROPERTY POSITION_INDEPENDENT_CODE ON)

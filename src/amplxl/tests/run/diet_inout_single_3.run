@@ -1,3 +1,4 @@
+option solver minos;
 
 option display_precision 0;
 model diet.mod;
