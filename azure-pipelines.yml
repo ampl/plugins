@@ -120,7 +120,7 @@ stages:
           ctest
         displayName: Build package
       - bash: |
-          UPLOAD_DIR=$UPLOAD/macos-$(TARGET)/
+          UPLOAD_DIR=$UPLOAD/macos-unixodbc/
           mkdir -p $UPLOAD_DIR
           cp build/*.tar.gz $UPLOAD_DIR
         displayName: Upload package
@@ -240,7 +240,7 @@ stages:
             cd artifacts/
             mkdir -p release
             cp drop/linux*-unixodbc/* release/
-            cp drop/macos-eodbc/* release/
+            cp drop/macos-unixodbc/* release/
             cp drop/macos-iodbc/* release/
             cp drop/win64/* release/
         - task: FtpUpload@2
