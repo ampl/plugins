@@ -12,7 +12,7 @@ stages:
 - stage: build
   jobs:
   - job: linux_unixodbc
-    pool: {vmImage: 'Ubuntu-20.04'}
+    pool: {vmImage: 'ubuntu-22.04'}
     strategy:
       matrix:
         x86:
@@ -52,7 +52,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: linux_iodbc
-    pool: {vmImage: 'Ubuntu-20.04'}
+    pool: {vmImage: 'ubuntu-22.04'}
     strategy:
       matrix:
         x86:
@@ -229,7 +229,7 @@ stages:
   condition: succeeded()
   jobs:
     - job: ftp_upload
-      pool: {vmImage: 'Ubuntu-20.04'}
+      pool: {vmImage: 'ubuntu-22.04'}
       steps:
         - task: DownloadBuildArtifacts@0
           inputs:
