@@ -14,7 +14,8 @@ elif [ -d "/base/manylinux/" ]; then
     export CTEST_OUTPUT_ON_FAILURE=1
     export PATH=$PATH:/tmp/tables/ampl/
     cmake /tmp/tables/ -DARCH=$1 -DDATE=${2:-YYYYMMDD} -DGENERATE_ARITH=1
-    make all -j4
+    #make all -j4
+    make tableproxy
     export solver="highs"
     make test
     cpack
