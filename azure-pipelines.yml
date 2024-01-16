@@ -96,7 +96,7 @@ stages:
     variables:
       upload: $(Build.ArtifactStagingDirectory)
       AMPL_URL: $(MACOS64_BUNDLE_URL)
-      OSX_ARCH: x86_64
+      OSX_ARCH: x86_64;arm64
     steps:
       - task: UsePythonVersion@0
       - bash: |
