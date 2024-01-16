@@ -108,6 +108,8 @@ stages:
         displayName: Check CPU details
       - bash: bash download-ampl.sh $AMPL_URL
         displayName: Install AMPL
+      - bash: brew install macports
+        displayName: Install macports
       - bash: port install unixODBC +universal
         displayName: Install universal unixODBC
       - bash: |
