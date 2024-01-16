@@ -108,12 +108,22 @@ stages:
         displayName: Check CPU details
       - bash: bash download-ampl.sh $AMPL_URL
         displayName: Install AMPL
-      - bash: brew uninstall --ignore-dependencies unixodbc
-      - bash: brew install unixodbc
-        displayName: Install universal unixODBC
       - bash: |
           set -ex
           export PATH=$PATH:$PWD/ampl/
+          brew uninstall --ignore-dependencies unixodbc
+          brew install autoconf automake libtool
+          curl -LO https://www.unixodbc.org/unixODBC-2.3.12.tar.gz
+          gunzip unixODBC*.tar.gz
+          tar xvf unixODBC*.tar
+          cd unixODBC-2.3.12
+          CFLAGS="-O -arch x86_64 -arch arm64"
+          CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
+          export CFLAGS
+          ./configure
+          make
+          sudo make install
+          cd ..
           git submodule update --init --recursive --remote
           mkdir build
           cd build
