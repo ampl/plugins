@@ -108,7 +108,7 @@ stages:
         displayName: Check CPU details
       - bash: bash download-ampl.sh $AMPL_URL
         displayName: Install AMPL
-      - bash: brew reinstall unixodbc
+      - bash: brew reinstall unixodbc --universal
         displayName: Install universal unixODBC
       - bash: |
           set -ex
