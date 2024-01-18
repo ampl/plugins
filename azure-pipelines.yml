@@ -15,10 +15,6 @@ stages:
     pool: {vmImage: 'ubuntu-22.04'}
     strategy:
       matrix:
-        x86:
-          AMPL_URL: $(LINUX32_BUNDLE_URL)
-          image: 'nfbvs/manylinux32:coin_cmake-3.12.4_unixodbc-2.3.9'
-          nbits: 32
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
           image: 'nfbvs/manylinux:manylinux2014_x86_64_cmake-3.28.1-unixODBC-2.3.9'
@@ -55,10 +51,6 @@ stages:
     pool: {vmImage: 'ubuntu-22.04'}
     strategy:
       matrix:
-        x86:
-          AMPL_URL: $(LINUX32_BUNDLE_URL)
-          image: 'nfbvs/manylinux32:coin_cmake-3.12.4_iodbc-3.52.15'
-          nbits: 32
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
           image: 'nfbvs/manylinux:manylinux2014_x86_64_cmake-3.28.1-iODBC-3.52.15'
