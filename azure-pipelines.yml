@@ -61,7 +61,7 @@ stages:
           nbits: 32
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
-          image: 'nfbvs/manylinux64:coin_cmake-3.12.4_iodbc-3.52.15'
+          image: 'nfbvs/manylinux:manylinux2014_x86_64_cmake-3.28.1-iODBC-3.52.15'
           nbits: 64
     variables:
       upload: $(Build.ArtifactStagingDirectory)
