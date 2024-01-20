@@ -2,10 +2,12 @@
 # zlibstatic that we can link statically to
 set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 
-set(Z_DIR zlib-1.2.11)
+set(Z_DIR zlib-1.3)
 set(MZ_DIR ${Z_DIR}/contrib/minizip)
 
 add_subdirectory(${Z_DIR})
+set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 addToTablesFolder(support zlib zlibstatic minigzip)
 set(ZLIB_INCLUDE_DIRS ./${Z_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${Z_DIR} ./${MZ_DIR})
 set(ZLIB_LIBRARIES zlibstatic)
