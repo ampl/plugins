@@ -9,7 +9,7 @@ add_subdirectory(${Z_DIR})
 set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 addToTablesFolder(support zlib zlibstatic minigzip)
-set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${Z_DIR} ./${MZ_DIR})
+set(ZLIB_INCLUDE_DIRS ./${Z_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${Z_DIR} ./${MZ_DIR})
 set(ZLIB_LIBRARIES zlibstatic)
 
 set(AMPLXL_SOURCES 
