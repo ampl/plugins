@@ -5,12 +5,10 @@ set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 set(Z_DIR zlib-1.3)
 set(MZ_DIR ${Z_DIR}/contrib/minizip)
 
-add_subdirectory(${Z_DIR})
+add_subdirectory(${Z_DIR} EXCLUDE_FROM_ALL)
 set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-addToTablesFolder(support zlib zlibstatic minigzip)
 set(ZLIB_INCLUDE_DIRS ./${Z_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${Z_DIR} ./${MZ_DIR})
-set(ZLIB_LIBRARIES zlibstatic)
 
 set(AMPLXL_SOURCES 
     ./src/ampl_xl.cpp 
@@ -33,7 +31,7 @@ add_ampl_library(amplxl ${AMPLXL_SOURCES}
                 COMPONENT ${DISTRO_COMPONENT})
 
 set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(amplxl PRIVATE asl2 ${ZLIB_LIBRARIES})
+target_link_libraries(amplxl PRIVATE asl2 zlibstatic)
 target_include_directories(amplxl PRIVATE ${ZLIB_INCLUDE_DIRS})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl)
