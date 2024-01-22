@@ -20,7 +20,9 @@ std::unordered_set<SQLSMALLINT> sql_num_types ({
 	SQL_SMALLINT,
 	SQL_FLOAT,
 	SQL_REAL,
-	SQL_DOUBLE
+	SQL_DOUBLE,
+	SQL_TINYINT,
+	SQL_BIGINT
 });
 
 static int MAX_COL_NAME_LEN = 255;
