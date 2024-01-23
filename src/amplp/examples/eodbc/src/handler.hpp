@@ -52,7 +52,7 @@ std::unordered_map<SQLSMALLINT, std::string> c_types_map({
 });
 
 static std::string name = "eodbc";
-static std::string version = "0.0.2";
+static std::string version = "0.0.3";
 
 static std::string doc = name + "\n" + name + "-" + version + "\n" +
 "EODBC: experimental ODBC driver for AMPL.\n"
