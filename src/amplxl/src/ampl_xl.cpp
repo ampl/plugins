@@ -507,7 +507,7 @@ ExcelManager::manage_workbook(){
 		}
 	}
 
-	msg = "Table type: " + tableType;
+	msg = "Table type: " + numeric_to_string(tableType);
 	logger.log(msg, LOG_DEBUG);
 
 	//~ sheet_rel = sheet_rel_map[range_sheet];
@@ -4420,7 +4420,7 @@ ExcelManager::parse_header_2D_reader(
 			xl_col_map[xl_col_name] = iter_col;
 			header.push_back(xl_col_name);
 
-			msg = "Found column header " + xl_col_name;
+			msg = "Found column header '" + xl_col_name + "'";
 			logger.log(msg, LOG_DEBUG);
 		}
 		else if (tableType != TABLE_SHEET){
