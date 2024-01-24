@@ -471,7 +471,7 @@ ExcelManager::manage_workbook(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		msg = "cannot extract workbook";
+		msg = "Cannot extract workbook. Is the file open in another application?";
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
@@ -482,7 +482,7 @@ ExcelManager::manage_workbook(){
 	result = parse_workbook();
 
 	if (result){
-		msg = "cannot parse workbook";
+		msg = "Cannot parse workbook";
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
@@ -501,7 +501,7 @@ ExcelManager::manage_workbook(){
 		}
 
 		if (result){
-			msg = "cannot parse range";
+			msg = "Cannot parse range";
 			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
