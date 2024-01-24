@@ -4504,7 +4504,7 @@ ExcelManager::parse_data2D(
 			if (found){
 				// more than 1 column not mapped
 				msg = "Found more than one candidate for key row in 2D table. At least "
-					+ h_set + " and " + ampl_col_name + " are not found.";
+					+ h_set + " and " + ampl_col_name + " are not key columns.";
 				logger.log(msg, LOG_ERROR);
 				return 1;
 			}
