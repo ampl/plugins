@@ -77,7 +77,7 @@ ExcelManager::ExcelManager(){
 	has_range = false;
 	break_mode = false;
 	verbose = 0;
-	write = "drop";
+	write = "delete";
 	backup = true;
 	is2D = false;
 	isReader = true;
@@ -321,8 +321,8 @@ ExcelManager::prepare(){
 
 				option_string = arg_string.substr(write_op.size());
 
-				if (option_string == "drop"){
-					write = "drop";
+				if (option_string == "delete"){
+					write = "delete";
 				}
 				else if (option_string == "append"){
 					write = "append";
@@ -394,7 +394,7 @@ ExcelManager::prepare(){
 		// we create the non existing file with the declared name
 		if (inout == "OUT"){
 
-			write = "drop";
+			write = "delete";
 			msg = "Declared file does not exist. Creating file ";
 			msg += excel_path;
 			msg += " with sheet ";
@@ -1454,7 +1454,7 @@ ExcelWriteManager::manage_data(){
 
 	if (inout == "OUT"){
 
-		if (write == "drop"){
+		if (write == "delete"){
 
 			// At this point we have an estimate of the table dimensions.
 			// However, due to the dynamic nature of data, this estimate may not be correct.
@@ -2558,7 +2558,7 @@ int
 ExcelWriteManager::delete_data(pugi::xml_node parent){
 
 	int include_header = 0;
-	if (write == std::string("drop")){
+	if (write == std::string("delete")){
 		include_header = 1;
 	}
 
@@ -4129,7 +4129,7 @@ ExcelWriteManager::manage_data2D(){
 
 	if (inout == "OUT"){
 
-		if (write == "drop"){
+		if (write == "delete"){
 
 			result = write_data_out_2D(node, first_row, last_row, first_col, last_col);
 		}
@@ -4140,7 +4140,7 @@ ExcelWriteManager::manage_data2D(){
 		}
 	}
 	else if (inout == "INOUT"){
-		if (write == "drop"){
+		if (write == "delete"){
 
 			result = write_data_inout_2D(node, first_row, last_row, first_col, last_col);
 		}

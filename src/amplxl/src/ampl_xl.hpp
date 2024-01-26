@@ -177,7 +177,7 @@ class ExcelManager
 	// display information during execution
 	int verbose;
 
-	// weather to delete or drop a table
+	// weather to delete data or append to a table
 	std::string write;
 
 	// weather to backup the initial data or not
