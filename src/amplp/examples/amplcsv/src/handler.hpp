@@ -31,13 +31,13 @@ public TableConnector{
 	// character used to quote strings
 	std::string quotechar;
 
-	// weather or not to read/write the header
+	// whether or not to read/write the header
 	bool has_header;
 
-	// Whether or not to quote/unquote strings when writing/reading, defaults to false
+	// whether or not to quote/unquote strings when writing/reading, defaults to false
 	bool quotestrings;
 
-	// Whether or not to use the existing csv header (OUT only)
+	// whether or not to use the existing csv header (OUT only)
 	bool use_header;
 
 	// override functions

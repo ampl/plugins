@@ -171,16 +171,16 @@ class ExcelManager
 	// for errors and message printing to users 
 	Logger logger;
 
-	// weather to break on first blank line or not
+	// whether to break on first blank line or not
 	bool break_mode;
 
 	// display information during execution
 	int verbose;
 
-	// weather to delete data or append to a table
+	// whether to delete data or append to a table
 	std::string write;
 
-	// weather to backup the initial data or not
+	// whether to backup the initial data or not
 	bool backup;
 
 	// inout keyword of the table, can be IN, OUT or INOUT
@@ -201,7 +201,7 @@ class ExcelManager
 	// if the named range that defines the table needs to be updated
 	bool updateRange;
 
-	// weather or not to override AMPL's error
+	// whether or not to override AMPL's error
 	bool report_error;
 
 	// methods
@@ -661,7 +661,7 @@ public ExcelManager{
 	** Only cell elements in each row are deleted, since the row may have elements of other tables.
 	** Parameters:
 	**    parent : XML node that holds row elements as children;
-	**    include_header : weather to delete the header or not.
+	**    include_header : whether to delete the header or not.
 	** Returns:
 	**      0 success;
 	** Not checking for errors.
@@ -675,7 +675,7 @@ public ExcelManager{
 	** Row deletion is done until an empty row in the table columns is found.
 	** Parameters:
 	**    parent : XML node that holds row elements as children;
-	**    include_header : weather to delete the header or not.
+	**    include_header : whether to delete the header or not.
 	** Returns:
 	**      0 success;
 	** Not checking for errors.
@@ -685,11 +685,11 @@ public ExcelManager{
 
 	/*
 	** Deletes the data of the table defined by sheet name.
-	** In this particular case we check weather to remove or not the header row and completely
+	** In this particular case we check whether to remove or not the header row and completely
 	** remove the xml nodes of rows, since we assume there are no other tables in this sheet.
 	** Parameters:
 	**     parent : XML node that holds row elements as children;
-	**     include_header : weather to delete the header or not.
+	**     include_header : whether to delete the header or not.
 	** Returns:
 	**     0 success;
 	** Not checking for errors.
