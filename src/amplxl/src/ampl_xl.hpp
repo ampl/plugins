@@ -53,14 +53,12 @@ void mymkstemp(std::string& tmpl, int pos);
 #include "oxmlutils.hpp"
 #include "logger.hpp"
 #include "utils.hpp"
+#include "amplxl_doc.hpp"
 
 
 // headers from AMPL
 #include "funcadd.h"
 #include "arith.h"	/* for Arith_Kind_ASL and Long */
-
-
-
 
 
 // auxiliary macro to allocate memory in AMPLs internal structures
@@ -70,7 +68,7 @@ void mymkstemp(std::string& tmpl, int pos);
 // some constants
 const int EXCEL_MAX_ROWS = 1048576;
 const std::string EXCEL_MAX_COLS = "XFD";
-const std::string version = "0.1.11";
+//~ const std::string version = "0.1.11";
 
 
 const char* row_attr = "r";

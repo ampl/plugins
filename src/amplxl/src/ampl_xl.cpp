@@ -23,18 +23,9 @@ Write_ampl_xl(AmplExports *ae, TableInfo *TI){
 void
 funcadd(AmplExports *ae){
 
-	/* description of handlers */
-
-	static char info[] = "amplxl\n"
-	"Table handler for .xlsx and .xlsm files:\n"
-	"one or two strings (an optional 'amplxl' and the file name,\n"
-	"ending in \".xlsx\" or \".xlsm\") expected before \":[...]\".";
-
 	/* Inform AMPL about the .example handlers */
 
-	add_table_handler(Read_ampl_xl, Write_ampl_xl, info, 0, 0);
-
-
+	add_table_handler(Read_ampl_xl, Write_ampl_xl, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
 
