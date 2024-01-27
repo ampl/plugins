@@ -23,18 +23,9 @@ Write_ampl_xl(AmplExports *ae, TableInfo *TI){
 void
 funcadd(AmplExports *ae){
 
-	/* description of handlers */
-
-	static char info[] = "amplxl\n"
-	"Table handler for .xlsx and .xlsm files:\n"
-	"one or two strings (an optional 'amplxl' and the file name,\n"
-	"ending in \".xlsx\" or \".xlsm\") expected before \":[...]\".";
-
 	/* Inform AMPL about the .example handlers */
 
-	add_table_handler(Read_ampl_xl, Write_ampl_xl, info, 0, 0);
-
-
+	add_table_handler(Read_ampl_xl, Write_ampl_xl, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
 
@@ -86,7 +77,7 @@ ExcelManager::ExcelManager(){
 	has_range = false;
 	break_mode = false;
 	verbose = 0;
-	write = "drop";
+	write = "delete";
 	backup = true;
 	is2D = false;
 	isReader = true;
@@ -330,8 +321,8 @@ ExcelManager::prepare(){
 
 				option_string = arg_string.substr(write_op.size());
 
-				if (option_string == "drop"){
-					write = "drop";
+				if (option_string == "delete"){
+					write = "delete";
 				}
 				else if (option_string == "append"){
 					write = "append";
@@ -403,7 +394,7 @@ ExcelManager::prepare(){
 		// we create the non existing file with the declared name
 		if (inout == "OUT"){
 
-			write = "drop";
+			write = "delete";
 			msg = "Declared file does not exist. Creating file ";
 			msg += excel_path;
 			msg += " with sheet ";
@@ -471,7 +462,7 @@ ExcelManager::manage_workbook(){
 	result = myunzip(excel_path, excel_iner_file, temp_folder);
 
 	if (result){
-		msg = "cannot extract workbook";
+		msg = "Cannot extract workbook. Is the file open in another application?";
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
@@ -482,7 +473,7 @@ ExcelManager::manage_workbook(){
 	result = parse_workbook();
 
 	if (result){
-		msg = "cannot parse workbook";
+		msg = "Cannot parse workbook";
 		logger.log(msg, LOG_ERROR);
 		return 1;
 	}
@@ -501,13 +492,13 @@ ExcelManager::manage_workbook(){
 		}
 
 		if (result){
-			msg = "cannot parse range";
+			msg = "Cannot parse range";
 			logger.log(msg, LOG_ERROR);
 			return 1;
 		}
 	}
 
-	msg = "Table type: " + tableType;
+	msg = "Table type: " + numeric_to_string(tableType);
 	logger.log(msg, LOG_DEBUG);
 
 	//~ sheet_rel = sheet_rel_map[range_sheet];
@@ -1463,7 +1454,7 @@ ExcelWriteManager::manage_data(){
 
 	if (inout == "OUT"){
 
-		if (write == "drop"){
+		if (write == "delete"){
 
 			// At this point we have an estimate of the table dimensions.
 			// However, due to the dynamic nature of data, this estimate may not be correct.
@@ -2567,7 +2558,7 @@ int
 ExcelWriteManager::delete_data(pugi::xml_node parent){
 
 	int include_header = 0;
-	if (write == std::string("drop")){
+	if (write == std::string("delete")){
 		include_header = 1;
 	}
 
@@ -4138,7 +4129,7 @@ ExcelWriteManager::manage_data2D(){
 
 	if (inout == "OUT"){
 
-		if (write == "drop"){
+		if (write == "delete"){
 
 			result = write_data_out_2D(node, first_row, last_row, first_col, last_col);
 		}
@@ -4149,7 +4140,7 @@ ExcelWriteManager::manage_data2D(){
 		}
 	}
 	else if (inout == "INOUT"){
-		if (write == "drop"){
+		if (write == "delete"){
 
 			result = write_data_inout_2D(node, first_row, last_row, first_col, last_col);
 		}
@@ -4420,7 +4411,7 @@ ExcelManager::parse_header_2D_reader(
 			xl_col_map[xl_col_name] = iter_col;
 			header.push_back(xl_col_name);
 
-			msg = "Found column header " + xl_col_name;
+			msg = "Found column header '" + xl_col_name + "'";
 			logger.log(msg, LOG_DEBUG);
 		}
 		else if (tableType != TABLE_SHEET){
@@ -4504,7 +4495,7 @@ ExcelManager::parse_data2D(
 			if (found){
 				// more than 1 column not mapped
 				msg = "Found more than one candidate for key row in 2D table. At least "
-					+ h_set + " and " + ampl_col_name + " are not found.";
+					+ h_set + " and " + ampl_col_name + " are not key columns.";
 				logger.log(msg, LOG_ERROR);
 				return 1;
 			}

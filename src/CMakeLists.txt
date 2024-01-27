@@ -50,6 +50,9 @@ add_subdirectory(amplp/examples/modhide)
 add_subdirectory(amplp/examples/heuristic)
 add_subdirectory(amplp/examples/ampljson)
 
+# amplxl
+add_subdirectory(amplxl)
+
 # simpbit
 add_ampl_library(simpbit tables/simpbit.c)
 target_link_libraries(simpbit PUBLIC asl)
@@ -77,42 +80,6 @@ target_link_libraries(ampltabl asl)
 #   add_test(NAME sqlite3-test COMMAND ${PYTHON_PROGRAM}
 #     ${CMAKE_CURRENT_BINARY_DIR}/sqlite3/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:sqlite3th>)
 # endif (SQLite3_FOUND)
-
-# Build zlib from the included sources, it generates the target
-# zlibstatic that we can link statically to
-set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
-add_subdirectory(amplxl/zlib-1.2.11)
-addToTablesFolder(support zlib zlibstatic minigzip)
-set(ZLIB_INCLUDE_DIRS amplxl/zlib-1.2.11 ${CMAKE_CURRENT_BINARY_DIR}/amplxl/zlib-1.2.11 amplxl/zlib-1.2.11/contrib/minizip)
-set(ZLIB_LIBRARIES zlibstatic)
-
-set(AMPLXL_SOURCES 
-    amplxl/src/ampl_xl.cpp
-    amplxl/src/ioapi.c 
-    amplxl/src/myunz.cpp
-    amplxl/src/myzip.cpp
-    amplxl/src/copyzip.cpp
-    amplxl/src/pugixml.cpp
-    amplxl/src/oxmlutils.cpp
-    amplxl/src/logger.cpp
-    amplxl/src/utils.cpp
-    amplxl/src/unzip.c
-    amplxl/src/zip.c)
-if (WIN32)
-  set(AMPLXL_SOURCES ${AMPLXL_SOURCES} amplxl/src/iowin32.c)
-endif()
-
-add_ampl_library(amplxl ${AMPLXL_SOURCES}
-                COMPONENT ${DISTRO_COMPONENT})
-
-set_target_properties(amplxl PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(amplxl PRIVATE asl2 ${ZLIB_LIBRARIES})
-target_include_directories(amplxl PRIVATE ${ZLIB_INCLUDE_DIRS})
-
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/amplxl/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests)
-add_test(NAME amplxl-test COMMAND ${PYTHON_PROGRAM}
-  ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplxl>)
   
 find_package(ODBC)
 if (ODBC_FOUND)
