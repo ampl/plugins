@@ -3,7 +3,7 @@
 #include <string.h>
 
 std::string name = "amplxl";
-std::string version = "0.1.11";
+std::string version = "0.1.12";
 
 std::string doc = name + "\n" + name + "-" + version + "\n"
 "\n"
