@@ -17,7 +17,7 @@ stages:
       matrix:
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
-          image: 'nfbvs/manylinux:manylinux2014_x86_64_cmake-3.28.1-unixODBC-2.3.9'
+          image: 'nfbvs/manylinux:manylinux2010_x86_64_unixODBC-2.3.9'
           nbits: 64
     variables:
       upload: $(Build.ArtifactStagingDirectory)
@@ -53,7 +53,7 @@ stages:
       matrix:
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
-          image: 'nfbvs/manylinux:manylinux2014_x86_64_cmake-3.28.1-iODBC-3.52.15'
+          image: 'nfbvs/manylinux:manylinux2010_x86_64_iODBC-3.52.15'
           nbits: 64
     variables:
       upload: $(Build.ArtifactStagingDirectory)
