@@ -1,6 +1,5 @@
 # Add test-support library
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/test-support ${CMAKE_CURRENT_BINARY_DIR}/mptest)
-addToTablesFolder(test test-support)
 
 function(add_mp_test name)
   cmake_parse_arguments(add_mp_test "" "" LIBS ${ARGN})
@@ -16,6 +15,7 @@ function(add_mp_test name)
     set(add_mp_test_LIBS asl)
   endif ()
   target_link_libraries(${name} test-support ${add_mp_test_LIBS})
+
   target_compile_definitions(${name} PRIVATE
     MP_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/test/data"
     AMPLTABL_DLL_NAME="$<TARGET_FILE:ampltabl>"
@@ -32,7 +32,7 @@ if (ODBC_FOUND)
   set(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${ODBC_LIBRARIES})
 
-  add_mp_test(odbc-test odbc-test.cc odbc.cc LIBS ${ODBC_LIBRARIES} asl2)
+  add_mp_test(odbc-test odbc-test.cc odbc.cc LIBS ${ODBC_LIBRARIES} asl)
 
   include(CheckCXXSourceRuns)
   check_cxx_source_runs(
@@ -43,7 +43,7 @@ if (ODBC_FOUND)
 
   if (HAVE_ACCESS_DRIVER)
     add_mp_test(access-test access-test.cc odbc.cc
-      LIBS ${ODBC_LIBRARIES})
+      LIBS ${ODBC_LIBRARIES} asl)
   endif ()
 
   check_cxx_source_runs(
@@ -54,7 +54,7 @@ if (ODBC_FOUND)
 
   if (HAVE_EXCEL_DRIVER)
     add_mp_test(excel-test excel-test.cc odbc.cc
-      LIBS ${ODBC_LIBRARIES})
+      LIBS ${ODBC_LIBRARIES} asl)
   endif ()
 
   check_cxx_source_runs(
@@ -64,7 +64,7 @@ if (ODBC_FOUND)
      }" HAVE_ODBC_TEXT_DRIVER)
 
   if (HAVE_ODBC_TEXT_DRIVER)
-    add_mp_test(csv-test csv-test.cc odbc.cc LIBS ${ODBC_LIBRARIES})
+    add_mp_test(csv-test csv-test.cc odbc.cc LIBS ${ODBC_LIBRARIES} asl)
   endif ()
 
   if (ENABLE_MYSQL_TESTS)
@@ -79,7 +79,7 @@ if (ODBC_FOUND)
         set(MYSQL_TEST_LIBRARIES Ws2_32.lib)
       endif ()
       add_mp_test(mysql-test mysql-test.cc odbc.cc
-        LIBS ${ODBC_LIBRARIES} ${MYSQL_TEST_LIBRARIES})
+        LIBS ${ODBC_LIBRARIES} ${MYSQL_TEST_LIBRARIES} asl)
     endif ()
   endif ()
 endif ()
