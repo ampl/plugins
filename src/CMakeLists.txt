@@ -49,6 +49,7 @@ add_subdirectory(amplp/examples/funclink)
 add_subdirectory(amplp/examples/modhide)
 add_subdirectory(amplp/examples/heuristic)
 add_subdirectory(amplp/examples/ampljson)
+add_subdirectory(amplp/examples/amplsqlite)
 
 # amplxl
 add_subdirectory(amplxl)
