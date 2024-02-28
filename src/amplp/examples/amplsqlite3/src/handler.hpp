@@ -12,11 +12,11 @@
 using namespace amplp;
 
 
-static std::string name = "amplsqlite";
+static std::string name = "amplsqlite3";
 static std::string version = "0.0.0";
 
 static std::string doc = name + "\n" + name + "-" + version + "\n" +
-"amplsqlite: experimental sqlite3 driver for AMPL.\n"
+"amplsqlite3: experimental sqlite3 driver for AMPL.\n"
 ;
 
 class Handler:
@@ -34,7 +34,7 @@ public TableConnector{
 	void register_handler_names(){
 		log_msg = "<register_handler_names>";
 		logger.log(log_msg, LOG_DEBUG);
-		handler_names ={name, name + ".dll"};
+		handler_names = {name, name + ".dll"};
 	};
 	void register_handler_extensions();
 	void register_handler_args();
@@ -45,7 +45,6 @@ public TableConnector{
 	void read_in();
 	void write_out();
 	void write_inout();
-	void write_generic(int mode);
 
 	std::string get_stmt_create();
 	std::string get_stmt_insert();
@@ -61,6 +60,7 @@ public TableConnector{
 	void table_drop();
 
 	void get_ampl_col_types();
+	void validate_transaction(bool all_good);
 
 	public:
 

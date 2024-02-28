@@ -5,13 +5,13 @@ model diet.mod;
 
 param vb symbolic := "verbose=3";
 
-table nutr IN "amplsqlite" "diet.db" (vb):
+table nutr IN "amplsqlite3" "diet.db" (vb):
 	NUTR <- [nutr], n_min, n_max;
 
-table food IN "amplsqlite" "diet.db" (vb):
+table food IN "amplsqlite3" "diet.db" (vb):
 	FOOD <- [food], cost, f_min, f_max;
 
-table amt IN "amplsqlite" "diet.db" (vb):
+table amt IN "amplsqlite3" "diet.db" (vb):
 	[nutr, food], amt;
 
 # read the data

@@ -15,13 +15,13 @@ solve;
 
 param vb symbolic := "verbose=3";
 
-table nutr OUT "amplsqlite" "diet.db" (vb):
+table nutr OUT "amplsqlite3" "diet.db" (vb):
 	[nutr], n_min, n_max;
 
-table food OUT "amplsqlite" "diet.db" (vb):
+table food OUT "amplsqlite3" "diet.db" (vb):
 	[food], cost, f_min, f_max;
 
-table amt OUT "amplsqlite" "diet.db" (vb):
+table amt OUT "amplsqlite3" "diet.db" (vb):
 	[nutr, food], amt;
 
 # write the data

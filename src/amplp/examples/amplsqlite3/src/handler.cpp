@@ -137,7 +137,6 @@ Handler::read_in(){
 		}
 	}
 	sqlite3_finalize(stmt);
-
 };
 
 void
@@ -146,13 +145,14 @@ Handler::write_out(){
 	log_msg = "<write_out>";
 	logger.log(log_msg, LOG_DEBUG);
 
-	// Get the db statement
+	// get the db statement
 	std::string sqlstr = get_stmt_insert();
 
 	log_msg = "SQL: ";
 	log_msg += sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
+	// prepare the statement
 	sqlite3_stmt *stmt;
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
@@ -164,12 +164,16 @@ Handler::write_out(){
 		throw DBE_Error;
 	}
 
+	bool all_good = true;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	log_msg = "BEGIN TRANSACTION;";
+	logger.log(log_msg, LOG_DEBUG);
+
 	for (size_t i=0; i<nrows(); i++){
 		for (size_t j=0; j<ncols(); j++){
 
 			if (is_missing(i, j)){
-				//~ std::cout << "NULL" << ", ";
+				// nothing to do
 			}
 			else{
 				if (amplcoltypes[j] == 0){
@@ -182,19 +186,45 @@ Handler::write_out(){
 				}
 				else{
 					// should never get here
+					// unless you add a new AMPL column type
 				}
 			}
 		}
 		rc = sqlite3_step(stmt);
-		std::cout << "sqlite3_step: " << rc << std::endl;
-		
-		rc = sqlite3_reset(stmt);
-		std::cout << "sqlite3_reset: " << rc << std::endl;
-	}
-	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+		if (rc != SQLITE_DONE){
+			all_good = false;
+			log_msg = "main loop: sqlite3_step failed with code: " + std::to_string(rc);
+			logger.log(log_msg, LOG_DEBUG);
+			break;
+		}
 
+		rc = sqlite3_reset(stmt);
+		if (rc != SQLITE_OK){
+			all_good = false;
+			log_msg = "main loop: sqlite3_reset failed with code: " + std::to_string(rc);
+			logger.log(log_msg, LOG_DEBUG);
+			break;
+		}
+	}
+	validate_transaction(all_good);
 	sqlite3_finalize(stmt);
 };
+
+void
+Handler::validate_transaction(bool all_good){
+
+	if (all_good){
+		sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+		log_msg = "END TRANSACTION;";
+		logger.log(log_msg, LOG_DEBUG);
+	}
+	else{
+		sqlite3_exec(db, "ROLLBACK TRANSACTION;", NULL, NULL, NULL);
+		log_msg = "ROLLBACK TRANSACTION;";
+		logger.log(log_msg, LOG_DEBUG);
+	}
+};
+
 
 void
 Handler::write_inout(){
@@ -226,7 +256,11 @@ Handler::write_inout(){
 
 
 
+	bool all_good = true;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	log_msg = "BEGIN TRANSACTION;";
+	logger.log(log_msg, LOG_DEBUG);
+
 	for (size_t i = 0; i < nrows(); i++){
 
 		int pos = 0;
@@ -249,10 +283,7 @@ Handler::write_inout(){
 					// should never get here
 				}
 			}
-
-
 		}
-
 
 		for (size_t j = 0; j < nkeycols(); j++){
 
@@ -274,13 +305,22 @@ Handler::write_inout(){
 			}
 		}
 		rc = sqlite3_step(stmt);
-		std::cout << "sqlite3_step: " << rc << std::endl;
-		
-		rc = sqlite3_reset(stmt);
-		std::cout << "sqlite3_reset: " << rc << std::endl;
-	}
-	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+		if (rc != SQLITE_DONE){
+			all_good = false;
+			log_msg = "main loop: sqlite3_step failed with code: " + std::to_string(rc);
+			logger.log(log_msg, LOG_DEBUG);
+			break;
+		}
 
+		rc = sqlite3_reset(stmt);
+		if (rc != SQLITE_OK){
+			all_good = false;
+			log_msg = "main loop: sqlite3_reset failed with code: " + std::to_string(rc);
+			logger.log(log_msg, LOG_DEBUG);
+			break;
+		}
+	}
+	validate_transaction(all_good);
 	sqlite3_finalize(stmt);
 };
 
@@ -420,268 +460,6 @@ Handler::get_stmt_create(){
 	return stmt;
 };
 
-
-
-
-/*
-void
-Handler::write_inout(){
-
-	// We should simply pass data in AMPL's native types (double and char) and let the driver do the conversion.
-	// Unfortunately mysql is not accepting doubles in the update statement and returns the error
-	// The driver reported the following error SQLExecute()
-	// HY000:1:1292:[MySQL][ODBC 8.0(a) Driver][mysqld-8.0.26]Truncated incorrect INTEGER value: '1.00000000000000000e+00'
-	// even though it accepts doubles in the insert.
-	// As a workaround we check the types of each column with get_table_types and convert the data that will go
-	// into SQL_INTEGER and SQL_SMALLINT columns to integer before passing the data.
-
-	log_msg = "<write_inout>";
-	logger.log(log_msg, LOG_DEBUG);
-
-	if (nrows() == 0){
-		log_msg = "No rows to update";
-		logger.log(log_msg, LOG_INFO);
-		return;
-	}
-
-	if (ndatacols() == 0){
-		log_msg = "Updating table without data columns.";
-		logger.log(log_msg, LOG_WARNING);
-	}
-
-	char buff[1000];
-
-	std::unordered_map<std::string, int> table_types = get_table_types();
-	get_ampl_col_types();
-
-	std::string sqlstr;
-	if (sql.empty()){
-		sqlstr = get_stmt_update();
-	}
-	else{
-		sqlstr = sql;
-	}
-
-	log_msg = "SQL: ";
-	log_msg += sqlstr;
-	logger.log(log_msg, LOG_INFO);
-
-	std::vector<std::string> sql_colnames = get_sql_colnames(sqlstr);
-
-	//~ print_vector(sql_colnames);
-
-	// Prepare Statement
-	retcode = SQLPrepare (hstmt, (SQLCHAR*)sqlstr.c_str(), SQL_NTS);
-	check_error(retcode, (char*)"SQLPrepare(SQL_HANDLE_ENV)",
-				hstmt, SQL_HANDLE_STMT);
-
-	SQLSMALLINT NumParams;
-
-	// Retrieve number of parameters
-	retcode = SQLNumParams(hstmt, &NumParams);
-	check_error(retcode, (char*)"SQLNumParams()", hstmt,
-				SQL_HANDLE_STMT);
-
-	sprintf(buff, "Number of Result Parameters %i", (int)NumParams);
-	log_msg = buff;
-	logger.log(log_msg, LOG_INFO);
-
-	if ((int)NumParams != (int)sql_colnames.size()){
-	}
-
-	// Permutation of columns derived from the update statement
-	std::vector<int> perm((int)NumParams, -1);
-
-	for (size_t i=0; i<(int)NumParams; i++){
-		for (size_t j=0; j<ncols(); j++){
-			if (sql_colnames[i] == get_col_name(j)){
-				perm[i] = j;
-			}
-		}
-	}
-
-	//~ for (size_t i=0; i<ndatacols(); i++){
-		//~ perm[i] = i + nkeycols();
-	//~ }
-	//~ for (size_t i=0; i<nkeycols(); i++){
-		//~ perm[i + ndatacols()] = i;
-	//~ }
-
-	log_msg = "perm: [";
-	for (size_t i= 0; i<perm.size(); i++){
-		log_msg += std::to_string(perm[i]);
-		if (i < perm.size() - 1){
-			log_msg += ", ";
-		}
-	}
-	log_msg += "]";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// Get the odbc types of the columns in the update statement
-	std::vector<int> odbc_types((int)NumParams, -1);
-
-	for (size_t i= 0; i<perm.size(); i++){
-		//~ int col = perm[i];
-		int col = perm[i];
-		std::string colname = get_col_name(col);
-
-		if (table_types.find(colname) != table_types.end()){
-			odbc_types[i] = table_types[colname];
-		}
-		else{
-			log_msg += "Cannot find column type";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-	}
-
-	// Get the odbc types of the columns in the update statement
-	std::vector<int> ampl_odbc_types((int)NumParams, -1);
-
-	for (size_t i= 0; i<ncols(); i++){
-		int col = i;
-		std::string colname = get_col_name(col);
-
-		if (table_types.find(colname) != table_types.end()){
-			ampl_odbc_types[i] = table_types[colname];
-		}
-		else{
-			log_msg += "Cannot find column type";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-	}
-
-	log_msg = "odbc_types: [";
-	for (size_t i= 0; i<odbc_types.size(); i++){
-		log_msg += std::to_string(odbc_types[i]);
-		if (i < odbc_types.size() - 1){
-			log_msg += ", ";
-		}
-	}
-	log_msg += "]";
-	logger.log(log_msg, LOG_DEBUG);
-
-	// vectors to pass data to odbc
-	ColumnData.resize(ncols());
-	std::vector<double> DoubleData(ncols());
-	std::vector<int> IntData(ncols());
-	//~ std::vector<SQLLEN> PartIDInd(ncols(), 0);
-	std::vector<SQLLEN> LenOrIndPtr(ncols());
-
-	for (size_t i=0; i<ncols(); i++){
-		ColumnData[i] = (SQLCHAR *) malloc (MAX_COL_NAME_LEN);
-	}
-
-	// bind parameters
-	for (size_t i=0; i<(int)NumParams; i++){
-
-		int amplcol = perm[i];
-
-		if (amplcol == -1){
-			log_msg = "Cannot bind unknown column '";
-			log_msg += sql_colnames[i];
-			log_msg += "'.";
-			logger.log(log_msg, LOG_ERROR);
-			throw DBE_Error;
-		}
-
-		if (amplcoltypes[amplcol] == 0){
-
-			if (ampl_odbc_types[amplcol] == SQL_INTEGER || ampl_odbc_types[amplcol] == SQL_SMALLINT){
-				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_LONG,
-											SQL_INTEGER, 0, 0, &IntData[amplcol], 0, &LenOrIndPtr[amplcol]);
-
-				log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_LONG, SQL_INTEGER);
-			}
-			else {
-				retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-											SQL_DOUBLE, 0, 0, &DoubleData[amplcol], 0, &LenOrIndPtr[amplcol]);
-
-				log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_DOUBLE, SQL_DOUBLE);
-			}
-		}
-		else if (amplcoltypes[amplcol] == 1){
-
-			retcode = SQLBindParameter(hstmt, i+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-									SQL_VARCHAR, MAX_COL_NAME_LEN, 0, ColumnData[amplcol], 0, &LenOrIndPtr[amplcol]);
-
-			log_msg = get_SQLBindParameter_string(i+1, amplcol, odbc_types[i], SQL_C_CHAR, SQL_VARCHAR);
-		}
-		else{
-			std::cout << "Cannot Bind mixed parameter" << std::endl;
-			throw DBE_Error;
-		}
-		logger.log(log_msg, LOG_DEBUG);
-		check_error(retcode, (char*)"SQLBindParameter()", hstmt, SQL_HANDLE_STMT);
-	}
-
-
-	log_msg = "Starting update...";
-	logger.log(log_msg, LOG_INFO);
-
-	std::clock_t c_start = std::clock();
-
-	for (size_t i=0; i<nrows(); i++){
-
-		//~ for (size_t j=0; j<ncols(); j++){
-
-			//~ IntData[j] = -10;
-			//~ DoubleData[j] = -10;
-		//~ }
-
-		for (size_t j=0; j<ncols(); j++){
-
-			if (is_missing(i, j)){
-				LenOrIndPtr[j] = SQL_NULL_DATA;
-			}
-			else{
-
-				if (amplcoltypes[j] == 0){
-
-					LenOrIndPtr[j] = NULL;
-					if (ampl_odbc_types[j] == SQL_INTEGER || ampl_odbc_types[j] == SQL_SMALLINT){
-						IntData[j] = get_numeric_val(i, j);
-					}
-					else{
-						DoubleData[j] = get_numeric_val(i, j);
-					}
-				}
-				else if (amplcoltypes[j] == 1){
-					LenOrIndPtr[j] = SQL_NTS;
-					//~ LenOrIndPtr[j] = NULL;
-					strcpy((char*)ColumnData[j], get_char_val(i, j));
-				}
-			}
-		}
-
-		//~ std::cout << "double" << std::endl;
-		//~ print_vector(DoubleData);
-		//~ std::cout << "int" << std::endl;
-		//~ print_vector(IntData);
-		//~ print_vector(ColumnData);
-		//~ print_vector(LenOrIndPtr);
-
-		retcode = SQLExecute(hstmt);
-		if (retcode != SQL_NO_DATA){
-			check_error(retcode, (char*)"SQLExecute()", hstmt,
-						SQL_HANDLE_STMT);
-		}
-	}
-
-	if (!autocommit){
-		retcode = SQLEndTran(SQL_HANDLE_ENV, henv, SQL_COMMIT);
-
-		check_error(retcode, "SQLEndTran()", hstmt,
-					SQL_HANDLE_STMT);
-	}
-
-	std::clock_t c_end = std::clock();
-	double time_elapsed = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
-	log_msg = "Update done in " + numeric_to_fixed(time_elapsed / 1000, 3) + "s";
-	logger.log(log_msg, LOG_INFO);
-};
-*/
 
 void
 Handler::generate_table(){
