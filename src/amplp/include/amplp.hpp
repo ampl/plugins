@@ -1252,12 +1252,6 @@ public FunctionConnector{
 		}
 	};
 
-	/** After we check the file exists we might need to
-	 * check if the table exists
-	 */
-	void check_table(){
-	};
-
 	/** Decide if we will read, write or update the data.
 	 * We also allocate the size of row in case of a read. 
 	 */
@@ -1277,6 +1271,11 @@ public FunctionConnector{
 			}
 		}
 	};
+
+	/** After we check the file exists we might need to
+	 * check if the table exists
+	 */
+	virtual void check_table() = 0;
 
 	/** Read data from an external an table.
 	 */
