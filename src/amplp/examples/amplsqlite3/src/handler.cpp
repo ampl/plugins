@@ -55,6 +55,48 @@ Handler::~Handler(){
 };
 
 void
+Handler::check_table(){
+
+	log_msg = "<check_table>";
+	logger.log(log_msg, LOG_DEBUG);
+
+	if (is_writer){
+		get_ampl_col_types();
+	}
+
+	int rc = sqlite3_open(filepath.c_str(), &db);
+
+	if(rc){
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		throw DBE_Error;;
+	}
+
+	bool exists = table_exists();
+
+	if (!exists){
+		if (is_writer){
+			table_create();
+			inout = "OUT";
+		}
+		else{
+			log_msg = "Could not find table " + table_name;
+			logger.log(log_msg, LOG_WARNING);
+		}
+	}
+	else{
+		if (inout == "OUT"){
+			if (write == "DELETE"){
+				table_delete();
+			}
+			else if (write == "DROP"){
+				table_drop();
+				table_create();
+			}
+		}
+	}
+};
+
+void
 Handler::read_in(){
 
 	log_msg = "<read_in>";
@@ -560,41 +602,6 @@ Handler::validate_arguments(){
 		}
 		else if (compare_strings_lower(key, "SQL")){
 			sql = it.second;
-		}
-	}
-
-	if (is_writer){
-		get_ampl_col_types();
-	}
-
-	int rc = sqlite3_open(filepath.c_str(), &db);
-
-	if(rc){
-		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-		throw DBE_Error;;
-	}
-
-	bool exists = table_exists();
-
-	if (!exists){
-		if (is_writer){
-			table_create();
-			inout = "OUT";
-		}
-		else{
-			log_msg = "Could not find table " + table_name;
-			logger.log(log_msg, LOG_WARNING);
-		}
-	}
-	else{
-		if (inout == "OUT"){
-			if (write == "DELETE"){
-				table_delete();
-			}
-			else if (write == "DROP"){
-				table_drop();
-				table_create();
-			}
 		}
 	}
 };

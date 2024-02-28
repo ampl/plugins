@@ -42,6 +42,7 @@ public TableConnector{
 	void generate_table();
 	void validate_arguments();
 
+	void check_table();
 	void read_in();
 	void write_out();
 	void write_inout();
