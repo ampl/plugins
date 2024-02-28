@@ -755,6 +755,7 @@ public FunctionConnector{
 		register_handler_args();
 		register_handler_kargs();
 		prepare();
+		check_table();
 		process_table();
 	};
 
@@ -1219,7 +1220,7 @@ public FunctionConnector{
 
 	//~ // End of AMPL Exports functions
 
-	/** Parse and validate arguments, ensure the external table is found.
+	/** Parse and validate arguments, ensure the external file is found.
 	 */
 	void prepare(){
 
@@ -1249,6 +1250,12 @@ public FunctionConnector{
 				}
 			}
 		}
+	};
+
+	/** After we check the file exists we might need to
+	 * check if the table exists
+	 */
+	void check_table(){
 	};
 
 	/** Decide if we will read, write or update the data.
