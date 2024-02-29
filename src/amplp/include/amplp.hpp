@@ -1275,7 +1275,7 @@ public FunctionConnector{
 	/** After we check the file exists we might need to
 	 * check if the table exists
 	 */
-	virtual void check_table() = 0;
+	virtual void check_table(){};
 
 	/** Read data from an external an table.
 	 */
