@@ -11,7 +11,10 @@ table nutr IN "amplsqlite3" "diet.db" (vb):
 table food IN "amplsqlite3" "diet.db" (vb):
 	FOOD <- [food], cost, f_min, f_max;
 
-table amt IN "amplsqlite3" "diet.db" (vb):
+
+param sql_amt symbolic := "SQL=SELECT food, amt, nutr FROM amt";
+
+table amt IN "amplsqlite3" "diet.db" (vb) (sql_amt):
 	[nutr, food], amt;
 
 # read the data

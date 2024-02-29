@@ -62,6 +62,8 @@ public TableConnector{
 
 	void get_ampl_col_types();
 	void validate_transaction(bool all_good);
+	void check_prepare(sqlite3_stmt *stmt, int rc);
+	void log_step(int rc);
 
 	public:
 

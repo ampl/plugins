@@ -46,13 +46,13 @@ funcadd(AmplExports *ae){
 	add_table_handler(ae, Read_sqlite3, Write_sqlite3, const_cast<char *>(doc.c_str()), 0, 0);
 };
 
-// Adapt the functions bellow to meet your requirements
 
 Handler::~Handler(){
+	sqlite3_close(db);
 	log_msg = "<dtor>";
 	logger.log(log_msg, LOG_DEBUG);
-	sqlite3_close(db);
 };
+
 
 void
 Handler::check_table(){
@@ -67,7 +67,8 @@ Handler::check_table(){
 	int rc = sqlite3_open(filepath.c_str(), &db);
 
 	if(rc){
-		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		log_msg = "Can't open database: %s\n", sqlite3_errmsg(db);
+		logger.log(log_msg, LOG_ERROR);
 		throw DBE_Error;;
 	}
 
@@ -103,10 +104,6 @@ Handler::read_in(){
 	logger.log(log_msg, LOG_DEBUG);
 
 	sqlite3_stmt *stmt;
-	char *zErrMsg = 0;
-	int row = 0;
-	int bytes;
-	const unsigned char *text;
 	int rc;
 
 	// get the SQL statement
@@ -122,49 +119,79 @@ Handler::read_in(){
 	log_msg += sqlstr;
 	logger.log(log_msg, LOG_INFO);
 
+	// prepare the statement
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
+	check_prepare(stmt, rc);
 
-	if (rc != SQLITE_OK){
-		std::cout << "sqlite3_prepare_v2 returned " << rc << std::endl;
+	// compare the number of columns in the internal and external tables
+	int nc = sqlite3_column_count(stmt);
+	if (nc != ncols()){
+		log_msg = "AMPL table has " + std::to_string(ncols()) + " columns while SQLite3 table has " + std::to_string(nc) + " columns";
+		logger.log(log_msg, LOG_WARNING);
 	}
 
-	int nc = sqlite3_column_count(stmt);
-	std::cout << "ncols:" << nc << std::endl;
-
-
+	// check for permuted columns
+	std::vector<int> perm(nc, -1);
+	std::vector<bool> foundcol(ncols(), false);
 	std::vector<std::string> sqlite_colnames;
 
 	for(int i=0; i<nc; i++){
-
-		fprintf(stdout, "%d. %s\n", i, sqlite3_column_name(stmt, i));
 		sqlite_colnames.push_back(sqlite3_column_name(stmt, i));
-		//~ const char *colname = sqlite3_column_name(stmt, i);
-		//~ std::cout << "column name: " << zErrMsg << std::endl;
 	}
 
-	for(int i=0; i<nc; i++){
-		std::cout << "column name vec: " << i <<", "<< sqlite_colnames[i] << std::endl;
+	for(int i = 0; i < nc; i++){
+		for (size_t j = 0; j < ncols(); j++){
+			std::string ampl_col = get_col_name(j);
+			if (ampl_col == sqlite_colnames[i]){
+				perm[i] = j;
+				foundcol[j] = true;
+				break;
+			}
+		}
 	}
 
+	// check if all AMPL columns are present in the external table
+	for (size_t j = 0; j < ncols(); j++){
+		if (!foundcol[j]){
+			log_msg = "Cannot find column: ";
+			log_msg += get_col_name(j);
+			logger.log(log_msg, LOG_ERROR);
+			throw DBE_Error;
+		}
+	}
 
+	// log the column permutation
+	log_msg = "perm: [";
+	for (size_t i= 0; i<perm.size(); i++){
+		log_msg += std::to_string(perm[i]);
+		if (i < perm.size() - 1){
+			log_msg += ", ";
+		}
+	}
+	log_msg += "]";
+	logger.log(log_msg, LOG_DEBUG);
+
+	// read the data
 	while(1){
 		rc = sqlite3_step(stmt);
 		if (rc == SQLITE_ROW){
-			for(int i=0; i<nc; i++){
+			for(int i = 0; i < nc; i++){
 
-				int ctype = sqlite3_column_type(stmt, i);
+				if (perm[i] != -1){
+					int ctype = sqlite3_column_type(stmt, i);
 
-				if (ctype == SQLITE_NULL){
-					set_col_missing_val(i);
-				}
-				else if (ctype == SQLITE_INTEGER){
-					set_col_val((double)sqlite3_column_int64(stmt, i), i);
-				}
-				else if (ctype == SQLITE_FLOAT){
-					set_col_val(sqlite3_column_double(stmt, i), i);
-				}
-				else{
-					set_col_val((char*)sqlite3_column_text(stmt, i), i);
+					if (ctype == SQLITE_NULL){
+						set_col_missing_val(perm[i]);
+					}
+					else if (ctype == SQLITE_INTEGER){
+						set_col_val((double)sqlite3_column_int64(stmt, i), perm[i]);
+					}
+					else if (ctype == SQLITE_FLOAT){
+						set_col_val(sqlite3_column_double(stmt, i), perm[i]);
+					}
+					else{
+						set_col_val((char*)sqlite3_column_text(stmt, i), perm[i]);
+					}
 				}
 			}
 			add_row();
@@ -173,12 +200,31 @@ Handler::read_in(){
 			break;
 		}
 		else{
-			fprintf(stderr, "Failed.\n");
-			//~ return 1;
-			break;
+			log_msg = "sqlite3_step returned " + std::to_string(rc);
+			logger.log(log_msg, LOG_ERROR);
+			sqlite3_finalize(stmt);
+			throw DBE_Error;
 		}
 	}
 	sqlite3_finalize(stmt);
+};
+
+void
+Handler::check_prepare(sqlite3_stmt *stmt, int rc){
+
+	if (rc != SQLITE_OK){
+		log_msg = "Error calling sqlite3_prepare_v2" + std::to_string(rc);
+		logger.log(log_msg, LOG_ERROR);
+		sqlite3_finalize(stmt);
+		throw DBE_Error;
+	}
+};
+
+void
+Handler::log_step(int rc){
+
+	log_msg = "sqlite3_step returned " + std::to_string(rc);
+	logger.log(log_msg, LOG_DEBUG);
 };
 
 void
@@ -197,14 +243,9 @@ Handler::write_out(){
 	// prepare the statement
 	sqlite3_stmt *stmt;
 	int rc;
+
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
-	if (rc != SQLITE_OK){
-		log_msg = "Error calling sqlite3_prepare_v2";
-		logger.log(log_msg, LOG_ERROR);
-		sqlite3_finalize(stmt);
-		throw DBE_Error;
-	}
+	check_prepare(stmt, rc);
 
 	bool all_good = true;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
@@ -283,20 +324,7 @@ Handler::write_inout(){
 	sqlite3_stmt *stmt;
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
-	if (rc != SQLITE_OK){
-		log_msg = "Error calling sqlite3_prepare_v2";
-		logger.log(log_msg, LOG_ERROR);
-		sqlite3_finalize(stmt);
-		throw DBE_Error;
-	}
-
-
-	for(int i=0; i<ncols(); i++){
-		std::cout << i << ", " << get_col_name(i) << ", " << amplcoltypes[i] << std::endl;
-	}
-
-
+	check_prepare(stmt, rc);
 
 	bool all_good = true;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
@@ -310,7 +338,7 @@ Handler::write_inout(){
 		for (size_t j = 0; j < ndatacols(); j++){
 
 			if (is_missing(i, j)){
-				//~ std::cout << "NULL" << ", ";
+				// nothing to do
 			}
 			else{
 				if (amplcoltypes[nkeycols()+j] == 0){
@@ -323,6 +351,7 @@ Handler::write_inout(){
 				}
 				else{
 					// should never get here
+					// unless you add a new AMPL column type
 				}
 			}
 		}
@@ -330,7 +359,7 @@ Handler::write_inout(){
 		for (size_t j = 0; j < nkeycols(); j++){
 
 			if (is_missing(i, j)){
-				//~ std::cout << "NULL" << ", ";
+				// nothing to do
 			}
 			else{
 				if (amplcoltypes[j] == 0){
@@ -343,6 +372,7 @@ Handler::write_inout(){
 				}
 				else{
 					// should never get here
+					// unless you add a new AMPL column type
 				}
 			}
 		}
@@ -616,18 +646,16 @@ Handler::table_exists(){
 	sqlite3_stmt *stmt;
 
 	std::string sqlstr = "select count(type) from sqlite_master where type='table' and name='"+table_name+"';";
-
-	std::cout << "query: " << sqlstr << std::endl;
+	log_msg = "SQL: " + sqlstr;
+	logger.log(log_msg, LOG_DEBUG);
 
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
+	check_prepare(stmt, rc);
 	rc = sqlite3_step(stmt);
-	std::cout << "sqlite3_step: " << rc << std::endl;
+	log_step(rc);
 
 	int exists = sqlite3_column_int64(stmt, 0);
-	std::cout << "exists: " << exists << std::endl;
-
 	sqlite3_finalize(stmt);
 
 	if (exists == 1){
@@ -658,9 +686,9 @@ Handler::table_create(){
 	sqlite3_stmt *stmt;
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
+	check_prepare(stmt, rc);
 	rc = sqlite3_step(stmt);
-	std::cout << "sqlite3_step: " << rc << std::endl;
+	log_step(rc);
 	sqlite3_finalize(stmt);
 };
 
@@ -677,13 +705,10 @@ Handler::table_delete(){
 	sqlite3_stmt *stmt;
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
-	//~ sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	check_prepare(stmt, rc);
 	rc = sqlite3_step(stmt);
-	std::cout << "sqlite3_step: " << rc << std::endl;
-	//~ sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+	log_step(rc);
 	sqlite3_finalize(stmt);
-
 };
 
 void
@@ -699,9 +724,9 @@ Handler::table_drop(){
 	sqlite3_stmt *stmt;
 	int rc;
 	rc = sqlite3_prepare_v2(db, sqlstr.c_str(), -1, &stmt, NULL);
-	std::cout << "sqlite3_prepare_v2: " << rc << std::endl;
+	check_prepare(stmt, rc);
 	rc = sqlite3_step(stmt);
-	std::cout << "sqlite3_step: " << rc << std::endl;
+	log_step(rc);
 	sqlite3_finalize(stmt);
 };
 
