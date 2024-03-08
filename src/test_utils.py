@@ -56,3 +56,24 @@ class TestSuite:
             self.failed = True
         if not check_stdout(stdout, expected_output):
             self.failed = True
+
+
+def get_test_list(path):
+
+    test_list = []
+
+    with open(path, "r") as f:
+        for line in f.readlines():
+
+            test = line.strip()
+
+            # skip empty lines
+            if len(test) == 0:
+                pass
+            # skip commented lines (starting with #)
+            elif test[0] == "#":
+                pass
+            else:
+                test_list.append(test) 
+
+    return test_list

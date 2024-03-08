@@ -36,5 +36,6 @@ target_include_directories(amplxl PRIVATE ${ZLIB_INCLUDE_DIRS})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl)
 file(COPY ../test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests)
+file(COPY ../test.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests)
 add_test(NAME amplxl-test COMMAND ${PYTHON_PROGRAM}
   ${CMAKE_CURRENT_BINARY_DIR}/amplxl/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplxl>)

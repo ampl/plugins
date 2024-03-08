@@ -1,0 +1,33 @@
+reset;
+load amplsqlite3.dll;
+
+model diet.mod;
+
+param vb symbolic := "verbose=3";
+
+table nutr IN "amplsqlite3" "diet.db" (vb):
+	NUTR <- [nutr], n_min, n_max;
+
+table food IN "amplsqlite3" "diet.db" (vb):
+	FOOD <- [food], cost, f_min, f_max;
+
+
+param sql_amt symbolic := "SQL=SELECT food, amt, nutr FROM amt";
+
+table amt IN "amplsqlite3" "diet.db" (vb) (sql_amt):
+	[nutr, food], amt;
+
+# read the data
+read table nutr;
+read table food;
+read table amt;
+
+# display the data
+display NUTR, FOOD;
+display n_min, n_max;
+display cost, f_min, f_max;
+display amt;
+
+# solve the problem
+option solver highs;
+solve;

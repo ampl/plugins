@@ -16,5 +16,6 @@ endif()
 # tests
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ../../../test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests)
+file(COPY ../../../test.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests)
 add_test(NAME amplcsv-test COMMAND ${PYTHON_PROGRAM}
   ${CMAKE_CURRENT_BINARY_DIR}/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplcsv>)
