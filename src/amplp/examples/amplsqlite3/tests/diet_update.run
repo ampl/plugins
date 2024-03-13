@@ -1,17 +1,14 @@
 reset;
-load amplsqlite3.dll;
 
 model diet.mod;
 
-param vb symbolic := "verbose=3";
-
-table nutr INOUT "amplsqlite3" "diet.db" (vb):
+table nutr INOUT "amplsqlite3" "diet.db":
 	NUTR <- [nutr], n_min, n_max;
 
-table food INOUT "amplsqlite3" "diet.db" (vb):
+table food INOUT "amplsqlite3" "diet.db":
 	FOOD <- [food], cost, f_min, f_max;
 
-table amt INOUT "amplsqlite3" "diet.db" (vb):
+table amt INOUT "amplsqlite3" "diet.db":
 	[nutr, food], amt;
 
 # read the data
@@ -43,3 +40,5 @@ display amt;
 write table nutr;
 write table food;
 write table amt;
+
+print "diet_update done";

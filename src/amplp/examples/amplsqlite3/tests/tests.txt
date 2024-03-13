@@ -1,0 +1,5 @@
+diet_write
+diet_read
+diet_update
+diet_read_update
+precision

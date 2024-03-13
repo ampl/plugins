@@ -17,10 +17,9 @@ if(MSVC)
   target_compile_definitions(amplsqlite3 PRIVATE WIN32_LEAN_AND_MEAN)
 endif()
 
-# Link with system socket libraries.
-if(WIN32)
-	target_link_libraries(amplsqlite3 wsock32)
-	target_compile_definitions(amplsqlite3 PRIVATE NO_sockaddr_in6)
-elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
-	target_link_libraries(amplsqlite3 socket nsl)
-endif()
+# tests
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ../../../test_utils.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests)
+file(COPY ../../../test.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests)
+add_test(NAME amplsqlite3-test COMMAND ${PYTHON_PROGRAM}
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/test.py ${AMPL_PROGRAM} $<TARGET_FILE:amplsqlite3>)

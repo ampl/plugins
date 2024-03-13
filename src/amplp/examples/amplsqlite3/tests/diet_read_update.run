@@ -22,4 +22,4 @@ display n_min, n_max;
 display cost, f_min, f_max;
 display amt;
 
-print "diet_read done";
+print "diet_read_update done";

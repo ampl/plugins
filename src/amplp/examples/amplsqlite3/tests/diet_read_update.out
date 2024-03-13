@@ -1,0 +1,35 @@
+set NUTR := A C B1 B2;
+
+set FOOD := BEEF CHK FISH HAM MCH MTL SPG TUR;
+
+:  n_min   n_max    :=
+A    600   10000
+B1   700   10000
+B2   700   10000
+C    700   11000
+;
+
+:        cost   f_min f_max    :=
+BEEF       3.19    0    100
+CHK        2.59    0    100
+FISH       2.29   10    100
+HAM        2.89    0    110
+MCH    10000       0    100
+MTL        1.99    0    100
+SPG        1.99    0    100
+TUR        2.49    0    100
+;
+
+amt [*,*] (tr)
+:      A     B1     B2   C     :=
+BEEF   60      10   15   20
+CHK     8      20   20    0
+FISH    8      15   10   10
+HAM    40      35   10   40
+MCH    15      15   15   35
+MTL    70   10000   15   30
+SPG    25      25   15   50
+TUR    60      15   10   20
+;
+
+diet_read_update done
