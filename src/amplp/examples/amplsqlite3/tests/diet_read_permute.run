@@ -1,0 +1,31 @@
+reset;
+
+model diet.mod;
+
+param sql_nutr symbolic := "SQL=SELECT n_max, n_min, nutr FROM nutr";
+
+table nutr IN "amplsqlite3" "diet.db" (sql_nutr):
+	NUTR <- [nutr], n_min, n_max;
+
+param sql_food symbolic := "SQL=SELECT f_max, f_min, cost, food FROM food";
+
+table food IN "amplsqlite3" "diet.db" (sql_food):
+	FOOD <- [food], cost, f_min, f_max;
+
+param sql_amt symbolic := "SQL=SELECT food, amt, nutr FROM amt";
+
+table amt IN "amplsqlite3" "diet.db" (sql_amt):
+	[nutr, food], amt;
+
+# read the data
+read table nutr;
+read table food;
+read table amt;
+
+# display the data
+display NUTR, FOOD;
+display n_min, n_max;
+display cost, f_min, f_max;
+display amt;
+
+print "diet_read_permute done";

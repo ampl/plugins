@@ -1,5 +1,12 @@
+# create a database file, create the tables and write info
 diet_write
+# read info from previous database
 diet_read
+# read info from previous database with permuted columns
+diet_read_permute
+# update some values in the previous tables
 diet_update
+# confirm the information of previous update
 diet_read_update
+# check read and write of doubles
 precision
