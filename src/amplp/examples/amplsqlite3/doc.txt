@@ -1,0 +1,57 @@
+A table handler for sqlite3 databases.
+
+General information on table handlers and data correspondence between AMPL and 
+an external table is available at chapter 10 of the AMPL book:
+
+    https://ampl.com/learn/ampl-book/
+
+Information on sqlite3 is available at
+
+    https://www.sqlite.org
+
+The available options for amplsqlite3 are:
+
+alias:
+    Instead of writing the data to the table with the name defined in the table
+    declaration it's possible define the table name with an alias. In the
+    following example the table handler will search for a table named "bar"
+    instead of a table named "foo" as in the table declaration.
+
+    Example:
+        table foo OUT "amplsqlite3" "bar": [A], B;
+
+external-table-spec:
+    Specifies the path to the .db file to be read or written with the read 
+    table and write table commands. If no file is specified, amplsqlite3 will
+    search for a file with the table name and the .db file extension in the
+    current directory. If the table is to be written and the file does not exist
+    it will be created.
+
+    Example:
+        table foo OUT "amplsqlite3" "bar.db": [keycol], valcol;
+
+verbose:
+    Display warnings during the execution of the read table and write table
+    commands.
+
+    Example:
+        table foo OUT "amplsqlite3" "verbose": [keycol], valcol;
+
+verbose=option:
+    Display information according to the specified option. Available options:
+        0 (default) - display information only on error,
+        1 - display warnings,
+        2 - display general information
+        3 - display debug information.
+
+    Example:
+        table foo OUT "amplsqlite3" "verbose=2": [keycol], valcol;
+
+write=option
+    Define how the data is written in OUT mode. Available options:
+        delete (default) - deletes all the rows of the corresponding table (if
+        it exists) before writing the data from AMPL.
+        drop - drops the corresponding table and creates a new one.
+
+    Example:
+        table foo OUT "amplsqlite3" "write=drop": [keycol], valcol;
