@@ -3,18 +3,13 @@ load amplsqlite3.dll;
 
 model diet.mod;
 
-param vb symbolic := "verbose=3";
-
-table nutr IN "amplsqlite3" "diet.db" (vb):
+table nutr IN "amplsqlite3" "diet.db":
 	NUTR <- [nutr], n_min, n_max;
 
-table food IN "amplsqlite3" "diet.db" (vb):
+table food IN "amplsqlite3" "diet.db":
 	FOOD <- [food], cost, f_min, f_max;
 
-
-param sql_amt symbolic := "SQL=SELECT food, amt, nutr FROM amt";
-
-table amt IN "amplsqlite3" "diet.db" (vb) (sql_amt):
+table amt IN "amplsqlite3" "diet.db":
 	[nutr, food], amt;
 
 # read the data

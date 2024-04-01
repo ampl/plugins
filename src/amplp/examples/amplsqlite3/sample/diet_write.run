@@ -13,15 +13,13 @@ display amt;
 option solver highs;
 solve; 
 
-param vb symbolic := "verbose=3";
-
-table nutr OUT "amplsqlite3" "diet.db" (vb):
+table nutr OUT "amplsqlite3" "diet.db":
 	[nutr], n_min, n_max;
 
-table food OUT "amplsqlite3" "diet.db" (vb):
+table food OUT "amplsqlite3" "diet.db":
 	[food], cost, f_min, f_max;
 
-table amt OUT "amplsqlite3" "diet.db" (vb):
+table amt OUT "amplsqlite3" "diet.db":
 	[nutr, food], amt;
 
 # write the data
