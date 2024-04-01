@@ -26,7 +26,7 @@ Double-click the zipfile or use an unzip utility to extract the file `amplsqlite
 
 Example
 -------
-To confirm that your installation is working, download `amplsqlite3-diet.zip <https://portal.ampl.com/~nfbvs/samples/amplsqlite3-diet.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an appropriate folder. Consider this as your test folder.
+To confirm that your installation is working, download `amplsqlite3-diet.zip <https://portal.ampl.com/~nfbvs/samples/amplsqlite3/amplsqlite3-diet.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an appropriate folder. Consider this as your test folder.
 
 * If you are using command-line AMPL, start your AMPL session and use the `cd` command to move to your test folder.
 * If you are using the AMPL IDE, start the AMPL IDE, and use the IDE’s file pane (at the left) to make your test folder current.
