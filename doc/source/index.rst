@@ -10,13 +10,14 @@ There are two main types of plugins:
 
 This repository includes:
 
-* amplp - a single header framework to develop plugins
+* :doc:`amplp <amplp>` - a single header framework to develop plugins
 * :doc:`amplcsv <amplcsv>` - a table handler for csv files
-* eodbc - an experimental ODBC driver
-* funclink - shared libraries for user-defined functions
+* :doc:`amplsqlite3 <amplsqlite3>` - an SQLite3 table handler
 * :doc:`amplxl <amplxl>` - a table handler for xlsx files
+* :doc:`eodbc <eodbc>` - an extended ODBC driver
+* funclink - shared libraries for user-defined functions
+
 * the original table handlers with cmake support
-* an experimental SQLite driver
 
 Guides
 ------
