@@ -9,7 +9,7 @@ amplsqlite3 - AMPL Driver for the SQLite3 database
 
 This page describes amplsqlite3, an experimental AMPL interface for `SQLite3 <https://www.sqlite.org>`_. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
 
-The amplsqlite3 driver includes it's own SQLite3 embedded database engine(version 3.45.1) so you don't need to install any aditional software. You can use amplsqlite3 concurrently, with your local instalation os SQLite3 or just save the results in a .db file to be exported to another machine for the final data analysis.
+The amplsqlite3 driver includes it's own SQLite3 embedded database engine(version 3.45.1) so you don't need to install any additional software. You can use amplsqlite3 concurrently, with your local install of SQLite3 or just save the results in a .db file to be exported to another machine for the final data analysis.
 
 If you are using spreadsheet software, you may be interested in :doc:`amplxl` or :doc:`amplcsv` for .xlsx and .csv format files.
 For other `ODBC <https://en.wikipedia.org/wiki/Open_Database_Connectivity>`_ compliant databases consult :doc:`eodbc`.
@@ -26,7 +26,7 @@ Double-click the zipfile or use an unzip utility to extract the file `amplsqlite
 
 Example
 -------
-To confirm that your installation is working, download `amplsqlite3-diet.zip <https://portal.ampl.com/~nfbvs/samples/amplsqlite3-diet.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an apropriate folder. Consider this as your test folder.
+To confirm that your installation is working, download `amplsqlite3-diet.zip <https://portal.ampl.com/~nfbvs/samples/amplsqlite3-diet.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an appropriate folder. Consider this as your test folder.
 
 * If you are using command-line AMPL, start your AMPL session and use the `cd` command to move to your test folder.
 * If you are using the AMPL IDE, start the AMPL IDE, and use the IDE’s file pane (at the left) to make your test folder current.
@@ -77,7 +77,7 @@ After the tables are defined we need to invoke a `write` statement for each of t
     write table amt;
 
 The driver will search for a table with the given name, delete the data in the table and write the data from AMPL.
-If the table does not exist it will be cretaed.
+If the table does not exist it will be created.
 
 Read example
 ************
@@ -126,7 +126,7 @@ In the *"diet_update.run"* example we will load the `diet` model, load the data 
 
 In this example we are using a single table declaration to read and update the data.
 The **<->** arrow indicates that the indexing sets will be populated, when using a `read table` instruction.
-Conversely the members of the indexing sets will be written to the correponding table, when a `write table` statement is used.
+Conversely the members of the indexing sets will be written to the corresponding table, when a `write table` statement is used.
 The **INOUT** keyword will trigger an UPDATE statement in the database.
 
 After the table declarations we have the `read table` instructions, we update some values in the parameters with the `let` command and we update the values in the database with the `write table` commands.
