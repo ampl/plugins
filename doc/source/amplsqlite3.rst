@@ -19,7 +19,7 @@ Installation
 ------------
 
 The executable `amplsqlite3.dll` is included by default in most of the distributed bundles.
-If you dont't have amplsqlite3 yet go to the `AMPL Portal websilte <https://portal.ampl.com>`_, select
+If you dont't have amplsqlite3 yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
 **My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `amplsqlite3.dll`. Then move `amplsqlite3.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
