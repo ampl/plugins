@@ -99,10 +99,10 @@ html_short_title = "AMPL Plugins"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "_static/logo-inline-web-v4.png"
+html_logo = "https://raw.githubusercontent.com/ampl/ampl.github.io/master/themes/static/ampl-navbar-logo.png"
 
 # Add favicon
-html_favicon = "_static/cropped-favicon-raw-192x192.png"
+html_favicon = "https://raw.githubusercontent.com/ampl/ampl.github.io/master/themes/static/ampl-favicon.png"
 
 # If true, links to the reST sources are added to the pages.
 html_show_sourcelink = False
