@@ -15,7 +15,12 @@ needs_sphinx = "3.2.0"
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["breathe", "sphinx.ext.mathjax", "sphinx.ext.graphviz"]
+extensions = [
+    "breathe",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.graphviz",
+    "sphinxcontrib.googleanalytics",
+]
 
 # Configure Breathe.
 # When building with CMake, the path to doxyxml is passed via the command line.
@@ -82,6 +87,7 @@ html_theme_options = {
     "logo_text": "Plugins",
 }
 html_context = {"default_mode": "light"}
+googleanalytics_id = "G-4MQXTJNBKD"
 
 html_static_path = ["_static"]
 # html_css_files = [
