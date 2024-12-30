@@ -1114,7 +1114,8 @@ Handler::check_bom(std::ifstream & infile){
 	b = infile.get();
 	c = infile.get();
 	if (a != (char)0xEF || b != (char)0xBB || c != (char)0xBF) {
-		infile.seekg(0);
+		infile.clear();
+		infile.seekg(0, std::ios::beg);
 	}
 	else {
 		log_msg = "BOM found";
