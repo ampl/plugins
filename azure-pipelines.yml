@@ -229,31 +229,27 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
 
-
-- stage: ftp_upload
-  condition: succeeded()
+- stage: publish
   jobs:
-    - job: ftp_upload
-      pool: {vmImage: 'ubuntu-22.04'}
+    - job: upload
+      pool: {vmImage: 'ubuntu-latest'}
       steps:
         - task: DownloadBuildArtifacts@0
           inputs:
-            buildType: 'current'
-            downloadPath: 'artifacts/'
-            artifactName: 'drop'
+              buildType: 'current'
+              downloadPath: 'artifacts/'
+              artifactName: 'drop'
+          displayName: 'Download current pipeline artifacts'
         - bash: |
             set -ex
             cd artifacts/
-            mkdir -p release
-            cp drop/linux*-unixodbc/* release/
-            cp drop/macos-unixodbc/* release/
-            cp drop/macos-iodbc/* release/
-            cp drop/win64/* release/
-        - task: FtpUpload@2
+            mkdir -p plugins
+            cp drop/linux*-unixodbc/* plugins/
+            cp drop/macos-unixodbc/* plugins/
+            cp drop/macos-iodbc/* plugins/
+            cp drop/win64/* plugins/
+        - task: PublishPipelineArtifact@1
           inputs:
-            serverEndpoint: 'ftpserver'
-            trustSSL: true
-            rootDirectory: 'artifacts'
-            remoteDirectory: '/plugins/$(Build.SourceBranchName)/'
-            preservePaths: true
-            clean: true
+            targetPath: 'artifacts/'
+            artifact: 'release'
+            artifactType: 'pipeline'
