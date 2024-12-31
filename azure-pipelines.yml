@@ -242,14 +242,13 @@ stages:
           displayName: 'Download current pipeline artifacts'
         - bash: |
             set -ex
-            cd artifacts/
             mkdir -p plugins
-            cp drop/linux*-unixodbc/* plugins/
-            cp drop/macos-unixodbc/* plugins/
-            cp drop/macos-iodbc/* plugins/
-            cp drop/win64/* plugins/
+            cp artifacts/drop/linux*-unixodbc/* plugins/
+            cp artifacts/drop/macos-unixodbc/* plugins/
+            cp artifacts/drop/macos-iodbc/* plugins/
+            cp artifacts/drop/win64/* plugins/
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: 'artifacts/plugins/'
+            targetPath: 'plugins/'
             artifact: 'release'
             artifactType: 'pipeline'
