@@ -250,6 +250,6 @@ stages:
             cp drop/win64/* plugins/
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: 'artifacts/'
+            targetPath: 'artifacts/plugins/'
             artifact: 'release'
             artifactType: 'pipeline'
