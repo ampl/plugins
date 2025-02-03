@@ -14,7 +14,7 @@ This repository includes:
 * :doc:`amplcsv <amplcsv>` - a table handler for csv files
 * :doc:`amplsqlite3 <amplsqlite3>` - an SQLite3 table handler
 * :doc:`amplxl <amplxl>` - a table handler for xlsx files
-* :doc:`eodbc <eodbc>` - an extended ODBC driver
+* :doc:`eodbc <eodbc>` - our enhanced ODBC driver
 * funclink - shared libraries for user-defined functions
 
 * the original table handlers with cmake support
