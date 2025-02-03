@@ -3,11 +3,6 @@
 AMPL CSV File Interface
 =======================
 
-.. note::
-
-    A beta test version of this new feature is now available.  
-    Please send suggestions and error reports to beta@ampl.com.  
-
 This page describes a new AMPL interface for files in `CSV format <https://en.wikipedia.org/wiki/Comma-separated_values>`_. It uses the same table statements as AMPL’s other data interfaces, but works directly with .csv files for speed and reliability.
 
 If you are using .csv files with spreadsheet software, you may also be interested in AMPL’s :doc:`amplxl` that reads and writes .xlsx format files.

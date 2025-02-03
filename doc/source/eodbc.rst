@@ -3,10 +3,6 @@
 eodbc - Enhanced ODBC Driver
 ============================
 
-.. note::
-    A beta test version of this new feature is now available.  
-    Please send suggestions and error reports to beta@ampl.com.  
-
 This page describes eodbc, an enhanced AMPL interface for `ODBC <https://en.wikipedia.org/wiki/Open_Database_Connectivity>`_ compliant programs. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
 
 The new features of the interface include:
