@@ -1,13 +1,13 @@
 .. _eodbc:
 
-eodbc - Experimental ODBC Driver
-========================
+eodbc - Enhanced ODBC Driver
+============================
 
 .. note::
     A beta test version of this new feature is now available.  
     Please send suggestions and error reports to beta@ampl.com.  
 
-This page describes eodbc, an experimental AMPL interface for `ODBC <https://en.wikipedia.org/wiki/Open_Database_Connectivity>`_ compliant programs. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
+This page describes eodbc, an enhanced AMPL interface for `ODBC <https://en.wikipedia.org/wiki/Open_Database_Connectivity>`_ compliant programs. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
 
 The new features of the interface include:
 
@@ -153,13 +153,13 @@ Note that if you run the *"diet_read.run"* example afterwards AMPL will display 
 
 Learning more
 -------------
-The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to ODBC connections, the examples in that chapter can be adapted to work with the new experimental ODBC table handler. Thus we recommend reading at least sections 10.1 though 10.4 if you have not used any AMPL data table interface previously.
+The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to ODBC connections, the examples in that chapter can be adapted to work with the new enhanced ODBC table handler. Thus we recommend reading at least sections 10.1 though 10.4 if you have not used any AMPL data table interface previously.
 
 The eodbc table handler recognizes the following option strings when they are included in AMPL table statements. (After `load eodbc.dll;` has been executed, you can also display this listing by use of the AMPL command `print _handler_desc["eodbc"];`.)
 
 .. code-block:: none
 
-    EODBC: experimental ODBC driver for AMPL.
+    EODBC: enhanced ODBC driver for AMPL.
 
     Main differences from previous ODBC driver:
     - Autocommit is off by default, leading to faster write times.
