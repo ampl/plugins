@@ -20,6 +20,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.graphviz",
     "sphinxcontrib.googleanalytics",
+    "sphinx_sitemap",
 ]
 
 # Configure Breathe.
