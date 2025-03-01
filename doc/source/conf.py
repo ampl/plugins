@@ -100,6 +100,10 @@ html_title = "AMPL Plugins documentation"
 
 html_baseurl = "https://plugins.ampl.com/"
 
+html_extra_path = ["_html"]
+
+sitemap_filename = "sphinx-sitemap.xml"
+
 # A shorter title for the navigation bar.  Default is the same as html_title.
 html_short_title = "AMPL Plugins"
 
