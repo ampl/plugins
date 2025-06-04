@@ -1274,6 +1274,9 @@ ExcelManager::parse_data(
 					value = excel_cell.child("is").child("t").child_value();
 					is_string[j] = 1;
 				}
+				else if (excel_cell.attribute("t").value() == std::string("str")){
+					is_string[j] = 1;
+				}
 
 				if (value.length() > 0){
 					temp_strings[j] = value;
@@ -1316,16 +1319,16 @@ ExcelManager::parse_data(
 					db->sval[0] = &temp_strings[j][0u];
 				}
 				else{
-					//dont trust excel, always try to convert the value
+					// always try to convert the value
 					t = strtod(temp_strings[j].c_str(), &se);
 					if (!*se) {/* valid number */
 						db->sval[0] = 0;
 						db->dval[0] = t;
-						//~ std::cout << "assigning numeric: " << db->dval[0] << std::endl;
 					}
 					else{
 						db->sval[0] = &temp_strings[j][0u];
-						//~ std::cout << "assigning string: " << db->sval[0] << std::endl;
+						msg = "Could not convert " + temp_strings[j] + " into a number";
+						logger.log(msg, LOG_DEBUG);
 					}
 				}
 			}
@@ -4627,6 +4630,9 @@ ExcelManager::parse_data2D(
 				}
 				else if (iter_cell.attribute("t").value() == std::string("inlineStr")){
 					cell_value = iter_cell.child("is").child("t").child_value();
+					is_string_cell = 1;
+				}
+				else if (iter_cell.attribute("t").value() == std::string("str")){
 					is_string_cell = 1;
 				}
 			}
