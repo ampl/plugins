@@ -1078,6 +1078,7 @@ Handler::alloc_and_connect(){
 				//~ hdbc, SQL_HANDLE_DBC);
 };
 
+
 bool
 Handler::table_exists(){
 
@@ -1087,8 +1088,35 @@ Handler::table_exists(){
 	SQLSMALLINT nrcols; // number of result columns
 	bool exists = false;
 
-	retcode = SQLTables(hstmt, NULL, 0, NULL, 0, (SQLCHAR*)table_name.c_str(), SQL_NTS, NULL, 0);
+	std::string split_table_name = table_name;
+
+	// try to split table name by dots
+	// this assumes dots are not used in table names
+	// but schemas might be in use
+	std::string sentence = table_name;
+	std::istringstream iss(sentence);
+	std::vector<std::string> tokens;
+	std::string token;
+	while (std::getline(iss, token, '.')) {
+		if (!token.empty())
+			tokens.push_back(token);
+	}
+
+	// if there was a split the table name is the last one
+	if (tokens.size() != 1){
+		split_table_name = tokens[tokens.size()-1];
+
+		logger.log("split:", LOG_DEBUG);
+		for (int i = 0; i < tokens.size(); i++) {
+			logger.log(tokens[i], LOG_DEBUG);
+		}
+	}
+
+	// check if table exists
+	retcode = SQLTables(hstmt, NULL, 0, NULL, 0, (SQLCHAR*)split_table_name.c_str(), SQL_NTS, NULL, 0);
 	check_error(retcode, "SQLTables()", hstmt, SQL_HANDLE_STMT);
+
+	// get results
 	retcode = SQLNumResultCols(hstmt, &nrcols);
 	check_error(retcode, "SQLNumResultCols()", hstmt, SQL_HANDLE_STMT);
 
@@ -1102,25 +1130,21 @@ Handler::table_exists(){
 	while ((retcode = SQLFetch(hstmt)) == SQL_SUCCESS) {
 		SQLUSMALLINT i;
 
-		// Loop through the columns
-		//~ for (i = 1; i <= nrcols; i++) {
-			SQLLEN  indicator;
-			SQLCHAR buf[255];
-			// Retrieve column data as a string
-			// Table name is at position 3
-			retcode = SQLGetData(hstmt, 3, SQL_C_CHAR, buf, sizeof(buf), &indicator);
+		SQLLEN  indicator;
+		SQLCHAR buf[255];
+		// Retrieve column data as a string
+		// Table name is at position 3
+		retcode = SQLGetData(hstmt, 3, SQL_C_CHAR, buf, sizeof(buf), &indicator);
 
-			if (retcode != SQL_SUCCESS){
-				//~ break;
-			}
+		if (retcode != SQL_SUCCESS){
+			check_error(retcode, "SQLGetData()", hstmt, SQL_HANDLE_STMT);
+		}
 
-			std::string tmp_str = (char*)buf;
+		std::string tmp_str = (char*)buf;
 
-			if (tmp_str == table_name){
-				exists = true;
-				//~ break;
-			}
-		//~ }
+		if (tmp_str == split_table_name){
+			exists = true;
+		}
 	}
 
 	if (exists){
@@ -1140,6 +1164,7 @@ Handler::table_exists(){
 
 	return exists;
 };
+
 
 void
 Handler::table_create(){
