@@ -1,9 +1,0 @@
-amplp
-=====
-
-Reference
----------
-
- .. toctree::
-   
-   reference
