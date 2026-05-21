@@ -1,4 +1,4 @@
-amplfunc.c contains code for user-defined functions logistic and singpow
+amplfunc.c contains code for user-defined functions logistic and signpow
 
 To create a dynamic library amplfunc.dll, just invoke `make`
 
