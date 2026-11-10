@@ -12,7 +12,7 @@ stages:
 - stage: build
   jobs:
   - job: linux_unixodbc
-    pool: {vmImage: 'ubuntu-22.04'}
+    pool: {vmImage: 'ubuntu-latest'}
     strategy:
       matrix:
         x64:
@@ -48,7 +48,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: linux_iodbc
-    pool: {vmImage: 'ubuntu-22.04'}
+    pool: {vmImage: 'ubuntu-latest'}
     strategy:
       matrix:
         x64:
@@ -185,7 +185,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: windows
-    pool: {vmImage: 'windows-2019'}
+    pool: {vmImage: 'windows-latest'}
     strategy:
       matrix:
         x86:
