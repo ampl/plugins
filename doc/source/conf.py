@@ -80,6 +80,11 @@ html_theme = "ampl_sphinx_theme"
 html_theme_options = {
     "icon_links": [
         {
+            "name": "AI for Optimization",
+            "url": "https://dev.ampl.com/ai/index.html",
+            "icon": "fas fa-robot",
+        },
+        {
             "name": "GitHub",
             "url": "https://github.com/ampl/plugins",
             "icon": "fab fa-github",
