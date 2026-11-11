@@ -185,7 +185,7 @@ stages:
       - task: PublishBuildArtifacts@1
         inputs: {pathtoPublish: '$(Build.ArtifactStagingDirectory)'}
   - job: windows
-    pool: {vmImage: 'windows-latest'}
+    pool: {vmImage: 'windows-2022'}
     strategy:
       matrix:
         x86:
@@ -214,7 +214,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -G "Visual Studio 18 2026" -A $ARCH
+          cmake .. -DDATE=$DATE -G "Visual Studio 17 2022" -A $ARCH
           cmake --build . -j 2 --config Release
           ctest -C Release
           cpack
