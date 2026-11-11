@@ -2,7 +2,7 @@
 # zlibstatic that we can link statically to
 set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 
-set(Z_DIR zlib-1.3)
+set(Z_DIR zlib-1.4)
 set(MZ_DIR ${Z_DIR}/contrib/minizip)
 
 add_subdirectory(${Z_DIR} EXCLUDE_FROM_ALL)
