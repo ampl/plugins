@@ -156,7 +156,7 @@ stages:
           curl -sL https://github.com/openlink/iODBC/releases/download/v3.52.15/libiodbc-3.52.15.tar.gz | tar xz
           cd libiodbc-3.52.15
           CFLAGS="-O -arch x86_64 -arch arm64"
-          CFLAGS="$CFLAGS -mmacosx-version-min=10.9"
+          CFLAGS="$CFLAGS -mmacosx-version-min=10.9 -std=gnu17"
           export CFLAGS
           sh autogen.sh
           ./configure \
@@ -172,7 +172,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_CXX_FLAGS="-Wno-error=incompatible-pointer-types"
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           make all -j2
           ctest
           cpack
