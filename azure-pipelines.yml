@@ -172,7 +172,7 @@ stages:
           mkdir build
           cd build
           DATE=`date +%Y%m%d`
-          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake .. -DDATE=$DATE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_CXX_FLAGS="-Wno-error=incompatible-pointer-types"
           make all -j2
           ctest
           cpack
