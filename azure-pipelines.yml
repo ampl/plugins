@@ -203,9 +203,7 @@ stages:
       - bash: |
           set -x
           nproc
-          wmic cpu get name
-          wmic cpu get numberofcores
-          wmic cpu get caption, deviceid, name, numberofcores, maxclockspeed, status
+          powershell -Command "Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed"
         displayName: Check CPU details
       - bash: bash download-ampl.sh $AMPL_URL
         displayName: Install AMPL
