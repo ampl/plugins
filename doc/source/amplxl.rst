@@ -15,8 +15,8 @@ The new interface works directly with .xlsx files for speed and reliability. It 
 Installation
 ------------
 The executable `amplxl.dll` is included by default in most of the distributed bundles.
-If you dont't have amplxl yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
-**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
+If you don't have amplxl yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `amplxl.dll`. Then move `amplxl.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 

@@ -19,10 +19,11 @@ Installation
 ------------
 
 The executable `eodbc.dll` is included by default in most of the distributed bundles.
-If you dont't have eodbc yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
-**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
+If you don't have eodbc yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `eodbc.dll`. Then move `eodbc.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
+
 .. note::
 
 	* To connect with a given database you will need to install the corresponding ODBC driver and provide a connection string. In the usage examples bellow you will find multiple connection strings for popular databases.

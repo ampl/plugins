@@ -10,11 +10,10 @@ If you are using .csv files with spreadsheet software, you may also be intereste
 Installation
 ------------
 The executable `amplcsv.dll` is included by default in most of the distributed bundles.
-If you dont't have amplcsv yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
-**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
+If you don't have amplcsv yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `amplcsv.dll`. Then move `amplcsv.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
-
 
 Initial test
 ------------
@@ -81,7 +80,7 @@ Details of this image may differ, depending on your choice of spreadsheet softwa
 
 Learning more
 -------------
-The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to CSV files, the examples in that chapter can be adapted to work with the new amplcsv table handler. Thus we recommend reading at least sections 10.1 though 10.4 if you have not used any AMPL data table interface previously.
+The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to CSV files, the examples in that chapter can be adapted to work with the new amplcsv table handler. Thus we recommend reading at least sections 10.1 through 10.4 if you have not used any AMPL data table interface previously.
 
 The amplcsv table handler recognizes the following option strings when they are included in AMPL table statements. (After `load amplcsv.dll;` has been executed, you can also display this listing by use of the AMPL command `print _handler_desc["amplcsv"];`.)
 
