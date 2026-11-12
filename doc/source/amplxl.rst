@@ -3,7 +3,7 @@
 AMPL Direct Spreadsheet Interface
 =================================
 
-We are pleased to announce our new, extended spreadsheet interface for AMPL, featuring support for
+We are pleased to announce our extended spreadsheet interface for AMPL, featuring support for:
 
 * spreadsheet software that recognizes .xlsx format files
 * Windows, Linux, and macOS
@@ -14,14 +14,12 @@ The new interface works directly with .xlsx files for speed and reliability. It 
 
 Installation
 ------------
+The executable `amplxl.dll` is included by default in most of the distributed bundles.
+If you dont't have amplxl yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
 
-Use one of the following links to download the table handler zipfile appropriate to your computer:
+Double-click the zipfile or use an unzip utility to extract the file `amplxl.dll`. Then move `amplxl.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 
-* Windows: `amplxl.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.win64.zip>`_, `amplxl.win32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.win32.zip>`_
-* Linux: `amplxl.linux64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.linux64.zip>`_, `amplxl.linux32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplxl/amplxl.linux32.zip>`_
-* macOS: `amplxl.macos.zip <https://portal.ampl.com/~nfbvs/amplxl/amplxl.macos.zip>`_
-
-Double-click the zipfile or use an unzip utility to extract the file `amplxl.dll`, and move this file into the folder (or Linux directory) that contains your AMPL program file: `ampl.exe` on Windows systems, or `ampl` on Linux and macOS systems.
 
 Initial test
 ------------
@@ -71,7 +69,7 @@ The AMPL script also writes several columns of data and optimal results to a sec
 .. image:: Buy.png
 |
 
-Details of this image may differ, depending on your choice of spreadsheet software, but you should see the same data (again, at least to 5 decimal places). If you are unable to get these results, please report the differences that you observed to beta@ampl.com, including the text of any error messages; also if `Buy.xlsx` is different, add it as an attachment.
+Details of this image may differ, depending on your choice of spreadsheet software, but you should see the same data (again, at least to 5 decimal places). If you are unable to get these results, please report the differences that you observed to support@ampl.com, including the text of any error messages; also if `Buy.xlsx` is different, add it as an attachment.
 
 Conversion of existing applications
 -----------------------------------
@@ -82,7 +80,7 @@ Only a few changes are needed to switch any of your applications to the new dire
 * Change the table handler name: In each table statement, replace `"ODBC"` or `"tableproxy" "odbc"` by `"amplxl"`.
 * Load the new table handler: Add the AMPL command `load amplxl.dll`; before executing the first *read table* or *write table* command of your AMPL session.
 
-Please report any problems to beta@ampl.com, with listings, screenshots, and attached files as appropriate.
+Please report any problems to support@ampl.com, with listings, screenshots, and attached files as appropriate.
 
 Learning more
 -------------

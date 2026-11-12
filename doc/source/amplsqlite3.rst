@@ -3,11 +3,7 @@
 amplsqlite3 - AMPL Driver for the SQLite3 database
 ==================================================
 
-.. note::
-    A beta test version of this new feature is now available.
-    Please send suggestions and error reports to beta@ampl.com.
-
-This page describes amplsqlite3, an experimental AMPL interface for `SQLite3 <https://www.sqlite.org>`_. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
+This page describes amplsqlite3, an AMPL interface for `SQLite3 <https://www.sqlite.org>`_. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
 
 The amplsqlite3 driver includes it's own SQLite3 embedded database engine(version 3.45.1) so you don't need to install any additional software. You can use amplsqlite3 concurrently, with your local install of SQLite3 or just save the results in a .db file to be exported to another machine for the final data analysis.
 
