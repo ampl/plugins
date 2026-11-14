@@ -17,7 +17,7 @@ stages:
       matrix:
         x64:
           AMPL_URL: $(LINUX64_BUNDLE_URL)
-          image: 'nfbvs/manylinux:manylinux2010_x86_64_unixODBC-2.3.9'
+          image: 'nfbvs/manylinux2014_x86_64_unixodbc:20261113'
           nbits: 64
     variables:
       upload: $(Build.ArtifactStagingDirectory)
