@@ -3,17 +3,15 @@
 AMPL CSV File Interface
 =======================
 
-This page describes a new AMPL interface for files in `CSV format <https://en.wikipedia.org/wiki/Comma-separated_values>`_. It uses the same table statements as AMPL’s other data interfaces, but works directly with .csv files for speed and reliability.
+This page describes the AMPL interface for files in `CSV format <https://en.wikipedia.org/wiki/Comma-separated_values>`_. It uses the same table statements as AMPL’s other data interfaces, but works directly with .csv files for speed and reliability.
 
 If you are using .csv files with spreadsheet software, you may also be interested in AMPL’s :doc:`amplxl` that reads and writes .xlsx format files.
 
 Installation
 ------------
-Use one of the following links to download the csv table handler zipfile appropriate to your computer:
-
-* Windows: `amplcsv.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.win64.zip>`_, `amplcsv.win32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.win32.zip>`_
-* Linux: `amplcsv.linux64.zip (64-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.linux64.zip>`_, `amplcsv.linux32.zip (32-bit) <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.linux32.zip>`_
-* macOS: `amplcsv.macos.zip <https://portal.ampl.com/~nfbvs/amplcsv/amplcsv.macos.zip>`_
+The executable `amplcsv.dll` is included by default in most of the distributed bundles.
+If you don't have amplcsv yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `amplcsv.dll`. Then move `amplcsv.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 
@@ -78,11 +76,11 @@ If your system is configured to open .csv files in a spreadsheet program, howeve
 .. image:: amplcsvsp.png
 
 |
-Details of this image may differ, depending on your choice of spreadsheet software; in particular, the number of decimal places shown will depend on the width of the columns. If you are unable to get these results, please report the differences that you observed to beta@ampl.com, including the text of any error messages; also if `Buy.csv` is different, include it as an attachment.
+Details of this image may differ, depending on your choice of spreadsheet software; in particular, the number of decimal places shown will depend on the width of the columns. If you are unable to get these results, please report the differences that you observed to support@ampl.com, including the text of any error messages; also if `Buy.csv` is different, include it as an attachment.
 
 Learning more
 -------------
-The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to CSV files, the examples in that chapter can be adapted to work with the new amplcsv table handler. Thus we recommend reading at least sections 10.1 though 10.4 if you have not used any AMPL data table interface previously.
+The AMPL book’s chapter 10 `Database Access <https://ampl.com/BOOK/CHAPTERS/13-tables.pdf>`_ introduces the use of table statements for data transfer. Although the presentation is not specific to CSV files, the examples in that chapter can be adapted to work with the new amplcsv table handler. Thus we recommend reading at least sections 10.1 through 10.4 if you have not used any AMPL data table interface previously.
 
 The amplcsv table handler recognizes the following option strings when they are included in AMPL table statements. (After `load amplcsv.dll;` has been executed, you can also display this listing by use of the AMPL command `print _handler_desc["amplcsv"];`.)
 

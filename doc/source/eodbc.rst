@@ -18,12 +18,9 @@ If you are using spreadsheet software, you may also be interested in :doc:`amplx
 Installation
 ------------
 
-The executable `eodbc.dll` is included by default in most of the distributed bundles. If you dont't have eodbc yet
-use one of the following links to download the table handler zipfile appropriate to your computer:
-
-* Windows: `eodbc.win64.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.win64.zip>`_
-* Linux: `eodbc.linux64-unixodbc.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.linux64-unixodbc.zip>`_, `eodbc.linux64-iodbc.zip (64-bit) <https://portal.ampl.com/~nfbvs/eodbc/eodbc.linux64-iodbc.zip>`_
-* macOS: `eodbc.macos-unixodbc.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc.macos-unixodbc.zip>`_, `eodbc.macos-iodbc.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc.macos-iodbc.zip>`_
+The executable `eodbc.dll` is included by default in most of the distributed bundles.
+If you don't have eodbc yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `eodbc.dll`. Then move `eodbc.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 
