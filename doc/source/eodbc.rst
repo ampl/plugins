@@ -26,13 +26,13 @@ Double-click the zipfile or use an unzip utility to extract the file `eodbc.dll`
 
 .. note::
 
-	* To connect with a given database you will need to install the corresponding ODBC driver and provide a connection string. In the usage examples bellow you will find multiple connection strings for popular databases.
+	* To connect with a given database you will need to install the corresponding ODBC driver and provide a connection string. In the usage examples below you will find multiple connection strings for popular databases.
 	* In Linux and macOS systems you will also need to install an ODBC driver manager. Tipicaly unixODBC or iODBC.
 
 
 Example
 -------
-To confirm that your installation is working, download `eodbc-test.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an apropriate folder. Consider this as your test folder.
+To confirm that your installation is working, download `eodbc-test.zip <https://portal.ampl.com/~nfbvs/eodbc/eodbc-test.zip>`_. Double-click the zipfile or use an unzip utility to extract the contents into an appropriate folder. Consider this as your test folder.
 
 * If you are using command-line AMPL, start your AMPL session and use the `cd` command to move to your test folder.
 * If you are using the AMPL IDE, start the AMPL IDE, and use the IDE’s file pane (at the left) to make your test folder current.
