@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
-if(${CMAKE_VERSION} VERSION_LESS 3.11)
-  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-  cmake_policy(VERSION 3.11)
-endif()
-
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
 # Set version number for distribution package
