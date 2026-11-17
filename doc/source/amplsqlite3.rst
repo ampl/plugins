@@ -3,11 +3,7 @@
 amplsqlite3 - AMPL Driver for the SQLite3 database
 ==================================================
 
-.. note::
-    A beta test version of this new feature is now available.
-    Please send suggestions and error reports to beta@ampl.com.
-
-This page describes amplsqlite3, an experimental AMPL interface for `SQLite3 <https://www.sqlite.org>`_. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
+This page describes amplsqlite3, an AMPL interface for `SQLite3 <https://www.sqlite.org>`_. It uses the same table statements as AMPL’s other data interfaces and expects a relational table representation of the data.
 
 The amplsqlite3 driver includes it's own SQLite3 embedded database engine(version 3.45.1) so you don't need to install any additional software. You can use amplsqlite3 concurrently, with your local install of SQLite3 or just save the results in a .db file to be exported to another machine for the final data analysis.
 
@@ -19,8 +15,8 @@ Installation
 ------------
 
 The executable `amplsqlite3.dll` is included by default in most of the distributed bundles.
-If you dont't have amplsqlite3 yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
-**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with you platform.
+If you don't have amplsqlite3 yet go to the `AMPL Portal website <https://portal.ampl.com>`_, select
+**My Downloads**, scroll down to **Individual modules** and download the **plugins** module compatible with your platform.
 
 Double-click the zipfile or use an unzip utility to extract the file `amplsqlite3.dll`. Then move `amplsqlite3.dll` into the same Windows/macOS folder or Linux directory as your AMPL program file. (The AMPL program file is `ampl.exe` on Windows systems, and `ampl` on Linux and macOS systems.)
 

@@ -1,10 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.11)
-  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-  cmake_policy(VERSION 3.11)
-endif()
+cmake_minimum_required(VERSION 3.15...3.31)
 
 message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 
@@ -16,18 +10,8 @@ else()
 endif()
 message(STATUS "PACKAGE_VERSION: ${PACKAGE_VERSION}")
 
-# Use static MSVC runtime.
-# This should be done before the project command.
-function (override var file)
-  if (EXISTS "${file}")
-    set(${var} ${file} PARENT_SCOPE)
-  endif ()
-endfunction ()
-override(CMAKE_USER_MAKE_RULES_OVERRIDE
-  ${CMAKE_SOURCE_DIR}/cmake/c_flag_overrides.cmake)
-override(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
-  ${CMAKE_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
-
+# Select the MSVC runtime library
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(plugins VERSION 0.0.1 LANGUAGES CXX C)
 
@@ -73,8 +57,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # c++11 support
 set (CMAKE_CXX_STANDARD 11)
-
-
 
 # CTest
 include(CTest)

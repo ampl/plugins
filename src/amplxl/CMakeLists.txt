@@ -1,9 +1,12 @@
 # Build zlib from the included sources, it generates the target
 # zlibstatic that we can link statically to
-set(SKIP_INSTALL_ALL ON) # skip install targets of zlib
 
-set(Z_DIR zlib-1.3)
+set(Z_DIR zlib-1.4)
 set(MZ_DIR ${Z_DIR}/contrib/minizip)
+
+set(ZLIB_INSTALL OFF)
+set(ZLIB_BUILD_SHARED OFF)
+set(ZLIB_BUILD_TESTING OFF)
 
 add_subdirectory(${Z_DIR} EXCLUDE_FROM_ALL)
 set_property(TARGET zlibstatic PROPERTY POSITION_INDEPENDENT_CODE ON)
